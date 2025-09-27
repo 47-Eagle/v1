@@ -1,0 +1,11 @@
+[package]
+name = "eagle-vanity-generator"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+hex = "0.4"
+sha3 = "0.10"
+clap = { version = "4.0", features = ["derive"] }
+rayon = "1.7"
+indicatif = "0.17"
