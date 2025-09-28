@@ -28,7 +28,7 @@ const REGISTRY_ADDRESS = "0x472656c76f45E8a8a63FffD32aB5888898EeA91E";
 
 // Salts for deterministic deployment (generate new ones if needed)
 const DEPLOYMENT_SALTS = {
-    eagle: "0xe0000000023e5f2f0000000000000000000000000000000000000000000000000", // Your vanity salt
+    eagle: "0xe0000000023e5f2f000000000000000000000000000000000000000000000000", // Your vanity salt (fixed length)
     wlfiOFT: "0x0000000000000000000000000000000000000000000000000000000000000001",
     usd1OFT: "0x0000000000000000000000000000000000000000000000000000000000000002",
     composer: "0x0000000000000000000000000000000000000000000000000000000000000003"
@@ -80,6 +80,7 @@ async function deployWithCREATE2(
     contractName: string,
     contractPath: string, 
     constructorArgs: any[],
+    argTypes: string[],
     salt: string
 ): Promise<string> {
     
@@ -88,8 +89,7 @@ async function deployWithCREATE2(
     
     // Encode constructor arguments
     const encodedArgs = ethers.AbiCoder.defaultAbiCoder().encode(
-        // You'll need to specify the types based on the contract
-        ["address", "address"], // Adjust types as needed
+        argTypes,
         constructorArgs
     );
     
@@ -160,6 +160,7 @@ async function deployDeterministicEagleSystem() {
                     REGISTRY_ADDRESS,
                     deployer.address
                 ],
+                ["string", "string", "address", "address"],
                 DEPLOYMENT_SALTS.eagle
             );
             deployedAddresses.eagleShareOFT = eagleAddress;
@@ -180,6 +181,7 @@ async function deployDeterministicEagleSystem() {
                     currentChain.endpointV2,
                     deployer.address
                 ],
+                ["string", "string", "address", "address"],
                 DEPLOYMENT_SALTS.wlfiOFT
             );
             deployedAddresses.wlfiAssetOFT = wlfiOFTAddress;
@@ -200,6 +202,7 @@ async function deployDeterministicEagleSystem() {
                     currentChain.endpointV2,
                     deployer.address
                 ],
+                ["string", "string", "address", "address"],
                 DEPLOYMENT_SALTS.usd1OFT
             );
             deployedAddresses.usd1AssetOFT = usd1OFTAddress;
