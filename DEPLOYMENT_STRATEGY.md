@@ -30,19 +30,24 @@ The Eagle Vault system uses a **hybrid LayerZero architecture** depending on whe
    - Native token missing → Deploy Asset OFT
 3. **Cross-Chain Wiring**: Connect all deployed contracts via LayerZero peers
 
-## ⚙️ Contract Pairs
+## 📁 Organized Contract Structure
 
-### WLFI Contracts:
-- `WLFIAdapter.sol` - For chains with existing WLFI
-- `WLFIAssetOFT.sol` - For chains without WLFI
+### `contracts/layerzero-ovault/adapters/`
+**Use on chains WITH existing tokens:**
+- `WLFIAdapter.sol` - Wraps existing WLFI tokens
+- `USD1Adapter.sol` - Wraps existing USD1 tokens  
+- `EagleShareAdapter.sol` - Wraps $EAGLE vault shares (hub chain)
 
-### USD1 Contracts:
-- `USD1Adapter.sol` - For chains with existing USD1  
-- `USD1AssetOFT.sol` - For chains without USD1
+### `contracts/layerzero-ovault/oft/`
+**Use on chains WITHOUT existing tokens:**
+- `WLFIAssetOFT.sol` - Creates omnichain WLFI version
+- `USD1AssetOFT.sol` - Creates omnichain USD1 version
+- `EagleShareOFT.sol` - Creates new $EAGLE token (all chains)
+- `EagleShareOFTRegistry.sol` - Registry-based $EAGLE variant
 
-### $EAGLE Contracts:
-- `EagleShareOFT.sol` - For all chains (new token)
-- `EagleShareAdapter.sol` - Alternative approach if needed
+### `contracts/layerzero-ovault/composers/`
+**Cross-chain orchestration:**
+- `EagleComposer.sol` - Handles multi-chain vault operations
 
 ## 🔄 LayerZero Peer Configuration
 
