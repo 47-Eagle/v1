@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.22;
 
-import { EagleShareOFT } from "../layerzero-ovault/EagleShareOFT.sol";
+import { EagleShareOFT } from "../layerzero-ovault/oft/EagleShareOFT.sol";
 
 /**
  * @title DeterministicEagleFactory
