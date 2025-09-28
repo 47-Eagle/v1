@@ -7,8 +7,8 @@ echo "🦅 EAGLE VAULT MULTI-CHAIN DEPLOYMENT"
 echo "======================================"
 
 # Configuration
-NETWORKS=("ethereum" "arbitrum" "base" "bsc")
-SCRIPT="scripts/deploy-and-configure-complete.ts"
+NETWORKS=("ethereum" "bsc")
+SCRIPT="scripts/deploy-production-contracts.ts"
 
 # Colors for output
 RED='\033[0;31m'

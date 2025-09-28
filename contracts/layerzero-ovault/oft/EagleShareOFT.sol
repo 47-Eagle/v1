@@ -41,8 +41,9 @@ contract EagleShareOFT is OFT {
         
         CHAIN_REGISTRY = IChainRegistry(_registry);
         
-        // Cache the chain EID for gas optimization
-        CHAIN_EID = CHAIN_REGISTRY.getEID();
+        // Cache the chain EID for gas optimization using current chain ID
+        uint16 currentChainId = CHAIN_REGISTRY.getCurrentChainId();
+        CHAIN_EID = uint32(CHAIN_REGISTRY.getEidForChainId(uint256(currentChainId)));
         
         emit RegistryConfigured(
             _registry, 
@@ -60,10 +61,14 @@ contract EagleShareOFT is OFT {
     function _getEndpointFromRegistry(address _registry) private view returns (address) {
         if (_registry == address(0)) revert ZeroAddress();
         
-        // Query registry for chain-specific LayerZero endpoint
-        try IChainRegistry(_registry).getLZEndpoint() returns (address endpoint) {
-            if (endpoint == address(0)) revert ChainNotConfigured();
-            return endpoint;
+        try IChainRegistry(_registry).getCurrentChainId() returns (uint16 currentChainId) {
+            // Query registry for chain-specific LayerZero endpoint using current chain ID
+            try IChainRegistry(_registry).getLayerZeroEndpoint(currentChainId) returns (address endpoint) {
+                if (endpoint == address(0)) revert ChainNotConfigured();
+                return endpoint;
+            } catch {
+                revert RegistryCallFailed();
+            }
         } catch {
             revert RegistryCallFailed();
         }
@@ -89,8 +94,9 @@ contract EagleShareOFT is OFT {
      * @notice Get current chain configuration from registry
      * @return Chain configuration struct
      */
-    function getChainConfig() external view returns (IChainRegistry.ChainInfo memory) {
-        return CHAIN_REGISTRY.getChainInfo();
+    function getChainConfig() external view returns (IChainRegistry.ChainConfig memory) {
+        uint16 currentChainId = CHAIN_REGISTRY.getCurrentChainId();
+        return CHAIN_REGISTRY.getChainConfig(currentChainId);
     }
 
     /**
@@ -98,9 +104,13 @@ contract EagleShareOFT is OFT {
      * @return True if configuration is valid
      */
     function verifyConfiguration() external view returns (bool) {
-        try CHAIN_REGISTRY.getLZEndpoint() returns (address registryEndpoint) {
-            // Compare with the endpoint we were initialized with
-            return registryEndpoint == address(endpoint);
+        try CHAIN_REGISTRY.getCurrentChainId() returns (uint16 currentChainId) {
+            try CHAIN_REGISTRY.getLayerZeroEndpoint(currentChainId) returns (address registryEndpoint) {
+                // Compare with the endpoint we were initialized with
+                return registryEndpoint == address(endpoint);
+            } catch {
+                return false;
+            }
         } catch {
             return false;
         }
