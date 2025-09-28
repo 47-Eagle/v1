@@ -204,7 +204,7 @@ contract CharmAlphaVaultStrategy is ReentrancyGuard, Ownable {
     ) external onlyVault whenActive nonReentrant returns (uint256 shares) {
         if (wlfiAmount == 0 && usd1Amount == 0) return 0;
         
-        // Transfer tokens from EagleVault
+        // Transfer tokens from EagleOVault
         if (wlfiAmount > 0) {
             WLFI_TOKEN.safeTransferFrom(EAGLE_VAULT, address(this), wlfiAmount);
         }
@@ -264,7 +264,7 @@ contract CharmAlphaVaultStrategy is ReentrancyGuard, Ownable {
             shares,
             amount0Min,
             amount1Min,
-            EAGLE_VAULT // Send directly back to EagleVault
+            EAGLE_VAULT // Send directly back to EagleOVault
         );
         
         emit StrategyWithdraw(shares, wlfiAmount, usd1Amount);
