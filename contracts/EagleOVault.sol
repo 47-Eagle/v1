@@ -10,8 +10,8 @@ import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.s
 import { IStrategy } from "./interfaces/IStrategy.sol";
 
 /**
- * @title EagleVault
- * @notice LayerZero-compatible ERC4626 vault with pluggable yield strategies
+ * @title EagleOVault
+ * @notice LayerZero Omnichain Vault (OVault) - ERC4626 vault with pluggable yield strategies
  * @dev SECURITY FEATURES:
  *      - Reentrancy protection on all external functions
  *      - Zero address validation for critical parameters  
@@ -30,7 +30,7 @@ import { IStrategy } from "./interfaces/IStrategy.sol";
  *      - Automatic allocation based on strategy weights
  *      - Fallback to direct holding if no strategies active
  */
-contract EagleVault is ERC4626, Ownable, ReentrancyGuard {
+contract EagleOVault is ERC4626, Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     // =================================
@@ -109,7 +109,7 @@ contract EagleVault is ERC4626, Ownable, ReentrancyGuard {
     // =================================
     
     /**
-     * @notice Creates the Eagle Omnichain Vault
+     * @notice Creates the Eagle Omnichain Vault (OVault)
      * @dev Initializes as ERC4626 with WLFI as primary asset, USD1 as secondary
      * @param _wlfiToken The WLFI token contract (primary asset)
      * @param _usd1Token The USD1 token contract (secondary asset)
