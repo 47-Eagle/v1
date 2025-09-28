@@ -42,12 +42,30 @@ The Eagle Vault system uses a **hybrid LayerZero architecture** depending on whe
 **Use on chains WITHOUT existing tokens:**
 - `WLFIAssetOFT.sol` - Creates omnichain WLFI version
 - `USD1AssetOFT.sol` - Creates omnichain USD1 version
-- `EagleShareOFT.sol` - Creates new $EAGLE token (all chains)
-- `EagleShareOFTRegistry.sol` - Registry-based $EAGLE variant
+- `EagleShareOFT.sol` - Registry-based $EAGLE token for deterministic cross-chain addresses
 
 ### `contracts/layerzero-ovault/composers/`
 **Cross-chain orchestration:**
 - `EagleComposer.sol` - Handles multi-chain vault operations
+
+## 🚀 EagleShareOFT Deployment
+
+The `EagleShareOFT.sol` uses registry-based deployment for deterministic addresses:
+
+```solidity
+// Constructor: (name, symbol, registry, delegate)
+EagleShareOFT("Eagle Vault Shares", "EAGLE", registryAddress, deployer)
+```
+
+### Benefits:
+- ✅ **Same address across all chains**
+- ✅ **Vanity address support** (0x4747...EA91E)
+- ✅ **Future-proof** for endpoint changes
+- ✅ **Clean, simple architecture**
+
+### Requirements:
+- Universal registry deployed at same address on all chains
+- Registry properly configured with LayerZero endpoints for each chain
 
 ## 🔄 LayerZero Peer Configuration
 
