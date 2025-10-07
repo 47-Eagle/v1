@@ -4,6 +4,8 @@
 
 The vault injection mechanism sends 10% of swap fees (configurable) to a designated `vaultBeneficiary` address, which can accumulate shares and periodically bridge them to the hub chain or use them strategically. If no beneficiary is set, fees are burned instead.
 
+> 🧪 **Testing automatic documentation deployment!**
+
 ## Quick Start
 
 ### Set Vault Beneficiary
