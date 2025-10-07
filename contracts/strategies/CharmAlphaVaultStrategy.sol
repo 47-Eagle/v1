@@ -78,7 +78,7 @@ contract CharmAlphaVaultStrategy is ReentrancyGuard, Ownable {
     IERC20 public immutable USD1_TOKEN;
     
     /// @dev Strategy parameters
-    uint24 public poolFee = 3000; // 0.3% fee tier
+    uint24 public poolFee = 10000; // 0.3% fee tier
     uint256 public maxSlippage = 500; // 5% max slippage
     uint256 public rebalanceThreshold = 1000; // 10% deviation triggers rebalance
     

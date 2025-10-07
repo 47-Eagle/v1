@@ -56,3 +56,6 @@ logs/
 *.temp
 .tmp/
 .temp/
+# Auto-generated documentation
+docs-generated/
+docs-export/
