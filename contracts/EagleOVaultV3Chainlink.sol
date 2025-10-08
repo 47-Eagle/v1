@@ -337,8 +337,9 @@ contract EagleOVaultV3Chainlink is ERC4626, Ownable, ReentrancyGuard {
         uint256 totalUSDValue = calculateUSDValue(wlfiAmount, usd1Amount);
         
         // Calculate shares based on USD value
+        // Share ratio: 1 share = $0.01 (100 shares = $1)
         if (totalSupply() == 0) {
-            shares = totalUSDValue; // First deposit: 1 share = $1 USD
+            shares = totalUSDValue * 100; // First deposit: 100 shares = $1 USD
         } else {
             shares = (totalUSDValue * totalSupply()) / totalAssets();
         }
@@ -579,7 +580,8 @@ contract EagleOVaultV3Chainlink is ERC4626, Ownable, ReentrancyGuard {
         wlfiBalance += assets;
         
         uint256 usdValue = calculateUSDValue(assets, 0);
-        shares = totalSupply() == 0 ? usdValue : (usdValue * totalSupply()) / totalAssets();
+        // Share ratio: 1 share = $0.01 (100 shares = $1)
+        shares = totalSupply() == 0 ? usdValue * 100 : (usdValue * totalSupply()) / totalAssets();
         
         _mint(receiver, shares);
     }
