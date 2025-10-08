@@ -96,3 +96,7 @@ bsc-production-ready.json
 eagle-vanity-data.json
 vanity-result-found.json
 scripts/
+
+# Documentation and reference (keep local)
+docs/
+reference.sol
