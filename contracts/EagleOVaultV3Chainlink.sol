@@ -350,6 +350,12 @@ contract EagleOVaultV3Chainlink is ERC4626, Ownable, ReentrancyGuard {
         // Mint shares
         _mint(receiver, shares);
         
+        // Deploy to strategies if threshold met
+        if (_shouldDeployToStrategies()) {
+            _deployToStrategies(wlfiBalance, usd1Balance);
+            lastDeployment = block.timestamp;
+        }
+        
         emit DualDeposit(
             msg.sender,
             wlfiAmount,
@@ -410,9 +416,172 @@ contract EagleOVaultV3Chainlink is ERC4626, Ownable, ReentrancyGuard {
         }
     }
     
-    // Minimal implementation - add strategy management, etc. as needed
-    function addStrategy(address, uint256) external pure { revert("Not implemented"); }
-    function deposit(uint256, address) public pure override returns (uint256) { revert("Use depositDual"); }
-    function setPaused(bool) external pure { revert("Not implemented"); }
+    // =================================
+    // INTERNAL HELPERS
+    // =================================
+    
+    function _shouldDeployToStrategies() internal view returns (bool) {
+        if (totalStrategyWeight == 0) return false;
+        uint256 idleValue = calculateUSDValue(wlfiBalance, usd1Balance);
+        if (idleValue < deploymentThreshold) return false;
+        if (block.timestamp < lastDeployment + minDeploymentInterval) return false;
+        return true;
+    }
+    
+    function _deployToStrategies(uint256 wlfiAmount, uint256 usd1Amount) internal {
+        if (totalStrategyWeight == 0) return;
+        
+        uint256 totalValue = calculateUSDValue(wlfiAmount, usd1Amount);
+        if (totalValue == 0) return;
+        
+        for (uint256 i = 0; i < strategyList.length; i++) {
+            address strategy = strategyList[i];
+            if (activeStrategies[strategy] && strategyWeights[strategy] > 0) {
+                uint256 strategyValue = (totalValue * strategyWeights[strategy]) / 10000;
+                
+                // Proportional split
+                uint256 strategyWlfi = wlfiAmount > 0 ? (strategyValue * wlfiAmount) / totalValue : 0;
+                uint256 strategyUsd1 = usd1Amount > 0 ? (strategyValue * usd1Amount) / totalValue : 0;
+                
+                if (strategyWlfi > 0 || strategyUsd1 > 0) {
+                    wlfiBalance -= strategyWlfi;
+                    usd1Balance -= strategyUsd1;
+                    
+                    if (strategyWlfi > 0) WLFI_TOKEN.safeIncreaseAllowance(strategy, strategyWlfi);
+                    if (strategyUsd1 > 0) USD1_TOKEN.safeIncreaseAllowance(strategy, strategyUsd1);
+                    
+                    IStrategy(strategy).deposit(strategyWlfi, strategyUsd1);
+                }
+            }
+        }
+    }
+    
+    // =================================
+    // STRATEGY MANAGEMENT
+    // =================================
+    
+    function addStrategy(address strategy, uint256 weight) external {
+        require(msg.sender == manager || msg.sender == owner(), "Unauthorized");
+        require(!activeStrategies[strategy], "Already active");
+        require(strategyList.length < 5, "Max strategies");
+        require(weight > 0 && totalStrategyWeight + weight <= 10000, "Invalid weight");
+        require(IStrategy(strategy).isInitialized(), "Not initialized");
+        
+        activeStrategies[strategy] = true;
+        strategyWeights[strategy] = weight;
+        strategyList.push(strategy);
+        totalStrategyWeight += weight;
+    }
+    
+    function removeStrategy(address strategy) external {
+        require(msg.sender == manager || msg.sender == owner(), "Unauthorized");
+        require(activeStrategies[strategy], "Not active");
+        
+        // Withdraw from strategy first
+        (uint256 wlfi, uint256 usd1) = IStrategy(strategy).withdraw(type(uint256).max);
+        wlfiBalance += wlfi;
+        usd1Balance += usd1;
+        
+        activeStrategies[strategy] = false;
+        totalStrategyWeight -= strategyWeights[strategy];
+        strategyWeights[strategy] = 0;
+        
+        // Remove from list
+        for (uint256 i = 0; i < strategyList.length; i++) {
+            if (strategyList[i] == strategy) {
+                strategyList[i] = strategyList[strategyList.length - 1];
+                strategyList.pop();
+                break;
+            }
+        }
+    }
+    
+    function forceDeployToStrategies() external {
+        require(msg.sender == manager || msg.sender == owner(), "Unauthorized");
+        require(totalStrategyWeight > 0, "No strategies");
+        
+        _deployToStrategies(wlfiBalance, usd1Balance);
+        lastDeployment = block.timestamp;
+    }
+    
+    function setPaused(bool _paused) external onlyOwner {
+        paused = _paused;
+    }
+    
+    function setManager(address _manager) external onlyOwner {
+        require(_manager != address(0), "Zero address");
+        manager = _manager;
+    }
+    
+    function setDeploymentParams(uint256 _threshold, uint256 _interval) external onlyOwner {
+        deploymentThreshold = _threshold;
+        minDeploymentInterval = _interval;
+    }
+    
+    // =================================
+    // WITHDRAWAL
+    // =================================
+    
+    function withdrawDual(uint256 shares, address receiver) external nonReentrant returns (uint256 wlfiAmount, uint256 usd1Amount) {
+        require(shares > 0, "Zero shares");
+        require(receiver != address(0), "Zero address");
+        require(balanceOf(msg.sender) >= shares, "Insufficient balance");
+        
+        uint256 totalAssetAmount = totalAssets();
+        uint256 totalShares = totalSupply();
+        
+        uint256 totalWithdrawValue = (totalAssetAmount * shares) / totalShares;
+        
+        // Try vault direct balance first
+        uint256 wlfiFromVault = (wlfiBalance * shares) / totalShares;
+        uint256 usd1FromVault = (usd1Balance * shares) / totalShares;
+        
+        wlfiAmount = wlfiFromVault;
+        usd1Amount = usd1FromVault;
+        
+        // If need more, withdraw from strategies
+        uint256 directValue = calculateUSDValue(wlfiFromVault, usd1FromVault);
+        if (directValue < totalWithdrawValue) {
+            uint256 needFromStrategy = totalWithdrawValue - directValue;
+            
+            for (uint256 i = 0; i < strategyList.length; i++) {
+                if (activeStrategies[strategyList[i]] && needFromStrategy > 0) {
+                    (uint256 wlfi, uint256 usd1) = IStrategy(strategyList[i]).withdraw(needFromStrategy);
+                    wlfiBalance += wlfi;
+                    usd1Balance += usd1;
+                    wlfiAmount += wlfi;
+                    usd1Amount += usd1;
+                    
+                    uint256 received = calculateUSDValue(wlfi, usd1);
+                    needFromStrategy = received >= needFromStrategy ? 0 : needFromStrategy - received;
+                }
+            }
+        }
+        
+        // Burn shares
+        _burn(msg.sender, shares);
+        
+        // Update balances
+        wlfiBalance -= wlfiFromVault;
+        usd1Balance -= usd1FromVault;
+        
+        // Transfer tokens
+        if (wlfiAmount > 0) WLFI_TOKEN.safeTransfer(receiver, wlfiAmount);
+        if (usd1Amount > 0) USD1_TOKEN.safeTransfer(receiver, usd1Amount);
+    }
+    
+    // ERC4626 standard deposit - use depositDual instead for dual-token
+    function deposit(uint256 assets, address receiver) public override nonReentrant returns (uint256 shares) {
+        require(!paused, "Paused");
+        require(assets > 0, "Zero amount");
+        
+        WLFI_TOKEN.safeTransferFrom(msg.sender, address(this), assets);
+        wlfiBalance += assets;
+        
+        uint256 usdValue = calculateUSDValue(assets, 0);
+        shares = totalSupply() == 0 ? usdValue : (usdValue * totalSupply()) / totalAssets();
+        
+        _mint(receiver, shares);
+    }
 }
 
