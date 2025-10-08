@@ -90,3 +90,9 @@ scripts/trigger-*.ts
 scripts/deposit-*.ts
 scripts/force-*.ts
 scripts/remove-*.ts
+
+# Test and development files (keep local)
+bsc-production-ready.json
+eagle-vanity-data.json
+vanity-result-found.json
+scripts/
