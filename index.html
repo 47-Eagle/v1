@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🦅 Eagle Vault Analytics</title>
+    <script src="https://cdn.ethers.io/lib/ethers-5.7.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 2rem;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .header .vault-address {
+            opacity: 0.9;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        
+        .card h2 {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .big-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #4CAF50;
+            margin: 1rem 0;
+        }
+        
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .metric-row:last-child {
+            border-bottom: none;
+        }
+        
+        .label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .value {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .positive { color: #4CAF50; }
+        .negative { color: #f44336; }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .status-healthy {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .status-warning {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 0.5rem 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            transition: width 0.3s ease;
+        }
+        
+        .loading {
+            text-align: center;
+            color: white;
+            font-size: 1.2rem;
+            padding: 3rem;
+        }
+        
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 1rem;
+        }
+        
+        button:hover {
+            background: #45a049;
+        }
+        
+        .full-width {
+            grid-column: 1 / -1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🦅 Eagle Vault Analytics</h1>
+            <div class="vault-address">Vault: 0x4f00fAB0361009d975Eb04E172268Bf1E73737bC</div>
+        </div>
+        
+        <div id="loading" class="loading">
+            Loading vault data...
+        </div>
+        
+        <div id="dashboard" class="dashboard" style="display: none;">
+            <!-- Cards will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const VAULT_ADDRESS = '0x4f00fAB0361009d975Eb04E172268Bf1E73737bC';
+        const STRATEGY_ADDRESS = '0x0Ba80Ce1c8e4487C9EeA179150D09Ec2cbCb5Aa1';
+        const ARBITRUM_RPC = 'https://arb1.arbitrum.io/rpc';
+        
+        // ABIs
+        const VAULT_ABI = [
+            'function totalAssets() external view returns (uint256)',
+            'function totalSupply() external view returns (uint256)',
+            'function getVaultBalances() external view returns (uint256, uint256)',
+            'function paused() external view returns (bool)'
+        ];
+        
+        const STRATEGY_ABI = [
+            'function getTotalAmounts() external view returns (uint256, uint256)',
+            'function getMeagleBalance() external view returns (uint256)'
+        ];
+        
+        // Initialize provider
+        const provider = new ethers.providers.JsonRpcProvider(ARBITRUM_RPC);
+        const vault = new ethers.Contract(VAULT_ADDRESS, VAULT_ABI, provider);
+        const strategy = new ethers.Contract(STRATEGY_ADDRESS, STRATEGY_ABI, provider);
+        
+        // Load data
+        async function loadVaultData() {
+            try {
+                // Fetch all data in parallel
+                const [totalAssets, totalSupply, vaultBalances, isPaused, strategyAmounts, meagleBalance] = await Promise.all([
+                    vault.totalAssets(),
+                    vault.totalSupply(),
+                    vault.getVaultBalances(),
+                    vault.paused(),
+                    strategy.getTotalAmounts(),
+                    strategy.getMeagleBalance()
+                ]);
+                
+                // Parse data
+                const total = parseFloat(ethers.utils.formatEther(totalAssets));
+                const supply = parseFloat(ethers.utils.formatEther(totalSupply));
+                const vaultWlfi = parseFloat(ethers.utils.formatEther(vaultBalances[0]));
+                const vaultUsd1 = parseFloat(ethers.utils.formatEther(vaultBalances[1]));
+                const stratWlfi = parseFloat(ethers.utils.formatEther(strategyAmounts[0]));
+                const stratUsd1 = parseFloat(ethers.utils.formatEther(strategyAmounts[1]));
+                const meagle = parseFloat(ethers.utils.formatEther(meagleBalance));
+                
+                const directValue = vaultWlfi + vaultUsd1;
+                const strategyValue = stratWlfi + stratUsd1;
+                const sharePrice = supply > 0 ? total / supply : 1.0;
+                const priceChange = ((sharePrice - 1.0) / 1.0) * 100;
+                
+                // Calculate APR
+                const directPct = total > 0 ? (directValue / total) * 100 : 0;
+                const strategyPct = total > 0 ? (strategyValue / total) * 100 : 0;
+                const weightedAPR = (directPct * 0 + strategyPct * 13.5) / 100;
+                
+                // Render dashboard
+                renderDashboard({
+                    totalValue: total,
+                    sharePrice,
+                    priceChange,
+                    totalSupply: supply,
+                    directValue,
+                    strategyValue,
+                    directPct,
+                    strategyPct,
+                    meagleBalance: meagle,
+                    estimatedAPR: weightedAPR,
+                    isPaused
+                });
+                
+            } catch (error) {
+                console.error('Error loading vault data:', error);
+                document.getElementById('loading').innerHTML = '❌ Error loading data. Check console.';
+            }
+        }
+        
+        function renderDashboard(data) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'grid';
+            
+            const dashboard = document.getElementById('dashboard');
+            dashboard.innerHTML = `
+                <!-- Total Value Card -->
+                <div class="card full-width">
+                    <h2>💰 Total Vault Value</h2>
+                    <div class="big-number">$${data.totalValue.toLocaleString('en-US', {maximumFractionDigits: 2})}</div>
+                    <div class="metric-row">
+                        <span class="label">Direct Holdings</span>
+                        <span class="value">$${data.directValue.toFixed(2)} (${data.directPct.toFixed(0)}%)</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="label">In Strategies</span>
+                        <span class="value">$${data.strategyValue.toFixed(2)} (${data.strategyPct.toFixed(0)}%)</span>
+                    </div>
+                </div>
+                
+                <!-- Share Price Card -->
+                <div class="card">
+                    <h2>💵 EAGLE Price</h2>
+                    <div class="big-number">$${data.sharePrice.toFixed(4)}</div>
+                    <div class="metric-row">
+                        <span class="label">Change</span>
+                        <span class="value ${data.priceChange >= 0 ? 'positive' : 'negative'}">
+                            ${data.priceChange >= 0 ? '▲' : '▼'} ${Math.abs(data.priceChange).toFixed(2)}%
+                        </span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="label">Total Supply</span>
+                        <span class="value">${data.totalSupply.toLocaleString()} EAGLE</span>
+                    </div>
+                </div>
+                
+                <!-- APR Card -->
+                <div class="card">
+                    <h2>📊 Estimated APR</h2>
+                    <div class="big-number">${data.estimatedAPR.toFixed(2)}%</div>
+                    <div class="metric-row">
+                        <span class="label">Direct (${data.directPct.toFixed(0)}%)</span>
+                        <span class="value">0%</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="label">Charm (${data.strategyPct.toFixed(0)}%)</span>
+                        <span class="value">13.5%</span>
+                    </div>
+                </div>
+                
+                <!-- Strategy Breakdown Card -->
+                <div class="card full-width">
+                    <h2>📈 Strategy Allocation</h2>
+                    <div style="margin-bottom: 1rem;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span><strong>#1 Charm Finance (Uniswap V3)</strong></span>
+                            <span class="status-badge status-healthy">12-15% APR</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="label">Value</span>
+                            <span class="value">$${data.strategyValue.toFixed(2)}</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="label">Allocation</span>
+                            <span class="value">${data.strategyPct.toFixed(1)}%</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="label">MEAGLE Held</span>
+                            <span class="value">${data.meagleBalance.toFixed(2)}</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${data.strategyPct}%"></div>
+                        </div>
+                    </div>
+                    <div style="color: #666; font-size: 0.9rem;">
+                        💡 Can support up to 5 strategies simultaneously
+                    </div>
+                </div>
+                
+                <!-- Liquidity Card -->
+                <div class="card">
+                    <h2>💧 Withdrawal Liquidity</h2>
+                    <div class="big-number">${data.directPct.toFixed(0)}%</div>
+                    <div class="metric-row">
+                        <span class="label">Instant Withdrawal</span>
+                        <span class="value">$${data.directValue.toFixed(2)}</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="label">From Strategies</span>
+                        <span class="value">$${data.strategyValue.toFixed(2)}</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${data.directPct}%"></div>
+                    </div>
+                    <div style="margin-top: 1rem;">
+                        <span class="status-badge ${data.directPct > 25 ? 'status-healthy' : 'status-warning'}">
+                            ${data.directPct > 50 ? '✅ Excellent' : data.directPct > 25 ? '✅ Good' : '⚠️ Low'}
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Health Status Card -->
+                <div class="card">
+                    <h2>🏥 Vault Health</h2>
+                    <div class="metric-row">
+                        <span class="label">Status</span>
+                        <span class="value">
+                            <span class="status-badge ${!data.isPaused ? 'status-healthy' : 'status-warning'}">
+                                ${!data.isPaused ? '✅ Active' : '⚠️ Paused'}
+                            </span>
+                        </span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="label">Total Assets</span>
+                        <span class="value">$${data.totalValue.toLocaleString()}</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="label">Strategies</span>
+                        <span class="value">
+                            <span class="status-badge status-healthy">✅ Active</span>
+                        </span>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Auto-refresh every 30 seconds
+        loadVaultData();
+        setInterval(loadVaultData, 30000);
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🦅 Eagle Vault Analytics</h1>
+            <div class="vault-address">Live on Arbitrum • Updates every 30s</div>
+        </div>
+        
+        <div id="loading" class="loading">
+            Loading vault data from Arbitrum...
+        </div>
+        
+        <div id="dashboard" class="dashboard"></div>
+    </div>
+</body>
+</html>
+
