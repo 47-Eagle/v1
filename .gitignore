@@ -59,3 +59,34 @@ logs/
 # Auto-generated documentation
 docs-generated/
 docs-export/
+
+# Test documentation and scripts (keep local only)
+ARBITRUM_*.md
+ASSET_*.md
+CHARM_*.md
+COMPOSER_*.md
+DEPLOY_*.md
+EAGLEOVAULT_*.md
+GITHUB_*.md
+HYBRID_*.md
+IMPLEMENTATION_*.md
+OPEN_*.md
+QUICK_*.md
+REBALANCING_*.md
+SMART_*.md
+START_*.md
+STUCK_*.md
+TESTING_*.md
+VAULT_*.md
+WHEN_*.md
+WHY_*.md
+docs/yearn/
+vanity-generator/
+scripts/test-*.ts
+scripts/check-*.ts
+scripts/deploy-arbitrum-*.ts
+scripts/verify-*.ts
+scripts/trigger-*.ts
+scripts/deposit-*.ts
+scripts/force-*.ts
+scripts/remove-*.ts
