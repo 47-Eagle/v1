@@ -100,3 +100,8 @@ scripts/
 # Documentation and reference (keep local)
 docs/
 reference.sol
+
+# Vanity and test JSON files
+bsc-production-ready.json
+eagle-vanity-data.json
+vanity-result-found.json
