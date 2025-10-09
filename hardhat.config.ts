@@ -1,6 +1,6 @@
 import { HardhatUserConfig } from 'hardhat/config'
 import '@nomicfoundation/hardhat-toolbox'
-// import '@layerzerolabs/devtools-evm-hardhat' // ESM issue - will use CLI separately
+// import '@layerzerolabs/toolbox-hardhat' // ESM compatibility issue - use CLI separately
 
 const accounts: string[] = []
 if (process.env.PRIVATE_KEY) {
@@ -54,6 +54,11 @@ const config: HardhatUserConfig = {
       url: 'https://api.avax.network/ext/bc/C/rpc',
       accounts,
       chainId: 43114,
+    },
+    sonic: {
+      url: process.env.SONIC_RPC_URL || 'https://rpc.soniclabs.com',
+      accounts,
+      chainId: 146,
     },
     // TESTNETS
     sepolia: {

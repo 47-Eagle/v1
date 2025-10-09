@@ -97,6 +97,7 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "@layerzerolabs/toolbox-hardhat": "^0.6.12",
     "@types/react": "^19.1.14",
     "@types/react-dom": "^19.1.9",
     "@uniswap/v3-periphery": "^1.4.4",
