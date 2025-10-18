@@ -18,11 +18,10 @@ interface Props {
 }
 
 export default function VaultOverview({ provider, account }: Props) {
-  const [tvl, setTvl] = useState('0');
+  const [totalAssets, setTotalAssets] = useState('0');
   const [totalSupply, setTotalSupply] = useState('0');
   const [vEagleBalance, setVEagleBalance] = useState('0');
   const [eagleBalance, setEagleBalance] = useState('0');
-  const [sharePrice, setSharePrice] = useState('0');
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
@@ -33,22 +32,16 @@ export default function VaultOverview({ provider, account }: Props) {
         const vault = new Contract(CONTRACTS.VAULT, VAULT_ABI, provider);
         const oft = new Contract(CONTRACTS.OFT, OFT_ABI, provider);
         
-        const [totalAssets, supply] = await Promise.all([
+        const [assets, supply] = await Promise.all([
           vault.totalAssets(),
           vault.totalSupply(),
         ]);
         
-        const tvlFormatted = formatEther(totalAssets);
+        const assetsFormatted = formatEther(assets);
         const supplyFormatted = formatEther(supply);
         
-        setTvl(tvlFormatted);
+        setTotalAssets(assetsFormatted);
         setTotalSupply(supplyFormatted);
-        
-        // Calculate share price (assets per share)
-        const price = Number(supply) > 0 
-          ? (Number(totalAssets) / Number(supply)).toString()
-          : '1';
-        setSharePrice(Number(price).toFixed(6));
         
         if (account) {
           const [vEagle, eagle] = await Promise.all([
@@ -124,7 +117,7 @@ export default function VaultOverview({ provider, account }: Props) {
           ) : (
             <>
               <p className="text-3xl font-bold text-white">
-                ${(((Number(vEagleBalance) + Number(eagleBalance)) / 80000)).toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                ${((Number(vEagleBalance) + Number(eagleBalance)) / 80000).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
               <div className="text-sm text-gray-500 mt-2 space-y-1">
                 <div className="flex justify-between">
@@ -148,10 +141,10 @@ export default function VaultOverview({ provider, account }: Props) {
           ) : (
             <>
               <p className="text-3xl font-bold bg-gradient-to-r from-eagle-gold-lightest to-eagle-gold bg-clip-text text-transparent">
-                ${(Number(sharePrice) / 80000).toFixed(8)}
+                ${(1 / 80000).toFixed(8)}
               </p>
               <p className="text-sm text-gray-500 mt-2">
-                {sharePrice} WLFI per share
+                1 vEAGLE = $0.0000125
               </p>
             </>
           )}
@@ -165,7 +158,7 @@ export default function VaultOverview({ provider, account }: Props) {
           ) : (
             <>
               <p className="text-3xl font-bold text-white">
-                ${(Number(tvl) * 0.125).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                ${Number(totalAssets).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
               <p className="text-sm text-gray-500 mt-2">
                 {Number(totalSupply).toLocaleString(undefined, { maximumFractionDigits: 0 })} total shares
