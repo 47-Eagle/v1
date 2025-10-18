@@ -1,7 +1,7 @@
 // Privy Configuration for Eagle Finance
 export const PRIVY_CONFIG = {
-  // Get your app ID from: https://dashboard.privy.io
-  appId: import.meta.env.VITE_PRIVY_APP_ID || 'your-privy-app-id-here',
+  // App ID (safe to expose in frontend)
+  appId: import.meta.env.VITE_PRIVY_APP_ID || 'cmgobg65m0328jr0cmgcfd2jz',
   
   // Configure which login methods to show
   loginMethods: ['email', 'wallet', 'google', 'twitter'] as const,
