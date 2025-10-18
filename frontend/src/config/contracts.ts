@@ -1,9 +1,9 @@
-// Deployed contract addresses on Ethereum (PRODUCTION - October 18, 2025) - Vanity 0x47...ea91e
+// Deployed contract addresses on Ethereum (PRODUCTION - October 18, 2025)
 export const CONTRACTS = {
-  VAULT: '0x47ff05aaf066f50baefdcfdcadf63d3762eea91e',       // NEW Vanity EagleOVault
+  VAULT: '0xA2f437252Bd1479aBE69A249DD95Fa0F39aCb58d',       // EagleOVault V4 (Underflow FIXED!)
   OFT: '0x477d42841dC5A7cCBc2f72f4448f5eF6B61eA91E',         // EagleShareOFT
   WRAPPER: '0x47d5768f68fb10e1d068673fde07b8a0cabea91e',     // EagleVaultWrapper
-  STRATEGY: '0xb1571A0f815dCBbF649AD2eE4a18dc2D085780B8',    // CharmStrategy V2 (Fixed approvals!)
+  STRATEGY: '0xb1571A0f815dCBbF649AD2eE4a18dc2D085780B8',    // CharmStrategy V2 (Approvals fixed!)
   CHARM_VAULT: '0x3314e248F3F752Cd16939773D83bEb3a362F0AEF', // Charm Alpha Vault
   
   // Token addresses (REAL tokens!)

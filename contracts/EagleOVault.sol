@@ -660,6 +660,10 @@ contract EagleOVault is ERC4626, Ownable, ReentrancyGuard {
                 uint256 strategyWlfi = wlfiAmount > 0 ? (strategyValue * wlfiAmount) / totalValue : 0;
                 uint256 strategyUsd1 = usd1Amount > 0 ? (strategyValue * usd1Amount) / totalValue : 0;
                 
+                // Cap at available balance (prevent rounding-induced underflow)
+                if (strategyWlfi > wlfiBalance) strategyWlfi = wlfiBalance;
+                if (strategyUsd1 > usd1Balance) strategyUsd1 = usd1Balance;
+                
                 if (strategyWlfi > 0 || strategyUsd1 > 0) {
                     wlfiBalance -= strategyWlfi;
                     usd1Balance -= strategyUsd1;
