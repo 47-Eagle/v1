@@ -246,15 +246,29 @@ contract EagleOVault is ERC4626, Ownable, ReentrancyGuard {
     }
     
     /**
-     * @notice Get WLFI price in USD using Uniswap TWAP and Chainlink
+     * @notice Get WLFI price in USD using multi-source validation
      * @return price WLFI price in USD (18 decimals)
+     * @dev Uses TWAP with spot price sanity check for robustness
      */
     function getWLFIPrice() public view returns (uint256 price) {
-        // Get WLFI price in USD1 terms from Uniswap TWAP
-        uint256 wlfiInUsd1 = _getWLFIinUSD1FromTWAP();
-        
         // Get USD1 price in USD from Chainlink
         uint256 usd1InUSD = getUSD1Price();
+        
+        // Get WLFI price in USD1 terms from primary source (TWAP)
+        uint256 wlfiInUsd1 = _getWLFIinUSD1FromTWAP();
+        
+        // Sanity check: Compare TWAP with spot price
+        // If they differ by more than 20%, use spot price (more reliable for low liquidity)
+        uint256 spotPrice = _getSpotPrice();
+        
+        // Check if TWAP and spot are reasonably close
+        uint256 diff = wlfiInUsd1 > spotPrice ? wlfiInUsd1 - spotPrice : spotPrice - wlfiInUsd1;
+        uint256 threshold = (spotPrice * 20) / 100; // 20% threshold
+        
+        if (diff > threshold) {
+            // TWAP deviates too much, use spot price
+            wlfiInUsd1 = spotPrice;
+        }
         
         // Calculate WLFI price in USD: WLFI/USD = (WLFI/USD1) × (USD1/USD)
         price = (wlfiInUsd1 * usd1InUSD) / 1e18;
@@ -334,42 +348,51 @@ contract EagleOVault is ERC4626, Ownable, ReentrancyGuard {
      * @notice Convert Uniswap tick to price (simplified)
      */
     function _sqrtPriceFromTick(int24 tick) internal pure returns (uint256 price) {
-        // Proper tick to price conversion using exponential formula
+        // PROPER tick to price conversion using Uniswap's formula
         // Price = 1.0001^tick
+        // We use binary exponentiation for accuracy
         
         uint256 absTick = tick < 0 ? uint256(-int256(tick)) : uint256(int256(tick));
+        require(absTick <= 887272, 'T'); // Max tick for overflow protection
         
-        // Use lookup table for common ranges or calculate
-        // For tick = 20587, we need 1.0001^20587
-        // This is approximately e^(tick * ln(1.0001))
+        // Calculate 1.0001^absTick using binary exponentiation
+        // Start with ratio = sqrt(1.0001) for precision
+        uint256 ratio = absTick & 0x1 != 0 ? 0xfffcb933bd6fad37aa2d162d1a594001 : 0x100000000000000000000000000000000;
         
-        // Simplified: Use ratio = 1.0001^tick
-        // For positive ticks: ratio > 1 (token1 > token0)
-        // For negative ticks: ratio < 1 (token0 > token1)
+        if (absTick & 0x2 != 0) ratio = (ratio * 0xfff97272373d413259a46990580e213a) >> 128;
+        if (absTick & 0x4 != 0) ratio = (ratio * 0xfff2e50f5f656932ef12357cf3c7fdcc) >> 128;
+        if (absTick & 0x8 != 0) ratio = (ratio * 0xffe5caca7e10e4e61c3624eaa0941cd0) >> 128;
+        if (absTick & 0x10 != 0) ratio = (ratio * 0xffcb9843d60f6159c9db58835c926644) >> 128;
+        if (absTick & 0x20 != 0) ratio = (ratio * 0xff973b41fa98c081472e6896dfb254c0) >> 128;
+        if (absTick & 0x40 != 0) ratio = (ratio * 0xff2ea16466c96a3843ec78b326b52861) >> 128;
+        if (absTick & 0x80 != 0) ratio = (ratio * 0xfe5dee046a99a2a811c461f1969c3053) >> 128;
+        if (absTick & 0x100 != 0) ratio = (ratio * 0xfcbe86c7900a88aedcffc83b479aa3a4) >> 128;
+        if (absTick & 0x200 != 0) ratio = (ratio * 0xf987a7253ac413176f2b074cf7815e54) >> 128;
+        if (absTick & 0x400 != 0) ratio = (ratio * 0xf3392b0822b70005940c7a398e4b70f3) >> 128;
+        if (absTick & 0x800 != 0) ratio = (ratio * 0xe7159475a2c29b7443b29c7fa6e889d9) >> 128;
+        if (absTick & 0x1000 != 0) ratio = (ratio * 0xd097f3bdfd2022b8845ad8f792aa5825) >> 128;
+        if (absTick & 0x2000 != 0) ratio = (ratio * 0xa9f746462d870fdf8a65dc1f90e061e5) >> 128;
+        if (absTick & 0x4000 != 0) ratio = (ratio * 0x70d869a156d2a1b890bb3df62baf32f7) >> 128;
+        if (absTick & 0x8000 != 0) ratio = (ratio * 0x31be135f97d08fd981231505542fcfa6) >> 128;
+        if (absTick & 0x10000 != 0) ratio = (ratio * 0x9aa508b5b7a84e1c677de54f3e99bc9) >> 128;
+        if (absTick & 0x20000 != 0) ratio = (ratio * 0x5d6af8dedb81196699c329225ee604) >> 128;
+        if (absTick & 0x40000 != 0) ratio = (ratio * 0x2216e584f5fa1ea926041bedfe98) >> 128;
+        if (absTick & 0x80000 != 0) ratio = (ratio * 0x48a170391f7dc42444e8fa2) >> 128;
+
+        // Adjust for negative ticks
+        if (tick < 0) ratio = type(uint256).max / ratio;
         
-        uint256 ratio = 1e18; // Start at 1.0
+        // Convert from sqrtPrice (Q128) to price
+        // price = (ratio / 2^128)^2 = ratio^2 / 2^256
+        // But we want price in 1e18 format
+        uint256 priceX128 = (ratio * ratio) >> 128;
+        price = (priceX128 * 1e18) >> 128;
         
-        // Approximate using Taylor series: (1 + x)^n ≈ 1 + nx for small x
-        // 1.0001 = 1 + 0.0001, so 1.0001^tick ≈ 1 + (tick * 0.0001)
-        // This is accurate enough for our needs
-        
-        if (tick > 0) {
-            // ratio = 1 + (tick * 0.0001) = 1 + (tick / 10000)
-            ratio = 1e18 + ((absTick * 1e18) / 10000);
-        } else if (tick < 0) {
-            // ratio = 1 / (1 + (|tick| * 0.0001))
-            uint256 denomRatio = 1e18 + ((absTick * 1e18) / 10000);
-            ratio = (1e36) / denomRatio; // Invert
-        }
-        
-        // Both USD1 and WLFI are 18 decimals, so no decimal adjustment needed
-        // ratio is already in the correct format (WLFI per USD1)
-        
-        // Invert to get USD1 per WLFI (since we want WLFI price in USD1 terms)
-        if (ratio > 0) {
-            price = (1e18 * 1e18) / ratio;
+        // Invert to get USD1 per WLFI (since ratio gives WLFI per USD1)
+        if (price > 0) {
+            price = (1e18 * 1e18) / price;
         } else {
-            price = 1e18; // Default to $1 if calculation fails
+            price = 1e18;
         }
         
         // Safety bounds

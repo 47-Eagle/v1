@@ -31,8 +31,8 @@ fn main() {
         .try_into()
         .unwrap();
     
-    // REAL WLFI token hash
-    let init_code_hash: [u8; 32] = hex::decode("bdcac092877d46e8155704146da96762430793841d3fad3b259b6cc2b085134f")
+    // Fixed oracle with proper tick conversion
+    let init_code_hash: [u8; 32] = hex::decode("c55bfd808d2478e0042f3f2dc63a564993600c6d7e608609b60a098aaa52b601")
         .unwrap()
         .try_into()
         .unwrap();
