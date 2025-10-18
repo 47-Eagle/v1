@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BrowserProvider, Contract, parseEther, parseUnits, formatEther, formatUnits } from 'ethers';
+import { BrowserProvider, Contract, parseEther, formatEther, formatUnits, MaxUint256 } from 'ethers';
 import { CONTRACTS } from '../config/contracts';
 
 const VAULT_ABI = [
@@ -16,6 +16,7 @@ const VAULT_ABI = [
 const ERC20_ABI = [
   'function approve(address spender, uint256 amount) returns (bool)',
   'function balanceOf(address) view returns (uint256)',
+  'function allowance(address owner, address spender) view returns (uint256)',
 ];
 
 interface Props {
@@ -115,18 +116,29 @@ export default function VaultActions({ provider, account, onConnect, onToast }: 
       const wlfiWei = parseEther(wlfiAmount);
       const usd1Wei = parseEther(usd1Amount); // USD1 is 18 decimals (verified on Etherscan)
 
-      // Approve tokens (wait for each to confirm)
-      onToast({ message: 'Approving WLFI...', type: 'info' });
-      const wlfiApproveTx = await wlfi.approve(CONTRACTS.VAULT, wlfiWei);
-      await wlfiApproveTx.wait();
+      // Check and approve WLFI if needed
+      const wlfiAllowance = await wlfi.allowance(account, CONTRACTS.VAULT);
+      if (wlfiAllowance < wlfiWei) {
+        onToast({ message: 'Approving WLFI...', type: 'info' });
+        const maxApproval = MaxUint256; // Approve max to avoid future approvals
+        const wlfiApproveTx = await wlfi.approve(CONTRACTS.VAULT, maxApproval);
+        await wlfiApproveTx.wait();
+        onToast({ message: 'WLFI approved!', type: 'success' });
+      }
       
+      // Check and approve USD1 if needed
       if (Number(usd1Amount) > 0) {
-        onToast({ message: 'Approving USD1...', type: 'info' });
-        const usd1ApproveTx = await usd1.approve(CONTRACTS.VAULT, usd1Wei);
-        await usd1ApproveTx.wait();
+        const usd1Allowance = await usd1.allowance(account, CONTRACTS.VAULT);
+        if (usd1Allowance < usd1Wei) {
+          onToast({ message: 'Approving USD1...', type: 'info' });
+          const maxApproval = ethers.MaxUint256;
+          const usd1ApproveTx = await usd1.approve(CONTRACTS.VAULT, maxApproval);
+          await usd1ApproveTx.wait();
+          onToast({ message: 'USD1 approved!', type: 'success' });
+        }
       }
 
-      onToast({ message: 'Depositing...', type: 'info' });
+      onToast({ message: 'Depositing to vault...', type: 'info' });
       const depositTx = await vault.depositDual(wlfiWei, usd1Wei);
       const receipt = await depositTx.wait();
 
