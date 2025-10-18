@@ -119,8 +119,8 @@ export default function VaultActions({ provider, account, onConnect, onToast }: 
       const wlfi = new Contract(CONTRACTS.WLFI, ERC20_ABI, signer);
       const usd1 = new Contract(CONTRACTS.USD1, ERC20_ABI, signer);
 
-      const wlfiWei = parseEther(wlfiAmount);
-      const usd1Wei = parseEther(usd1Amount); // USD1 is 18 decimals (verified on Etherscan)
+      const wlfiWei = parseEther(wlfiAmount || '0');
+      const usd1Wei = parseEther(usd1Amount || '0'); // USD1 is 18 decimals (verified on Etherscan)
 
       // Check and approve WLFI if needed
       const wlfiAllowance = await wlfi.allowance(account, CONTRACTS.VAULT);
