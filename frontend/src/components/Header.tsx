@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { BrowserProvider, Contract, formatEther } from 'ethers';
-import { usePrivy } from '@privy-io/react-auth';
+import { useDisconnect } from '@web3modal/ethers/react';
 import { CONTRACTS } from '../config/contracts';
 import NetworkSelector from './NetworkSelector';
 
@@ -13,7 +13,7 @@ interface HeaderProps {
 const VAULT_ABI = ['function getWLFIPrice() view returns (uint256)'];
 
 export default function Header({ account, onConnect, provider }: HeaderProps) {
-  const { logout, user } = usePrivy();
+  const { disconnect } = useDisconnect();
   const [wlfiPrice, setWlfiPrice] = useState<string>('0.130');
   const [showAccountMenu, setShowAccountMenu] = useState(false);
 
@@ -89,11 +89,8 @@ export default function Header({ account, onConnect, provider }: HeaderProps) {
                   <div className="absolute right-0 mt-2 w-64 bg-gray-900 rounded-xl border border-gray-800 shadow-2xl z-50 overflow-hidden">
                     {/* User Info */}
                     <div className="px-4 py-3 border-b border-gray-800">
-                      <p className="text-xs text-gray-400 mb-1">Connected with</p>
+                      <p className="text-xs text-gray-400 mb-1">Connected Wallet</p>
                       <p className="text-sm font-medium text-white font-mono">{account}</p>
-                      {user?.email && (
-                        <p className="text-xs text-gray-500 mt-1">{user.email.address}</p>
-                      )}
                     </div>
 
                     {/* Actions */}
@@ -129,7 +126,7 @@ export default function Header({ account, onConnect, provider }: HeaderProps) {
                     <div className="border-t border-gray-800">
                       <button
                         onClick={() => {
-                          logout();
+                          disconnect();
                           setShowAccountMenu(false);
                         }}
                         className="w-full px-4 py-3 text-left text-sm text-red-400 hover:bg-red-500/10 transition-colors flex items-center gap-2"

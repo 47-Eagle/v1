@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { BrowserProvider } from 'ethers';
-import { usePrivy, useWallets } from '@privy-io/react-auth';
-import { PrivyProvider } from './lib/PrivyProvider';
+import { useWeb3ModalProvider, useWeb3ModalAccount } from '@web3modal/ethers/react';
+import './lib/web3modal'; // Initialize Web3Modal
 import Header from './components/Header';
 import StatsBanner from './components/StatsBanner';
 import VaultOverview from './components/VaultOverview';
@@ -10,49 +10,39 @@ import VaultActions from './components/VaultActions';
 import WrapUnwrap from './components/WrapUnwrap';
 import Toast from './components/Toast';
 
-function AppContent() {
-  const { ready, authenticated, user, login } = usePrivy();
-  const { wallets } = useWallets();
+function App() {
+  const { address, isConnected } = useWeb3ModalAccount();
+  const { walletProvider } = useWeb3ModalProvider();
   const [provider, setProvider] = useState<BrowserProvider | null>(null);
   const [activeStep, setActiveStep] = useState<1 | 2 | 3>(1);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info'; txHash?: string } | null>(null);
 
-  // Get account address from Privy
-  const account = user?.wallet?.address || '';
+  const account = address || '';
 
-  // Set up provider when wallet is connected
+  // Set up ethers provider when wallet is connected
   useEffect(() => {
     const setupProvider = async () => {
-      if (wallets.length > 0) {
+      if (walletProvider) {
         try {
-          const wallet = wallets[0];
-          const ethersProvider = await wallet.getEthersProvider();
+          const ethersProvider = new BrowserProvider(walletProvider);
           setProvider(ethersProvider);
         } catch (error) {
-          console.error('Failed to get provider:', error);
+          console.error('Failed to setup provider:', error);
         }
+      } else {
+        setProvider(null);
       }
     };
 
-    if (authenticated && wallets.length > 0) {
-      setupProvider();
-    }
-  }, [authenticated, wallets]);
+    setupProvider();
+  }, [walletProvider]);
 
-  const connectWallet = () => {
-    login();
+  const connectWallet = async () => {
+    // Web3Modal handles this with its button
+    // Just open the modal
+    const { open } = await import('@web3modal/ethers/react');
+    open();
   };
-
-  if (!ready) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-[#0a0a0a] to-[#171717] flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-eagle-gold border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-400">Loading Eagle Finance...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0a0a0a] to-[#171717]">
@@ -238,15 +228,6 @@ function AppContent() {
           />
         )}
     </div>
-  );
-}
-
-// Wrap with Privy Provider
-function App() {
-  return (
-    <PrivyProvider>
-      <AppContent />
-    </PrivyProvider>
   );
 }
 
