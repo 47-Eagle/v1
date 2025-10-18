@@ -50,15 +50,27 @@ export default function StrategyBreakdown({ provider }: Props) {
 
   return (
     <div className="bg-[#0a0a0a]/60 rounded-xl border border-eagle-gold/30 backdrop-blur-md p-6 mb-6">
-      {/* Strategy Status */}
-      <div className="mb-6 p-4 bg-gray-900/30 rounded-lg border border-gray-800">
-        <div className="flex items-center justify-between flex-wrap gap-3">
+      {/* Strategy Card Header */}
+      <div className="mb-6 p-5 bg-gray-900/30 rounded-lg border border-gray-800">
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          {/* Left: Strategy Name with Logo */}
           <div className="flex items-center gap-3">
-            <div className="w-2 h-2 rounded-full bg-green-500" />
+            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+            <img 
+              src="https://tomato-abundant-urial-204.mypinata.cloud/ipfs/bafkreid3difftzksqy3xlummzzobhk674ece35d7drmgo3ftt7wrix6dwu" 
+              alt="Charm Finance"
+              className="h-6 w-6"
+            />
             <span className="text-white font-medium">Charm Finance Alpha Vault</span>
           </div>
+          
+          {/* Right: Liquidity Pair with Uniswap Logo */}
           <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-500">Liquidity:</span>
+            <img 
+              src="https://tomato-abundant-urial-204.mypinata.cloud/ipfs/bafkreichw4b4wxvinfu4dmkloxajj4mm7672k6q3nyqzvdnvogvlbbycfq" 
+              alt="Uniswap"
+              className="h-5 w-5"
+            />
             <div className="flex items-center gap-1.5 px-2 py-1 bg-gray-800/50 rounded-md border border-gray-700">
               <img 
                 src="https://tomato-abundant-urial-204.mypinata.cloud/ipfs/bafkreifvnbzrefx4pdd6mr653dmrgkz2bdcamrwdsl334f7ed75miosaxu" 
@@ -67,7 +79,7 @@ export default function StrategyBreakdown({ provider }: Props) {
               />
               <span className="text-xs font-medium text-gray-300">WLFI</span>
             </div>
-            <span className="text-gray-500">/</span>
+            <span className="text-gray-500 text-sm">/</span>
             <div className="flex items-center gap-1.5 px-2 py-1 bg-gray-800/50 rounded-md border border-gray-700">
               <img 
                 src="https://tomato-abundant-urial-204.mypinata.cloud/ipfs/bafkreiagnmvgbx3g7prmcg57pu3safks7ut6j3okopfmji7h5pndz2zeqy" 
@@ -76,7 +88,9 @@ export default function StrategyBreakdown({ provider }: Props) {
               />
               <span className="text-xs font-medium text-gray-300">WETH</span>
             </div>
-            <span className="text-xs text-gray-500 ml-1">1% Fee</span>
+            <span className="px-2 py-1 bg-blue-500/20 text-blue-300 rounded-md text-xs font-medium border border-blue-500/30">
+              1% Fee
+            </span>
           </div>
         </div>
       </div>
