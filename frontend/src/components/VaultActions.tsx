@@ -260,8 +260,8 @@ export default function VaultActions({ provider, account, onConnect, onToast }: 
 
   return (
     <>
-      {/* Transaction Simulator Modal */}
-      {showSimulator && (
+      {/* Transaction Simulator Modal - Only show on deposit tab */}
+      {showSimulator && activeTab === 'deposit' && (
         <TransactionSimulator
           wlfiAmount={wlfiAmount}
           usd1Amount={usd1Amount}
