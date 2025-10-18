@@ -259,56 +259,67 @@ contract CharmStrategy is IStrategy, ReentrancyGuard, Ownable {
         uint256 totalWlfi = WLFI.balanceOf(address(this));
         uint256 totalUsd1 = USD1.balanceOf(address(this));
         
-        // STEP 1: Check Charm's ratio FIRST to decide how to use USD1
+        // STEP 1: Get Charm's EXACT ratio to match
         (uint256 charmWlfi, uint256 charmWeth) = charmVault.getTotalAmounts();
         
-        uint256 finalWlfi = totalWlfi;
-        uint256 finalWeth = 0;
+        uint256 finalWlfi;
+        uint256 finalWeth;
         
         if (charmWlfi > 0 && charmWeth > 0) {
-            // STEP 2: Calculate Charm's token ratio
-            // Example: If Charm has 99,000 WLFI + 1,000 WETH → 99% WLFI, 1% WETH
-            uint256 charmWlfiRatio = (charmWlfi * 10000) / (charmWlfi + charmWeth);
+            // STEP 2: Calculate EXACT WETH needed for our WLFI
+            // If Charm has 99k WLFI : 1k WETH ratio
+            // For our 100 WLFI, we need: 100 * 1000 / 99000 = 1.01 WETH
+            uint256 wethNeeded = (totalWlfi * charmWeth) / charmWlfi;
             
-            // STEP 3: Determine optimal split for OUR tokens
-            // For our WLFI, we need: (totalWlfi * charmWeth) / charmWlfi WETH tokens
-            uint256 optimalWethTokens = (totalWlfi * charmWeth) / charmWlfi;
+            // STEP 3: Calculate how much USD1 to convert to WETH
+            // Estimate: 1 USD1 ≈ 1 WETH / ETH_price (rough estimate)
+            // For precision, we'll swap the USD1 amount that gets us the WETH we need
+            // Since USD1 ≈ $1 and WETH ≈ $3800, we need ~3800 USD1 per WETH
+            // But Uniswap will give us the exact rate
             
-            // STEP 4: Smart USD1 allocation based on what we need
-            if (charmWlfiRatio >= 9000) {
-                // Charm needs 90%+ WLFI - we likely need MORE WLFI, not WETH!
-                // Example: 99% WLFI ratio means we need lots of WLFI
+            if (totalUsd1 > 0) {
+                // Swap USD1 → WETH to get the amount we need
+                finalWeth = _swapUsd1ToWeth(totalUsd1);
                 
-                // Swap MOST USD1 → WLFI, keep some for WETH
-                uint256 usd1ForWlfi = (totalUsd1 * charmWlfiRatio) / 10000;
-                uint256 usd1ForWeth = totalUsd1 - usd1ForWlfi;
-                
-                if (usd1ForWlfi > 0) {
-                    uint256 moreWlfi = _swapUsd1ToWlfi(usd1ForWlfi);
-                    finalWlfi += moreWlfi;
-                }
-                if (usd1ForWeth > 0) {
-                    finalWeth = _swapUsd1ToWeth(usd1ForWeth);
+                // Check if we got enough WETH
+                if (finalWeth < wethNeeded) {
+                    // Not enough WETH - swap some WLFI → WETH
+                    uint256 wethShortfall = wethNeeded - finalWeth;
+                    uint256 wlfiToSwap = (wethShortfall * charmWlfi) / charmWeth;
+                    
+                    if (wlfiToSwap < totalWlfi) {
+                        uint256 moreWeth = _swapWlfiToWeth(wlfiToSwap);
+                        finalWeth += moreWeth;
+                        finalWlfi = totalWlfi - wlfiToSwap;
+                    } else {
+                        // Not enough WLFI - just use what we have
+                        finalWlfi = totalWlfi;
+                    }
+                } else if (finalWeth > wethNeeded) {
+                    // Too much WETH - swap excess back to WLFI
+                    uint256 excessWeth = finalWeth - wethNeeded;
+                    uint256 moreWlfi = _swapWethToWlfi(excessWeth);
+                    finalWlfi = totalWlfi + moreWlfi;
+                    finalWeth = wethNeeded;
+                } else {
+                    // Perfect amount!
+                    finalWlfi = totalWlfi;
                 }
             } else {
-                // Balanced or WETH-heavy ratio - swap USD1 → WETH
-                // Example: 50/50 or 20/80 WLFI/WETH
-                if (totalUsd1 > 0) {
-                    finalWeth = _swapUsd1ToWeth(totalUsd1);
-                }
+                // No USD1 - just use WLFI we have
+                finalWlfi = totalWlfi;
+                finalWeth = 0;
             }
         } else {
-            // Charm empty - create balanced position
-            // Split USD1: half to WLFI, half to WETH
+            // Charm empty - create balanced 50/50 position
             if (totalUsd1 > 0) {
                 uint256 halfUsd1 = totalUsd1 / 2;
-                
-                if (halfUsd1 > 0) {
-                    uint256 moreWlfi = _swapUsd1ToWlfi(halfUsd1);
-                    finalWlfi += moreWlfi;
-                    
-                    finalWeth = _swapUsd1ToWeth(totalUsd1 - halfUsd1);
-                }
+                uint256 moreWlfi = _swapUsd1ToWlfi(halfUsd1);
+                finalWlfi = totalWlfi + moreWlfi;
+                finalWeth = _swapUsd1ToWeth(totalUsd1 - halfUsd1);
+            } else {
+                finalWlfi = totalWlfi;
+                finalWeth = 0;
             }
         }
         
@@ -471,11 +482,11 @@ contract CharmStrategy is IStrategy, ReentrancyGuard, Ownable {
         
         USD1.safeIncreaseAllowance(address(UNISWAP_ROUTER), amountIn);
         
-        // Swap USD1 → WETH (e.g., 500 fee tier for stablecoin/WETH)
+        // Swap USD1 → WETH (use 3000 fee tier - has liquidity!)
         ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams({
             tokenIn: address(USD1),
             tokenOut: address(WETH),
-            fee: 500,  // 0.05% fee tier for USD1/WETH pool
+            fee: 3000,  // 0.3% fee tier for USD1/WETH pool (has liquidity!)
             recipient: address(this),
             deadline: block.timestamp,
             amountIn: amountIn,
@@ -486,6 +497,31 @@ contract CharmStrategy is IStrategy, ReentrancyGuard, Ownable {
         amountOut = UNISWAP_ROUTER.exactInputSingle(params);
         
         emit TokensSwapped(address(USD1), address(WETH), amountIn, amountOut);
+    }
+    
+    /**
+     * @notice Swap WETH to WLFI using Uniswap V3
+     * @dev Used when we have excess WETH and need more WLFI for Charm ratio
+     */
+    function _swapWethToWlfi(uint256 amountIn) internal returns (uint256 amountOut) {
+        if (amountIn == 0) return 0;
+        
+        WETH.safeIncreaseAllowance(address(UNISWAP_ROUTER), amountIn);
+        
+        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams({
+            tokenIn: address(WETH),
+            tokenOut: address(WLFI),
+            fee: POOL_FEE,  // 1% fee tier for WLFI/WETH
+            recipient: address(this),
+            deadline: block.timestamp,
+            amountIn: amountIn,
+            amountOutMinimum: 0,
+            sqrtPriceLimitX96: 0
+        });
+        
+        amountOut = UNISWAP_ROUTER.exactInputSingle(params);
+        
+        emit TokensSwapped(address(WETH), address(WLFI), amountIn, amountOut);
     }
     
     /**
