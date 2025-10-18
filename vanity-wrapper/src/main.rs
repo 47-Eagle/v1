@@ -31,7 +31,7 @@ fn main() {
         .try_into()
         .unwrap();
     
-    let init_code_hash: [u8; 32] = hex::decode("7f4e8166ddda12d0f4dbab33c68115dc924fa083ce4acdba8cd492573d4dc86f")
+    let init_code_hash: [u8; 32] = hex::decode("12fa3fc440a2f07751522844301db74fcfc1092732273f79b9f65038c05241e0")
         .unwrap()
         .try_into()
         .unwrap();

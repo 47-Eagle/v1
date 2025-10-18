@@ -1,9 +1,9 @@
 // Deployed contract addresses on Ethereum (FINAL - October 18, 2025) - ALL VANITY 0x47...ea91e!
 export const CONTRACTS = {
-  VAULT: '0x4776fFafF31Cca3b2E95BFc5B35D56CCD77eA91E',       // PRODUCTION - Fixed oracle!
-  OFT: '0x477d42841dC5A7cCBc2f72f4448f5eF6B61eA91E',         // V3 - Vanity!
-  WRAPPER: '0x4e0E57301460cD27eBC7F42dcF4F3918A7ba2Ece',     // FINAL - Connected to FINAL vault
-  STRATEGY: '0xB722b2a97744aFc5A67F340901B285a33f1af998',    // FINAL - Connected to FINAL vault
+  VAULT: '0x4776fFafF31Cca3b2E95BFc5B35D56CCD77eA91E',       // PRODUCTION - Fixed oracle! 0x47...ea91e
+  OFT: '0x477d42841dC5A7cCBc2f72f4448f5eF6B61eA91E',         // PRODUCTION - Vanity! 0x47...ea91e
+  WRAPPER: '0x47d5768f68fb10e1d068673fde07b8a0cabea91e',     // PRODUCTION - Vanity! 0x47...ea91e
+  STRATEGY: '0x475e81647da9d5a15a53597f60aea4ff0ddea91e',    // PRODUCTION - Vanity! 0x47...ea91e
   CHARM_VAULT: '0x3314e248F3F752Cd16939773D83bEb3a362F0AEF', // Charm Alpha Vault
   
   // Token addresses (REAL tokens!)
