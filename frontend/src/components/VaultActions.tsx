@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { BrowserProvider, Contract, parseEther, formatEther, formatUnits, MaxUint256 } from 'ethers';
 import { CONTRACTS } from '../config/contracts';
+import TransactionSimulator from './TransactionSimulator';
 
 const VAULT_ABI = [
   'function depositDual(uint256 wlfiAmount, uint256 usd1Amount, address receiver) returns (uint256)',
@@ -37,6 +38,8 @@ export default function VaultActions({ provider, account, onConnect, onToast }: 
   const [vEagleBalance, setVEagleBalance] = useState('0');
   const [previewShares, setPreviewShares] = useState('0');
   const [previewUsdValue, setPreviewUsdValue] = useState('0');
+  const [showSimulator, setShowSimulator] = useState(false);
+  const [approvalStep, setApprovalStep] = useState<'idle' | 'checking' | 'approving-wlfi' | 'approving-usd1' | 'depositing'>('idle');
 
   useEffect(() => {
     if (!provider || !account) return;
@@ -103,10 +106,13 @@ export default function VaultActions({ provider, account, onConnect, onToast }: 
     return () => clearTimeout(debounce);
   }, [provider, wlfiAmount, usd1Amount]);
 
-  const handleDeposit = async () => {
+  const confirmAndDeposit = async () => {
     if (!provider || !wlfiAmount || !usd1Amount) return;
 
+    setShowSimulator(false);
     setLoading(true);
+    setApprovalStep('checking');
+    
     try {
       const signer = await provider.getSigner();
       const vault = new Contract(CONTRACTS.VAULT, VAULT_ABI, signer);
@@ -119,6 +125,7 @@ export default function VaultActions({ provider, account, onConnect, onToast }: 
       // Check and approve WLFI if needed
       const wlfiAllowance = await wlfi.allowance(account, CONTRACTS.VAULT);
       if (wlfiAllowance < wlfiWei) {
+        setApprovalStep('approving-wlfi');
         onToast({ message: 'Approving WLFI...', type: 'info' });
         const maxApproval = MaxUint256; // Approve max to avoid future approvals
         const wlfiApproveTx = await wlfi.approve(CONTRACTS.VAULT, maxApproval);
@@ -130,6 +137,7 @@ export default function VaultActions({ provider, account, onConnect, onToast }: 
       if (Number(usd1Amount) > 0) {
         const usd1Allowance = await usd1.allowance(account, CONTRACTS.VAULT);
         if (usd1Allowance < usd1Wei) {
+          setApprovalStep('approving-usd1');
           onToast({ message: 'Approving USD1...', type: 'info' });
           const maxApproval = MaxUint256;
           const usd1ApproveTx = await usd1.approve(CONTRACTS.VAULT, maxApproval);
@@ -138,6 +146,7 @@ export default function VaultActions({ provider, account, onConnect, onToast }: 
         }
       }
 
+      setApprovalStep('depositing');
       onToast({ message: 'Depositing to vault...', type: 'info' });
       const depositTx = await vault.depositDual(wlfiWei, usd1Wei, account);
       const receipt = await depositTx.wait();
@@ -153,7 +162,13 @@ export default function VaultActions({ provider, account, onConnect, onToast }: 
       onToast({ message: `Deposit failed: ${error.message}`, type: 'error' });
     } finally {
       setLoading(false);
+      setApprovalStep('idle');
     }
+  };
+
+  const handleDeposit = () => {
+    if (!wlfiAmount || !usd1Amount) return;
+    setShowSimulator(true);
   };
 
   const handleWithdraw = async () => {
