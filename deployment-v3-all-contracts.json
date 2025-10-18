@@ -1,0 +1,42 @@
+{
+  "network": "ethereum-mainnet",
+  "version": "v3",
+  "timestamp": "2025-10-18T20:30:00.000Z",
+  "deployer": "0x7310Dd6EF89b7f829839F140C6840bc929ba2031",
+  "factory": "0xAA28020DDA6b954D16208eccF873D79AC6533833",
+  "contracts": {
+    "vault": {
+      "address": "0x4764Ed46281cd065602Eb1e49988E659F2DEa91E",
+      "salt": "0x88c1ec501957d058faafabc3616a8a7e5270779eb4c49d1acb725b84b5cd50b6",
+      "txHash": "0x2da18d26967e281bf499d1c376c08d97d0e2a4bbeded1cb86915b53b9fbee1ef",
+      "vanityPattern": "0x47...ea91e"
+    },
+    "wrapper": {
+      "address": "0x47BB9a08bA46ea94146Aff6c88b316A5315Ea91e",
+      "salt": "0x9ccd2eaee5c79a6d5775c249b569ef00ab3c4d7cc76caabece57467292cebd49",
+      "txHash": "0x3f892698891c2143c23a3e9113507a56b2deb161b74cd6bd63422d4d011857bb",
+      "vanityPattern": "0x47...ea91e"
+    },
+    "strategy": {
+      "address": "0x47A2B9199dd3feDe5AC83bcbEC224D9aD73Ea91E",
+      "salt": "0x79e06f6cf9be9795bf8c8f3500f4b1e4b9a117d349460c066ec55810a29bed7c",
+      "txHash": "0xa20c30073b5f9e1ab19c2fd89ec8e9e197096aeca9b6e82c34b6abfb54266f04",
+      "vanityPattern": "0x47...ea91e"
+    },
+    "oft": {
+      "address": "0xa85287cEBc43e0ebb6CAF135A39079d97fE4d039",
+      "note": "Reusing V2 OFT - already deployed"
+    }
+  },
+  "fixes": [
+    "Correct USD1 token: 0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d (18 decimals)",
+    "Fixed decimal handling in price calculations",
+    "All contracts deployed with matching vanity pattern"
+  ],
+  "oracleVerification": {
+    "wlfiPrice": "$0.130",
+    "usd1Price": "$0.9998",
+    "status": "Working correctly"
+  }
+}
+
