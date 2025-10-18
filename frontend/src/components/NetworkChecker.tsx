@@ -61,10 +61,10 @@ export default function NetworkChecker({ provider, expectedChainId }: Props) {
 
   const networkNames: { [key: number]: string } = {
     1: 'Ethereum Mainnet',
-    146: 'Sonic',
     42161: 'Arbitrum',
     10: 'Optimism',
     8453: 'Base',
+    137: 'Polygon',
   };
 
   const currentNetworkName = currentChainId ? (networkNames[currentChainId] || `Chain ${currentChainId}`) : 'Unknown';
@@ -137,7 +137,6 @@ export default function NetworkChecker({ provider, expectedChainId }: Props) {
 export const NETWORK_NAMES: { [key: number]: string } = {
   1: 'Ethereum',
   5: 'Goerli',
-  146: 'Sonic',
   42161: 'Arbitrum',
   10: 'Optimism',
   137: 'Polygon',

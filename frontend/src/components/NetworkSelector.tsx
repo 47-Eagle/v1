@@ -7,7 +7,6 @@ interface Props {
 
 const NETWORKS = {
   1: { name: 'Ethereum', color: 'from-blue-500 to-cyan-500', icon: '⟠' },
-  146: { name: 'Sonic', color: 'from-purple-500 to-pink-500', icon: '◈' },
   42161: { name: 'Arbitrum', color: 'from-blue-400 to-blue-600', icon: '◆' },
   10: { name: 'Optimism', color: 'from-red-500 to-pink-500', icon: '◉' },
   8453: { name: 'Base', color: 'from-blue-500 to-blue-400', icon: '◎' },

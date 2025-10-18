@@ -56,11 +56,6 @@ const config: HardhatUserConfig = {
       accounts,
       chainId: 43114,
     },
-    sonic: {
-      url: process.env.SONIC_RPC_URL || 'https://rpc.soniclabs.com',
-      accounts,
-      chainId: 146,
-    },
     // TESTNETS
     sepolia: {
       url: process.env.RPC_URL_SEPOLIA || 'https://sepolia-rpc.publicnode.com',
