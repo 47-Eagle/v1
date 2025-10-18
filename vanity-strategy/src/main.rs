@@ -31,7 +31,8 @@ fn main() {
         .try_into()
         .unwrap();
     
-    let init_code_hash: [u8; 32] = hex::decode("19ecc73b30d535be6d4d01a07b89535d8fa7c69b7b5266f8731cb999d91480ad")
+    // Strategy for FINAL vault
+    let init_code_hash: [u8; 32] = hex::decode("0fafb6db324e6538e78cad1f1f61a9180ab00ee2a3bd3f5a65e28db1d52726de")
         .unwrap()
         .try_into()
         .unwrap();
