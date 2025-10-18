@@ -107,13 +107,20 @@ export default function VaultActions({ provider, account, onConnect, onToast }: 
   }, [provider, wlfiAmount, usd1Amount]);
 
   const confirmAndDeposit = async () => {
-    if (!provider || (!wlfiAmount && !usd1Amount)) return;
+    console.log('🚀 confirmAndDeposit called');
+    console.log('WLFI:', wlfiAmount, 'USD1:', usd1Amount);
+    
+    if (!provider || (!wlfiAmount && !usd1Amount)) {
+      console.log('❌ Validation failed - no provider or amounts');
+      return;
+    }
 
     setShowSimulator(false);
     setLoading(true);
     setApprovalStep('checking');
     
     try {
+      console.log('Getting signer...');
       const signer = await provider.getSigner();
       const vault = new Contract(CONTRACTS.VAULT, VAULT_ABI, signer);
       const wlfi = new Contract(CONTRACTS.WLFI, ERC20_ABI, signer);
@@ -121,6 +128,8 @@ export default function VaultActions({ provider, account, onConnect, onToast }: 
 
       const wlfiWei = parseEther(wlfiAmount || '0');
       const usd1Wei = parseEther(usd1Amount || '0'); // USD1 is 18 decimals (verified on Etherscan)
+      
+      console.log('Amounts in wei:', wlfiWei.toString(), usd1Wei.toString());
 
       // Check and approve WLFI if needed
       const wlfiAllowance = await wlfi.allowance(account, CONTRACTS.VAULT);
@@ -159,6 +168,7 @@ export default function VaultActions({ provider, account, onConnect, onToast }: 
       setWlfiAmount('');
       setUsd1Amount('');
     } catch (error: any) {
+      console.error('❌ Deposit error:', error);
       onToast({ message: `Deposit failed: ${error.message}`, type: 'error' });
     } finally {
       setLoading(false);
