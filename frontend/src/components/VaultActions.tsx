@@ -55,14 +55,14 @@ export default function VaultActions({ provider, account, onConnect, onToast }: 
         ]);
 
         setWlfiBalance(formatEther(wlfiB));
-        setUsd1Balance(formatUnits(usd1B, 6));
+        setUsd1Balance(formatEther(usd1B)); // USD1 is 18 decimals
         setVEagleBalance(formatEther(vEagleB));
         
         // Calculate share price
-        const price = Number(totalSupply) > 0 
-          ? (Number(totalAssets) / Number(totalSupply))
-          : 1;
-        setSharePrice(price.toString());
+        // Share price (not currently used in UI)
+        // const price = Number(totalSupply) > 0 
+        //   ? (Number(totalAssets) / Number(totalSupply))
+        //   : 1;
       } catch (error) {
         console.error('Error fetching balances:', error);
       }
