@@ -25,8 +25,8 @@ fn create2_address(factory: &[u8; 20], salt: &[u8; 32], init_code_hash: &[u8; 32
 fn main() {
     println!("\n=== CREATE2 Vanity Address Finder (Rust) ===\n");
     
-    // Configuration
-    let factory: [u8; 20] = hex::decode("695d6B3628B4701E7eAfC0bc511CbAF23f6003eE")
+    // Configuration - NEW FACTORY!
+    let factory: [u8; 20] = hex::decode("AA28020DDA6b954D16208eccF873D79AC6533833")
         .unwrap()
         .try_into()
         .unwrap();

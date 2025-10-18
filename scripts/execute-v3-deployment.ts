@@ -38,20 +38,16 @@ async function main() {
   console.log("  Uniswap Router:", deploymentInfo.constructorArgs.uniswapRouter);
   console.log("  Owner:", deploymentInfo.constructorArgs.owner);
 
-  // Get contract factory and generate init code
-  const EagleOVault = await ethers.getContractFactory("EagleOVault");
-  const deploymentData = EagleOVault.getDeployTransaction(
-    deploymentInfo.constructorArgs.wlfiToken,
-    deploymentInfo.constructorArgs.usd1Token,
-    deploymentInfo.constructorArgs.usd1PriceFeed,
-    deploymentInfo.constructorArgs.wlfiUsd1Pool,
-    deploymentInfo.constructorArgs.uniswapRouter,
-    deploymentInfo.constructorArgs.owner
-  ).data;
-
-  if (!deploymentData) {
-    throw new Error("Failed to generate deployment data");
+  // Load pre-generated init code
+  const initCodeDataFile = "init-code-data.json";
+  if (!fs.existsSync(initCodeDataFile)) {
+    console.error(`❌ Init code data file not found: ${initCodeDataFile}`);
+    console.log("Run get-init-code-hash.ts first to generate init code.");
+    return;
   }
+
+  const initCodeData = JSON.parse(fs.readFileSync(initCodeDataFile, "utf8"));
+  const deploymentData = initCodeData.initCode;
 
   // Verify init code hash matches
   const initCodeHash = ethers.keccak256(deploymentData);
@@ -66,10 +62,16 @@ async function main() {
 
   console.log("\n✅ Init code hash verified:", initCodeHash.slice(0, 10) + "...");
 
-  // Get CREATE2 factory
-  const factory = await ethers.getContractAt(
-    "CREATE2FactoryWithOwnership",
-    deploymentInfo.factory
+  // Get CREATE2 factory with correct ABI
+  const factoryABI = [
+    "function deploy(bytes32 salt, bytes memory bytecode) returns (address)",
+    "function computeAddress(bytes32 salt, bytes32 bytecodeHash) view returns (address)"
+  ];
+  
+  const factory = new ethers.Contract(
+    deploymentInfo.factory,
+    factoryABI,
+    deployer
   );
 
   console.log("\n🚀 Deploying EagleOVault V3...");
@@ -77,10 +79,9 @@ async function main() {
 
   try {
     // Deploy using CREATE2 factory
-    const tx = await factory.deployWithOwnership(
+    const tx = await factory.deploy(
       deploymentInfo.salt,
       deploymentData,
-      deployer.address,
       { gasLimit: 10_000_000 }
     );
 

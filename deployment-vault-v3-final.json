@@ -1,0 +1,35 @@
+{
+  "network": "ethereum-mainnet",
+  "version": "v3",
+  "timestamp": "2025-10-18T04:56:18.719Z",
+  "deployer": "0x7310Dd6EF89b7f829839F140C6840bc929ba2031",
+  "vanityDeployment": {
+    "address": "0x4764Ed46281cd065602Eb1e49988E659F2DEa91E",
+    "pattern": "0x47...ea91e",
+    "factory": "0xAA28020DDA6b954D16208eccF873D79AC6533833",
+    "salt": "0x88c1ec501957d058faafabc3616a8a7e5270779eb4c49d1acb725b84b5cd50b6",
+    "bytecodeHash": "0x337569964cd84769a1beb4447397e394ef864c9a76ed0b2be6ce482468a9d45b",
+    "txHash": "0x2da18d26967e281bf499d1c376c08d97d0e2a4bbeded1cb86915b53b9fbee1ef",
+    "blockNumber": 23602290,
+    "gasUsed": "4542479"
+  },
+  "contracts": {
+    "vault": "0x4764Ed46281cd065602Eb1e49988E659F2DEa91E",
+    "wlfiToken": "0x4780940f87d2Ce81d9dBAE8cC79B2239366e4747",
+    "usd1Token": "0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d"
+  },
+  "constructor": {
+    "wlfiToken": "0x4780940f87d2Ce81d9dBAE8cC79B2239366e4747",
+    "usd1Token": "0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d",
+    "usd1PriceFeed": "0xF0d9bb015Cd7BfAb877B7156146dc09Bf461370d",
+    "wlfiUsd1Pool": "0x4637ea6ecf7e16c99e67e941ab4d7d52eac7c73d",
+    "uniswapRouter": "0xE592427A0AEce92De3Edee1F18E0157C05861564",
+    "owner": "0x7310Dd6EF89b7f829839F140C6840bc929ba2031"
+  },
+  "fixes": [
+    "Correct USD1 token: 0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d",
+    "USD1 treated as 18 decimals (not 6)",
+    "Removed incorrect /1e12 decimal adjustments",
+    "Fixed _getSpotPrice() and _sqrtPriceFromTick()"
+  ]
+}
