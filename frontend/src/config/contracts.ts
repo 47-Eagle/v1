@@ -1,6 +1,6 @@
 // Deployed contract addresses on Ethereum (FINAL - October 18, 2025) - ALL VANITY 0x47...ea91e!
 export const CONTRACTS = {
-  VAULT: '0x4776fFafF31Cca3b2E95BFc5B35D56CCD77eA91E',       // PRODUCTION - Fixed oracle! 0x47...ea91e
+  VAULT: '0x47ff05aaf066f50baefdcfdcadf63d3762eea91e',       // FINAL - forceApprove fix! 0x47...ea91e
   OFT: '0x477d42841dC5A7cCBc2f72f4448f5eF6B61eA91E',         // PRODUCTION - Vanity! 0x47...ea91e
   WRAPPER: '0x47d5768f68fb10e1d068673fde07b8a0cabea91e',     // PRODUCTION - Vanity! 0x47...ea91e
   STRATEGY: '0x475e81647da9d5a15a53597f60aea4ff0ddea91e',    // PRODUCTION - Vanity! 0x47...ea91e

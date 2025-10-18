@@ -1,20 +1,20 @@
 {
   "network": "ethereum-mainnet",
   "version": "v3",
-  "timestamp": "2025-10-18T06:17:44.280Z",
+  "timestamp": "2025-10-18T09:32:52.131Z",
   "deployer": "0x7310Dd6EF89b7f829839F140C6840bc929ba2031",
   "vanityDeployment": {
-    "address": "0x47dC58AaD89D87F54dab4055fD7C444948bEA91e",
+    "address": "0x47ff05aAF066F50BAEFDCFdCADf63d3762EeA91E",
     "pattern": "0x47...ea91e",
     "factory": "0xAA28020DDA6b954D16208eccF873D79AC6533833",
-    "salt": "0x75c954940a77ec41ca9da5f0635a3dbcda8f0a03848d12e10319fd720200ef90",
-    "bytecodeHash": "0xbdcac092877d46e8155704146da96762430793841d3fad3b259b6cc2b085134f",
-    "txHash": "0x3d867329327b79ddcec283f6bd47405d4ae88d84441ffc4b63ddf7196cab1793",
-    "blockNumber": 23602694,
-    "gasUsed": "4530630"
+    "salt": "0x6ea146f25ca976c84eeafe19a4297874f459724711b31649c751deb495fbde80",
+    "bytecodeHash": "0x63a55a2eaa97c333988fe4f2d1632af0dea221817a06aacaed7283e042312ada",
+    "txHash": "0x9199a5a887d0483d2e1c46c05dac9d8ffc0ba3d6797706a0155daf66dad2ea8a",
+    "blockNumber": 23603662,
+    "gasUsed": "4698318"
   },
   "contracts": {
-    "vault": "0x47dC58AaD89D87F54dab4055fD7C444948bEA91e",
+    "vault": "0x47ff05aAF066F50BAEFDCFdCADf63d3762EeA91E",
     "wlfiToken": "0xdA5e1988097297dCdc1f90D4dFE7909e847CBeF6",
     "usd1Token": "0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d"
   },

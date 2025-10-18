@@ -31,8 +31,8 @@ fn main() {
         .try_into()
         .unwrap();
     
-    // Fixed oracle with proper tick conversion
-    let init_code_hash: [u8; 32] = hex::decode("c55bfd808d2478e0042f3f2dc63a564993600c6d7e608609b60a098aaa52b601")
+    // FINAL: Fixed oracle + forceApprove
+    let init_code_hash: [u8; 32] = hex::decode("63a55a2eaa97c333988fe4f2d1632af0dea221817a06aacaed7283e042312ada")
         .unwrap()
         .try_into()
         .unwrap();
