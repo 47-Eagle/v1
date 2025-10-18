@@ -3,7 +3,7 @@ export const CONTRACTS = {
   VAULT: '0x47ff05aaf066f50baefdcfdcadf63d3762eea91e',       // NEW Vanity EagleOVault
   OFT: '0x477d42841dC5A7cCBc2f72f4448f5eF6B61eA91E',         // EagleShareOFT
   WRAPPER: '0x47d5768f68fb10e1d068673fde07b8a0cabea91e',     // EagleVaultWrapper
-  STRATEGY: '0x47b6419c3abb94cdee7ace5f0bcbbbdd697ea91e',    // CharmStrategy
+  STRATEGY: '0xb1571A0f815dCBbF649AD2eE4a18dc2D085780B8',    // CharmStrategy V2 (Fixed approvals!)
   CHARM_VAULT: '0x3314e248F3F752Cd16939773D83bEb3a362F0AEF', // Charm Alpha Vault
   
   // Token addresses (REAL tokens!)

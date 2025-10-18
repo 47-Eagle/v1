@@ -617,5 +617,28 @@ contract CharmStrategy is IStrategy, ReentrancyGuard, Ownable {
         if (to == address(0)) revert ZeroAddress();
         IERC20(token).safeTransfer(to, amount);
     }
+    
+    /**
+     * @notice Set token approval (owner only) - for fixing approval issues
+     */
+    function setTokenApproval(address token, address spender, uint256 amount) external onlyOwner {
+        IERC20(token).forceApprove(spender, amount);
+    }
+    
+    /**
+     * @notice Initialize all required approvals for strategy to work
+     */
+    function initializeApprovals() external onlyOwner {
+        // Approve Uniswap router for swaps
+        WLFI.forceApprove(address(UNISWAP_ROUTER), type(uint256).max);
+        USD1.forceApprove(address(UNISWAP_ROUTER), type(uint256).max);
+        WETH.forceApprove(address(UNISWAP_ROUTER), type(uint256).max);
+        
+        // Approve Charm vault for deposits
+        if (address(charmVault) != address(0)) {
+            WLFI.forceApprove(address(charmVault), type(uint256).max);
+            WETH.forceApprove(address(charmVault), type(uint256).max);
+        }
+    }
 }
 
