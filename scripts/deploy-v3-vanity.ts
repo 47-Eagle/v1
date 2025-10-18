@@ -4,8 +4,9 @@ import * as fs from "fs";
 async function main() {
   console.log("\n=== Eagle Vault V3 - Vanity Address Deployment ===\n");
 
-  const [deployer] = await ethers.getSigners();
-  console.log("Deployer:", deployer.address);
+  // Use deployer from env or hardhat config
+  const deployerAddress = process.env.PUBLIC_KEY || "0x7310Dd6EF89b7f829839F140C6840bc929ba2031";
+  console.log("Deployer:", deployerAddress);
 
   // CREATE2 Factory
   const CREATE2_FACTORY = "0x695d6B3628B4701E7eAfC0bc511CbAF23f6003eE";
@@ -17,7 +18,7 @@ async function main() {
     usd1PriceFeed: "0xF0d9bb015Cd7BfAb877B7156146dc09Bf461370d",
     wlfiUsd1Pool: "0x4637ea6ecf7e16c99e67e941ab4d7d52eac7c73d",
     uniswapRouter: "0xE592427A0AEce92De3Edee1F18E0157C05861564",
-    owner: deployer.address
+    owner: deployerAddress
   };
 
   console.log("\n📋 Constructor Arguments:");
@@ -107,7 +108,7 @@ async function main() {
   const deploymentInfo = {
     network: "ethereum-mainnet",
     timestamp: new Date().toISOString(),
-    deployer: deployer.address,
+    deployer: deployerAddress,
     factory: CREATE2_FACTORY,
     salt: salt,
     initCodeHash: initCodeHash,
@@ -126,11 +127,11 @@ async function main() {
   // Ask for confirmation
   console.log("\n⚠️  IMPORTANT: Review the vanity address before deploying!");
   console.log("\nTo deploy, run:");
-  console.log(`  npx hardhat run scripts/execute-v3-deployment.ts --network mainnet`);
+  console.log(`  npx hardhat run scripts/execute-v3-deployment.ts`);
   console.log("\nOr manually call CREATE2Factory.deployWithOwnership() with:");
   console.log(`  Salt: ${salt}`);
   console.log(`  Init Code: <contract bytecode + constructor args>`);
-  console.log(`  Owner: ${deployer.address}`);
+  console.log(`  Owner: ${deployerAddress}`);
 }
 
 main()

@@ -1,0 +1,24 @@
+{
+  "network": "ethereum-mainnet",
+  "timestamp": "2025-10-18T20:00:00.000Z",
+  "deployer": "0x7310Dd6EF89b7f829839F140C6840bc929ba2031",
+  "factory": "0x695d6B3628B4701E7eAfC0bc511CbAF23f6003eE",
+  "salt": "0x50eb7e5d0beb9d936bbbf3a3ff60163d9ba804c7d68da02cd9076232b35e714f",
+  "initCodeHash": "0x337569964cd84769a1beb4447397e394ef864c9a76ed0b2be6ce482468a9d45b",
+  "vanityAddress": "0x4736638892dad78445a544f21a5061eddaea91e6",
+  "constructorArgs": {
+    "wlfiToken": "0x4780940f87d2Ce81d9dBAE8cC79B2239366e4747",
+    "usd1Token": "0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d",
+    "usd1PriceFeed": "0xF0d9bb015Cd7BfAb877B7156146dc09Bf461370d",
+    "wlfiUsd1Pool": "0x4637ea6ecf7e16c99e67e941ab4d7d52eac7c73d",
+    "uniswapRouter": "0xE592427A0AEce92De3Edee1F18E0157C05861564",
+    "owner": "0x7310Dd6EF89b7f829839F140C6840bc929ba2031"
+  },
+  "searchStats": {
+    "attempts": 70945352,
+    "timeSeconds": 2.10,
+    "ratePerSecond": 33783029,
+    "method": "Rust (parallel)"
+  }
+}
+
