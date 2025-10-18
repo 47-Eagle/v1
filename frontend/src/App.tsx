@@ -165,12 +165,51 @@ function App() {
       </main>
 
       {/* Footer */}
-      <footer className="mt-16 py-8 text-center text-gray-500 border-t border-gray-800">
-        <p>Eagle Vault © 2025 | Built on Ethereum with LayerZero</p>
-        <div className="mt-2 flex items-center justify-center gap-4">
-          <a href="#" className="hover:text-eagle-gold transition-colors">Docs</a>
-          <a href="#" className="hover:text-eagle-gold transition-colors">GitHub</a>
-          <a href="#" className="hover:text-eagle-gold transition-colors">Twitter</a>
+      <footer className="mt-16 py-8 border-t border-gray-800">
+        {/* Protocol Badges */}
+        <div className="flex flex-wrap items-center justify-center gap-6 mb-6">
+          {/* Powered by Uniswap */}
+          <div className="flex items-center gap-2 px-4 py-2 bg-gray-900/50 rounded-lg border border-gray-800">
+            <span className="text-sm text-gray-500">Powered by</span>
+            <img 
+              src="https://tomato-abundant-urial-204.mypinata.cloud/ipfs/bafkreichw4b4wxvinfu4dmkloxajj4mm7672k6q3nyqzvdnvogvlbbycfq" 
+              alt="Uniswap"
+              className="h-5 w-5"
+            />
+            <span className="text-sm font-medium text-gray-300">Uniswap</span>
+          </div>
+
+          {/* Managed by Charm */}
+          <div className="flex items-center gap-2 px-4 py-2 bg-gray-900/50 rounded-lg border border-gray-800">
+            <span className="text-sm text-gray-500">Managed by</span>
+            <img 
+              src="https://tomato-abundant-urial-204.mypinata.cloud/ipfs/bafkreid3difftzksqy3xlummzzobhk674ece35d7drmgo3ftt7wrix6dwu" 
+              alt="Charm Finance"
+              className="h-5 w-5"
+            />
+            <span className="text-sm font-medium text-gray-300">Charm</span>
+          </div>
+
+          {/* via LayerZero V2 */}
+          <div className="flex items-center gap-2 px-4 py-2 bg-gray-900/50 rounded-lg border border-gray-800">
+            <span className="text-sm text-gray-500">via</span>
+            <img 
+              src="https://tomato-abundant-urial-204.mypinata.cloud/ipfs/bafkreihml3nahd2duwdjg2ltoeixax2xdj2ldp5unnrjwntyicar74nwra" 
+              alt="LayerZero"
+              className="h-5 w-5"
+            />
+            <span className="text-sm font-medium text-gray-300">LayerZero V2</span>
+          </div>
+        </div>
+
+        {/* Copyright */}
+        <p className="text-center text-gray-500 mb-3">Eagle Vault © 2025 | Built on Ethereum</p>
+        
+        {/* Links */}
+        <div className="flex items-center justify-center gap-4">
+          <a href="#" className="text-gray-500 hover:text-eagle-gold transition-colors text-sm">Docs</a>
+          <a href="#" className="text-gray-500 hover:text-eagle-gold transition-colors text-sm">GitHub</a>
+          <a href="#" className="text-gray-500 hover:text-eagle-gold transition-colors text-sm">Twitter</a>
         </div>
       </footer>
 

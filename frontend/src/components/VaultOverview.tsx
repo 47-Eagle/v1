@@ -91,13 +91,23 @@ export default function VaultOverview({ provider, account }: Props) {
           </div>
         </div>
         
-        <div className="flex gap-2">
-          <span className="px-3 py-1.5 bg-eagle-gold/20 text-eagle-gold-lightest rounded-lg text-xs font-medium border border-eagle-gold/30">
-            WLFI Coin
-          </span>
-          <span className="px-3 py-1.5 bg-indigo/20 text-indigo-200 rounded-lg text-xs font-medium border border-indigo/30">
-            Ethereum
-          </span>
+        <div className="flex gap-3">
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-eagle-gold/20 rounded-lg border border-eagle-gold/30">
+            <img 
+              src="https://tomato-abundant-urial-204.mypinata.cloud/ipfs/bafkreifvnbzrefx4pdd6mr653dmrgkz2bdcamrwdsl334f7ed75miosaxu" 
+              alt="WLFI"
+              className="h-5 w-5"
+            />
+            <span className="text-xs font-medium text-eagle-gold-lightest">WLFI</span>
+          </div>
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-indigo/20 rounded-lg border border-indigo/30">
+            <img 
+              src="https://tomato-abundant-urial-204.mypinata.cloud/ipfs/bafkreiagnmvgbx3g7prmcg57pu3safks7ut6j3okopfmji7h5pndz2zeqy" 
+              alt="ETH"
+              className="h-5 w-5"
+            />
+            <span className="text-xs font-medium text-indigo-200">ETH</span>
+          </div>
         </div>
       </div>
 
