@@ -50,10 +50,10 @@ export const STRATEGY_ABI = [
   'function isInitialized() external view returns (bool)'
 ] as const;
 
-// Contract Addresses - Ethereum Mainnet (V2)
+// Contract Addresses - Ethereum Mainnet (V3)
 export const ADDRESSES = {
   // Main vault contract
-  VAULT: (import.meta.env.VITE_VAULT_ADDRESS || '0x9e6AFd836fF239e5Ab5fa60DB7c01080bDd964FB') as `0x${string}`,
+  VAULT: (import.meta.env.VITE_VAULT_ADDRESS || '0x4764Ed46281cd065602Eb1e49988E659F2DEa91E') as `0x${string}`,
   
   // Token contracts
   WLFI: (import.meta.env.VITE_WLFI_ADDRESS || '0x4780940f87d2Ce81d9dBAE8cC79B2239366e4747') as `0x${string}`,
