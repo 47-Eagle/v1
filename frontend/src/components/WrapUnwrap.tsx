@@ -22,13 +22,11 @@ interface Props {
   onToast: (toast: { message: string; type: 'success' | 'error' | 'info'; txHash?: string }) => void;
 }
 
-export default function WrapUnwrap({ provider, account, onConnect, onToast }: Props) {
+export default function WrapUnwrap({ provider, account, onToast }: Props) {
   const [mode, setMode] = useState<'wrap' | 'unwrap'>('wrap');
   const [wrapAmount, setWrapAmount] = useState('');
   const [unwrapAmount, setUnwrapAmount] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showAnimation, setShowAnimation] = useState(false);
-  const [animationType, setAnimationType] = useState<'free' | 'cage'>('free');
   const [vEagleBalance, setVEagleBalance] = useState('0');
   const [eagleBalance, setEagleBalance] = useState('0');
   const [isWhitelisted, setIsWhitelisted] = useState(false);

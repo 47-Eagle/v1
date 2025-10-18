@@ -12,10 +12,6 @@ const OFT_ABI = [
   'function balanceOf(address) view returns (uint256)',
 ];
 
-const WRAPPER_ABI = [
-  'function totalLocked() view returns (uint256)',
-];
-
 interface Props {
   provider: BrowserProvider | null;
   account: string;

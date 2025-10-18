@@ -6,11 +6,8 @@
 # Testing
 /coverage
 
-# Next.js
-/.next/
-/out/
-
-# Production
+# Production (Vite)
+/dist
 /build
 
 # Misc
@@ -31,5 +28,4 @@ yarn-error.log*
 
 # TypeScript
 *.tsbuildinfo
-next-env.d.ts
 

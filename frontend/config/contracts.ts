@@ -50,25 +50,25 @@ export const STRATEGY_ABI = [
   'function isInitialized() external view returns (bool)'
 ] as const;
 
-// Contract Addresses - Arbitrum One
+// Contract Addresses - Ethereum Mainnet (V2)
 export const ADDRESSES = {
   // Main vault contract
-  VAULT: (process.env.NEXT_PUBLIC_VAULT_ADDRESS || '0xbeDE2E7d1B27F8a8fdd85Bb5DA1fe85e4695e0A8') as `0x${string}`,
+  VAULT: (import.meta.env.VITE_VAULT_ADDRESS || '0x9e6AFd836fF239e5Ab5fa60DB7c01080bDd964FB') as `0x${string}`,
   
   // Token contracts
-  WLFI: (process.env.NEXT_PUBLIC_WLFI_ADDRESS || '0x4780940f87d2Ce81d9dBAE8cC79B2239366e4747') as `0x${string}`,
-  USD1: (process.env.NEXT_PUBLIC_USD1_ADDRESS || '0x8C815948C41D2A87413E796281A91bE91C4a94aB') as `0x${string}`,
+  WLFI: (import.meta.env.VITE_WLFI_ADDRESS || '0x4780940f87d2Ce81d9dBAE8cC79B2239366e4747') as `0x${string}`,
+  USD1: (import.meta.env.VITE_USD1_ADDRESS || '0x8C815948C41D2A87413E796281A91bE91C4a94aB') as `0x${string}`,
   
   // Oracle contracts
-  USD1_PRICE_FEED: (process.env.NEXT_PUBLIC_USD1_PRICE_FEED || '0xcAc03E1cE278bDa23D8cde1E8A6fD2b2D5e4Eb30') as `0x${string}`,
+  USD1_PRICE_FEED: (import.meta.env.VITE_USD1_PRICE_FEED || '0xF0d9bb015Cd7BfAb877B7156146dc09Bf461370d') as `0x${string}`,
 } as const;
 
 // Chain configuration
 export const SUPPORTED_CHAINS = {
-  ARBITRUM: {
-    id: 42161,
-    name: 'Arbitrum One',
-    network: 'arbitrum',
+  ETHEREUM: {
+    id: 1,
+    name: 'Ethereum',
+    network: 'mainnet',
     nativeCurrency: {
       decimals: 18,
       name: 'Ether',
@@ -76,16 +76,16 @@ export const SUPPORTED_CHAINS = {
     },
     rpcUrls: {
       default: { 
-        http: [process.env.NEXT_PUBLIC_ARBITRUM_RPC || 'https://arb1.arbitrum.io/rpc'] 
+        http: [import.meta.env.VITE_ETHEREUM_RPC || 'https://eth.llamarpc.com'] 
       },
       public: { 
-        http: ['https://arb1.arbitrum.io/rpc'] 
+        http: ['https://eth.llamarpc.com'] 
       },
     },
     blockExplorers: {
       default: { 
-        name: 'Arbiscan', 
-        url: 'https://arbiscan.io' 
+        name: 'Etherscan', 
+        url: 'https://etherscan.io' 
       },
     },
     contracts: {
@@ -123,7 +123,7 @@ export const TOKENS = {
 
 // Explorer URLs
 export const getExplorerUrl = (type: 'address' | 'tx', value: string) => {
-  const baseUrl = 'https://arbiscan.io';
+  const baseUrl = 'https://etherscan.io';
   return `${baseUrl}/${type}/${value}`;
 };
 
