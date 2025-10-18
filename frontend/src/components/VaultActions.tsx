@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BrowserProvider, Contract, parseEther, parseUnits, formatEther, formatUnits } from 'ethers';
+import { BrowserProvider, Contract, parseEther, formatEther, formatUnits } from 'ethers';
 import { CONTRACTS } from '../config/contracts';
 
 const VAULT_ABI = [
@@ -85,7 +85,7 @@ export default function VaultActions({ provider, account, onConnect, onToast }: 
       try {
         const vault = new Contract(CONTRACTS.VAULT, VAULT_ABI, provider);
         const wlfiWei = wlfiAmount ? parseEther(wlfiAmount) : 0n;
-        const usd1Wei = usd1Amount ? parseUnits(usd1Amount, 6) : 0n;
+        const usd1Wei = usd1Amount ? parseEther(usd1Amount) : 0n; // USD1 is 18 decimals, not 6
 
         const [shares, usdValue] = await vault.previewDepositDual(wlfiWei, usd1Wei);
         setPreviewShares(formatEther(shares));
@@ -113,7 +113,7 @@ export default function VaultActions({ provider, account, onConnect, onToast }: 
       const usd1 = new Contract(CONTRACTS.USD1, ERC20_ABI, signer);
 
       const wlfiWei = parseEther(wlfiAmount);
-      const usd1Wei = parseUnits(usd1Amount, 6);
+      const usd1Wei = parseEther(usd1Amount); // USD1 is 18 decimals, not 6
 
       await wlfi.approve(CONTRACTS.VAULT, wlfiWei);
       await usd1.approve(CONTRACTS.VAULT, usd1Wei);
