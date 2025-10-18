@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { BrowserProvider, Contract, formatEther } from 'ethers';
-import { useDisconnect } from '@web3modal/ethers/react';
 import { CONTRACTS } from '../config/contracts';
 import NetworkSelector from './NetworkSelector';
 
@@ -13,9 +12,13 @@ interface HeaderProps {
 const VAULT_ABI = ['function getWLFIPrice() view returns (uint256)'];
 
 export default function Header({ account, onConnect, provider }: HeaderProps) {
-  const { disconnect } = useDisconnect();
   const [wlfiPrice, setWlfiPrice] = useState<string>('0.130');
   const [showAccountMenu, setShowAccountMenu] = useState(false);
+
+  const handleDisconnect = () => {
+    // Clear state
+    window.location.reload();
+  };
 
   useEffect(() => {
     const fetchPrice = async () => {
@@ -126,7 +129,7 @@ export default function Header({ account, onConnect, provider }: HeaderProps) {
                     <div className="border-t border-gray-800">
                       <button
                         onClick={() => {
-                          disconnect();
+                          handleDisconnect();
                           setShowAccountMenu(false);
                         }}
                         className="w-full px-4 py-3 text-left text-sm text-red-400 hover:bg-red-500/10 transition-colors flex items-center gap-2"

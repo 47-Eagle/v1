@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
 import { BrowserProvider } from 'ethers';
-import { useWeb3ModalProvider, useWeb3ModalAccount } from '@web3modal/ethers/react';
-import './lib/web3modal'; // Initialize Web3Modal
 import Header from './components/Header';
 import StatsBanner from './components/StatsBanner';
 import VaultOverview from './components/VaultOverview';
@@ -11,49 +9,63 @@ import WrapUnwrap from './components/WrapUnwrap';
 import Toast from './components/Toast';
 
 function App() {
-  const { address, isConnected } = useWeb3ModalAccount();
-  const { walletProvider } = useWeb3ModalProvider();
+  const [account, setAccount] = useState<string>('');
   const [provider, setProvider] = useState<BrowserProvider | null>(null);
   const [activeStep, setActiveStep] = useState<1 | 2 | 3>(1);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info'; txHash?: string } | null>(null);
 
-  const account = address || '';
-
-  // Set up ethers provider when wallet is connected
+  // Check if already connected on load
   useEffect(() => {
-    const setupProvider = async () => {
-      if (walletProvider) {
-        try {
-          const ethersProvider = new BrowserProvider(walletProvider);
-          setProvider(ethersProvider);
-        } catch (error) {
-          console.error('Failed to setup provider:', error);
-        }
-      } else {
-        setProvider(null);
-      }
-    };
-
-    setupProvider();
-  }, [walletProvider]);
-
-  const connectWallet = async () => {
-    // Web3Modal handles this with its button
-    try {
-      const { useWeb3Modal } = await import('@web3modal/ethers/react');
-      const { open } = useWeb3Modal();
-      await open();
-    } catch (error) {
-      console.error('Failed to open Web3Modal:', error);
-      // Fallback to direct MetaMask connection
+    const checkConnection = async () => {
       if (typeof window.ethereum !== 'undefined') {
         try {
           const provider = new BrowserProvider(window.ethereum);
-          await provider.send('eth_requestAccounts', []);
-        } catch (err) {
-          console.error('MetaMask connection failed:', err);
+          const accounts = await provider.listAccounts();
+          if (accounts.length > 0) {
+            setAccount(accounts[0].address);
+            setProvider(provider);
+          }
+        } catch (error) {
+          console.error('Error checking connection:', error);
         }
       }
+    };
+
+    checkConnection();
+
+    // Listen for account changes
+    if (window.ethereum) {
+      window.ethereum.on('accountsChanged', (accounts: string[]) => {
+        if (accounts.length > 0) {
+          setAccount(accounts[0]);
+        } else {
+          setAccount('');
+          setProvider(null);
+        }
+      });
+
+      window.ethereum.on('chainChanged', () => {
+        window.location.reload();
+      });
+    }
+  }, []);
+
+  const connectWallet = async () => {
+    if (typeof window.ethereum !== 'undefined') {
+      try {
+        const provider = new BrowserProvider(window.ethereum);
+        const accounts = await provider.send('eth_requestAccounts', []);
+        setAccount(accounts[0]);
+        setProvider(provider);
+      } catch (error) {
+        console.error('Error connecting wallet:', error);
+        setToast({ message: 'Failed to connect wallet', type: 'error' });
+      }
+    } else {
+      setToast({ 
+        message: 'Please install MetaMask or another Web3 wallet', 
+        type: 'error' 
+      });
     }
   };
 
