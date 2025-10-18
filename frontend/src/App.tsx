@@ -43,6 +43,18 @@ function App() {
           Back
         </button>
 
+        {/* Protocol Badges - Above Hero */}
+        <div className="text-center text-sm text-gray-400 mb-4">
+          <span>Powered by </span>
+          <span className="text-gray-300">Uniswap</span>
+          <span className="mx-2">•</span>
+          <span>Managed by </span>
+          <span className="text-gray-300">Charm</span>
+          <span className="mx-2">•</span>
+          <span>via </span>
+          <span className="text-gray-300">LayerZero V2</span>
+        </div>
+
         {/* Vault Overview Card */}
         <VaultOverview provider={provider} account={account} />
 

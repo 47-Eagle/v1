@@ -73,42 +73,6 @@ export default function VaultOverview({ provider, account }: Props) {
 
   return (
     <div className="relative bg-gradient-to-br from-eagle-gold/10 via-indigo/5 to-purple/5 rounded-xl border border-eagle-gold/30 backdrop-blur-md p-8 mb-6">
-      {/* Protocol Badges */}
-      <div className="flex flex-wrap items-center justify-center gap-4 mb-6 pb-6 border-b border-gray-800/50">
-        {/* Powered by Uniswap */}
-        <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-900/50 rounded-lg border border-gray-800">
-          <span className="text-xs text-gray-500">Powered by</span>
-          <img 
-            src="https://tomato-abundant-urial-204.mypinata.cloud/ipfs/bafkreichw4b4wxvinfu4dmkloxajj4mm7672k6q3nyqzvdnvogvlbbycfq" 
-            alt="Uniswap"
-            className="h-4 w-4"
-          />
-          <span className="text-xs font-medium text-gray-300">Uniswap</span>
-        </div>
-
-        {/* Managed by Charm */}
-        <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-900/50 rounded-lg border border-gray-800">
-          <span className="text-xs text-gray-500">Managed by</span>
-          <img 
-            src="https://tomato-abundant-urial-204.mypinata.cloud/ipfs/bafkreid3difftzksqy3xlummzzobhk674ece35d7drmgo3ftt7wrix6dwu" 
-            alt="Charm Finance"
-            className="h-4 w-4"
-          />
-          <span className="text-xs font-medium text-gray-300">Charm</span>
-        </div>
-
-        {/* via LayerZero V2 */}
-        <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-900/50 rounded-lg border border-gray-800">
-          <span className="text-xs text-gray-500">via</span>
-          <img 
-            src="https://tomato-abundant-urial-204.mypinata.cloud/ipfs/bafkreihml3nahd2duwdjg2ltoeixax2xdj2ldp5unnrjwntyicar74nwra" 
-            alt="LayerZero"
-            className="h-4 w-4"
-          />
-          <span className="text-xs font-medium text-gray-300">LayerZero V2</span>
-        </div>
-      </div>
-
       {/* Vault Header */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-4">

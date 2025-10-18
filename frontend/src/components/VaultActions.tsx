@@ -220,7 +220,10 @@ export default function VaultActions({ provider, account, onConnect, onToast }: 
                   placeholder="0"
                   className="w-full bg-gray-900/50 border border-gray-700 rounded-lg px-4 py-3 text-white text-lg focus:outline-none focus:border-eagle-gold/50 focus:ring-1 focus:ring-eagle-gold/50 transition-all"
                 />
-                <button className="absolute right-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded text-sm text-gray-300 font-medium transition-colors">
+                <button 
+                  onClick={() => setWlfiAmount(wlfiBalance)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded text-sm text-gray-300 font-medium transition-colors"
+                >
                   Max
                 </button>
               </div>
@@ -322,7 +325,10 @@ export default function VaultActions({ provider, account, onConnect, onToast }: 
                   placeholder="0"
                   className="w-full bg-gray-900/50 border border-gray-700 rounded-lg px-4 py-3 text-white text-lg focus:outline-none focus:border-eagle-gold/50 focus:ring-1 focus:ring-eagle-gold/50 transition-all"
                 />
-                <button className="absolute right-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded text-sm text-gray-300 font-medium transition-colors">
+                <button 
+                  onClick={() => setWithdrawAmount(vEagleBalance)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded text-sm text-gray-300 font-medium transition-colors"
+                >
                   Max
                 </button>
               </div>
