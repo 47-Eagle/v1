@@ -212,7 +212,72 @@ export default function VaultActions({ provider, account, onConnect, onToast }: 
   }
 
   return (
-    <div className="bg-[#0a0a0a]/60 rounded-xl border border-eagle-gold/30 backdrop-blur-md mb-6">
+    <>
+      {/* Transaction Simulator Modal */}
+      {showSimulator && (
+        <TransactionSimulator
+          wlfiAmount={wlfiAmount}
+          usd1Amount={usd1Amount}
+          shares={previewShares}
+          usdValue={previewUsdValue}
+          onConfirm={confirmAndDeposit}
+          onCancel={() => setShowSimulator(false)}
+        />
+      )}
+
+      <div className="bg-[#0a0a0a]/60 rounded-xl border border-eagle-gold/30 backdrop-blur-md mb-6">
+      {/* Approval Progress */}
+      {loading && approvalStep !== 'idle' && (
+        <div className="mx-6 mt-6 mb-4 p-4 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-lg border border-blue-500/30">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              {approvalStep === 'checking' || approvalStep === 'approving-wlfi' ? (
+                <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+              )}
+              <span className="text-sm font-medium text-white">
+                {approvalStep === 'checking' && 'Checking allowances...'}
+                {approvalStep === 'approving-wlfi' && 'Approving WLFI...'}
+                {(approvalStep === 'approving-usd1' || approvalStep === 'depositing') && 'Approved!'}
+              </span>
+            </div>
+            
+            <div className="h-px flex-1 bg-gray-700 mx-2" />
+            
+            <div className="flex items-center gap-2">
+              {approvalStep === 'approving-usd1' ? (
+                <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+              ) : approvalStep === 'depositing' ? (
+                <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+              ) : (
+                <div className="w-4 h-4 rounded-full border-2 border-gray-600" />
+              )}
+              <span className="text-sm font-medium text-white">
+                {approvalStep === 'approving-usd1' && 'Approving USD1...'}
+                {approvalStep === 'depositing' && 'Depositing...'}
+                {approvalStep !== 'approving-usd1' && approvalStep !== 'depositing' && 'Approve'}
+              </span>
+            </div>
+            
+            <div className="h-px flex-1 bg-gray-700 mx-2" />
+            
+            <div className="flex items-center gap-2">
+              {approvalStep === 'depositing' ? (
+                <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <div className="w-4 h-4 rounded-full border-2 border-gray-600" />
+              )}
+              <span className="text-sm font-medium text-white">Deposit</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Tabs */}
       <div className="flex border-b border-gray-800">
         <button
@@ -391,6 +456,7 @@ export default function VaultActions({ provider, account, onConnect, onToast }: 
 
       </div>
     </div>
+    </>
   );
 }
 
