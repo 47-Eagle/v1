@@ -326,6 +326,8 @@ export default function VaultActions({ provider, account, onConnect, onToast }: 
               
               <div className="relative">
                 <input
+                  id="wlfi-amount"
+                  name="wlfiAmount"
                   type="number"
                   value={wlfiAmount}
                   onChange={(e) => setWlfiAmount(e.target.value)}
@@ -353,6 +355,8 @@ export default function VaultActions({ provider, account, onConnect, onToast }: 
               
               <div className="relative">
                 <input
+                  id="usd1-amount"
+                  name="usd1Amount"
                   type="number"
                   value={usd1Amount}
                   onChange={(e) => setUsd1Amount(e.target.value)}
@@ -439,6 +443,8 @@ export default function VaultActions({ provider, account, onConnect, onToast }: 
               
               <div className="relative">
                 <input
+                  id="withdraw-amount"
+                  name="withdrawAmount"
                   type="number"
                   value={withdrawAmount}
                   onChange={(e) => setWithdrawAmount(e.target.value)}
