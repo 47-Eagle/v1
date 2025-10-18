@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BrowserProvider } from 'ethers';
-import { AuthProvider } from './lib/GoogleAuth';
+import { usePrivy, useWallets } from '@privy-io/react-auth';
+import { PrivyProvider } from './lib/PrivyProvider';
 import Header from './components/Header';
 import StatsBanner from './components/StatsBanner';
 import VaultOverview from './components/VaultOverview';
@@ -9,32 +10,54 @@ import VaultActions from './components/VaultActions';
 import WrapUnwrap from './components/WrapUnwrap';
 import Toast from './components/Toast';
 
-function App() {
-  const [account, setAccount] = useState<string>('');
+function AppContent() {
+  const { ready, authenticated, user, login } = usePrivy();
+  const { wallets } = useWallets();
   const [provider, setProvider] = useState<BrowserProvider | null>(null);
   const [activeStep, setActiveStep] = useState<1 | 2 | 3>(1);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info'; txHash?: string } | null>(null);
 
-  const connectWallet = async () => {
-    if (typeof window.ethereum !== 'undefined') {
-      try {
-        const provider = new BrowserProvider(window.ethereum);
-        const accounts = await provider.send('eth_requestAccounts', []);
-        setAccount(accounts[0]);
-        setProvider(provider);
-      } catch (error) {
-        console.error('Error connecting wallet:', error);
+  // Get account address from Privy
+  const account = user?.wallet?.address || '';
+
+  // Set up provider when wallet is connected
+  useEffect(() => {
+    const setupProvider = async () => {
+      if (wallets.length > 0) {
+        try {
+          const wallet = wallets[0];
+          const ethersProvider = await wallet.getEthersProvider();
+          setProvider(ethersProvider);
+        } catch (error) {
+          console.error('Failed to get provider:', error);
+        }
       }
-    } else {
-      alert('Please install MetaMask!');
+    };
+
+    if (authenticated && wallets.length > 0) {
+      setupProvider();
     }
+  }, [authenticated, wallets]);
+
+  const connectWallet = () => {
+    login();
   };
 
+  if (!ready) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-[#0a0a0a] to-[#171717] flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-eagle-gold border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading Eagle Finance...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <AuthProvider>
-      <div className="min-h-screen bg-gradient-to-b from-[#0a0a0a] to-[#171717]">
-        <Header account={account} onConnect={connectWallet} provider={provider} />
-        <StatsBanner />
+    <div className="min-h-screen bg-gradient-to-b from-[#0a0a0a] to-[#171717]">
+      <Header account={account} onConnect={connectWallet} provider={provider} />
+      <StatsBanner />
       
       <main className="container mx-auto px-4 py-8 max-w-5xl">
         {/* Back Button */}
@@ -214,8 +237,16 @@ function App() {
             onClose={() => setToast(null)}
           />
         )}
-      </div>
-    </AuthProvider>
+    </div>
+  );
+}
+
+// Wrap with Privy Provider
+function App() {
+  return (
+    <PrivyProvider>
+      <AppContent />
+    </PrivyProvider>
   );
 }
 
