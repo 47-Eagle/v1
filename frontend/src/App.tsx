@@ -33,7 +33,7 @@ function App() {
   return (
     <AuthProvider>
       <div className="min-h-screen bg-gradient-to-b from-[#0a0a0a] to-[#171717]">
-        <Header account={account} onConnect={connectWallet} />
+        <Header account={account} onConnect={connectWallet} provider={provider} />
         <StatsBanner />
       
       <main className="container mx-auto px-4 py-8 max-w-5xl">

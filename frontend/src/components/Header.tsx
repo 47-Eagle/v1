@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react';
 import { BrowserProvider, Contract, formatEther } from 'ethers';
 import { CONTRACTS } from '../config/contracts';
+import NetworkSelector from './NetworkSelector';
 
 interface HeaderProps {
   account: string;
   onConnect: () => void;
+  provider?: BrowserProvider | null;
 }
 
 const VAULT_ABI = ['function getWLFIPrice() view returns (uint256)'];
 
-export default function Header({ account, onConnect }: HeaderProps) {
+export default function Header({ account, onConnect, provider }: HeaderProps) {
   const [wlfiPrice, setWlfiPrice] = useState<string>('0.130');
 
   useEffect(() => {
@@ -61,6 +63,9 @@ export default function Header({ account, onConnect }: HeaderProps) {
         </nav>
 
         <div className="flex items-center gap-3">
+          {/* Network Selector - Shows current network and allows switching */}
+          {account && provider && <NetworkSelector provider={provider} />}
+          
           {account ? (
             <div className="px-4 py-2 bg-green-500/10 text-green-400 rounded-lg border border-green-500/30 font-mono text-sm">
               {account.slice(0, 6)}...{account.slice(-4)}

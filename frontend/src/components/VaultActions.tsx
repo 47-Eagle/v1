@@ -309,8 +309,8 @@ export default function VaultActions({ provider, account, onConnect, onToast }: 
 
   return (
     <>
-      {/* Network Checker - Shows warning if not on Ethereum */}
-      <NetworkChecker provider={provider} expectedChainId={1} />
+      {/* Network Checker - Removed full screen modal, now using header selector instead */}
+      {/* <NetworkChecker provider={provider} expectedChainId={1} /> */}
       
       {/* Transaction Simulator Modal - Only show on deposit tab */}
       {showSimulator && activeTab === 'deposit' && (
