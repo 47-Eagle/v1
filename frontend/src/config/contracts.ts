@@ -1,13 +1,13 @@
-// Deployed contract addresses on Ethereum (v2 - October 17, 2025)
+// Deployed contract addresses on Ethereum (V3 - October 18, 2025) - ALL VANITY 0x47...ea91e!
 export const CONTRACTS = {
-  VAULT: '0x9e6AFd836fF239e5Ab5fa60DB7c01080bDd964FB',       // v2 - Fixed oracle, 80k multiplier
-  OFT: '0xa85287cEBc43e0ebb6CAF135A39079d97fE4d039',         // v2 - Connected to wrapper v2
-  WRAPPER: '0xb0e07784c31a19354d420BdA23B6d91Cc250B53C',     // v2 - Connected to vault v2
-  STRATEGY: '0x16C0F6696D7129468c455838632455200C1C4152',    // v2 - Connected to vault v2
-  CHARM_VAULT: '0x3314e248F3F752Cd16939773D83bEb3a362F0AEF', // Your Charm Alpha Vault
+  VAULT: '0x4764Ed46281cd065602Eb1e49988E659F2DEa91E',       // V3 - Correct USD1 (18 decimals)
+  OFT: '0x477d42841dC5A7cCBc2f72f4448f5eF6B61eA91E',         // V3 - Vanity!
+  WRAPPER: '0x47BB9a08bA46ea94146Aff6c88b316A5315Ea91e',     // V3 - Vanity!
+  STRATEGY: '0x47A2B9199dd3feDe5AC83bcbEC224D9aD73Ea91E',    // V3 - Vanity!
+  CHARM_VAULT: '0x3314e248F3F752Cd16939773D83bEb3a362F0AEF', // Charm Alpha Vault
   
-  // Token addresses
-  WLFI: '0xdA5e1988097297dCdc1f90D4dFE7909e847CBeF6',
+  // Token addresses (Correct!)
+  WLFI: '0x4780940f87d2Ce81d9dBAE8cC79B2239366e4747',
   USD1: '0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d',
   WETH: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
 } as const;
