@@ -81,9 +81,6 @@ export default function VaultOverview({ provider, account }: Props) {
             <p className="text-sm text-gray-400 mt-0.5 font-mono">
               {CONTRACTS.VAULT.slice(0, 8)}...{CONTRACTS.VAULT.slice(-6)}
             </p>
-            <p className="text-xs text-gray-500 mt-1">
-              80,000 shares per $1 USD
-            </p>
           </div>
         </div>
         
