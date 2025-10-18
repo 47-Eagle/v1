@@ -139,33 +139,55 @@ export default function VaultActions({ provider, account, onConnect, onToast }: 
       console.log('Account (receiver):', account);
 
       // Check and approve WLFI if needed
+      console.log('🔍 Checking WLFI allowance...');
       const wlfiAllowance = await wlfi.allowance(account, CONTRACTS.VAULT);
+      console.log('  Current allowance:', wlfiAllowance.toString());
+      console.log('  Need:', wlfiWei.toString());
+      
       if (wlfiAllowance < wlfiWei) {
+        console.log('⚠️  Need to approve WLFI');
         setApprovalStep('approving-wlfi');
         onToast({ message: 'Approving WLFI...', type: 'info' });
         const maxApproval = MaxUint256; // Approve max to avoid future approvals
         const wlfiApproveTx = await wlfi.approve(CONTRACTS.VAULT, maxApproval);
+        console.log('  Approval TX sent:', wlfiApproveTx.hash);
         await wlfiApproveTx.wait();
+        console.log('  ✅ WLFI approved!');
         onToast({ message: 'WLFI approved!', type: 'success' });
+      } else {
+        console.log('  ✅ WLFI already approved');
       }
       
       // Check and approve USD1 if needed
       if (Number(usd1Amount) > 0) {
+        console.log('🔍 Checking USD1 allowance...');
         const usd1Allowance = await usd1.allowance(account, CONTRACTS.VAULT);
+        console.log('  Current allowance:', usd1Allowance.toString());
+        
         if (usd1Allowance < usd1Wei) {
+          console.log('⚠️  Need to approve USD1');
           setApprovalStep('approving-usd1');
           onToast({ message: 'Approving USD1...', type: 'info' });
           const maxApproval = MaxUint256;
           const usd1ApproveTx = await usd1.approve(CONTRACTS.VAULT, maxApproval);
+          console.log('  Approval TX sent:', usd1ApproveTx.hash);
           await usd1ApproveTx.wait();
+          console.log('  ✅ USD1 approved!');
           onToast({ message: 'USD1 approved!', type: 'success' });
+        } else {
+          console.log('  ✅ USD1 already approved');
         }
       }
 
+      console.log('🚀 Calling depositDual...');
+      console.log('  Function: depositDual(', wlfiWei.toString(), ',', usd1Wei.toString(), ',', account, ')');
+      
       setApprovalStep('depositing');
       onToast({ message: 'Depositing to vault...', type: 'info' });
       const depositTx = await vault.depositDual(wlfiWei, usd1Wei, account);
+      console.log('  Deposit TX sent:', depositTx.hash);
       const receipt = await depositTx.wait();
+      console.log('  ✅ Deposit confirmed! Block:', receipt.blockNumber);
 
       onToast({ 
         message: 'Deposit successful! You received vEAGLE shares', 
