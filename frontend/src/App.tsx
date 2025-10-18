@@ -39,9 +39,22 @@ function App() {
 
   const connectWallet = async () => {
     // Web3Modal handles this with its button
-    // Just open the modal
-    const { open } = await import('@web3modal/ethers/react');
-    open();
+    try {
+      const { useWeb3Modal } = await import('@web3modal/ethers/react');
+      const { open } = useWeb3Modal();
+      await open();
+    } catch (error) {
+      console.error('Failed to open Web3Modal:', error);
+      // Fallback to direct MetaMask connection
+      if (typeof window.ethereum !== 'undefined') {
+        try {
+          const provider = new BrowserProvider(window.ethereum);
+          await provider.send('eth_requestAccounts', []);
+        } catch (err) {
+          console.error('MetaMask connection failed:', err);
+        }
+      }
+    }
   };
 
   return (
