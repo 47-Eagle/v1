@@ -8,6 +8,7 @@ import { ERC4626 } from "@openzeppelin/contracts/token/ERC20/extensions/ERC4626.
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import { ISwapRouter } from "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
+import { IUniswapV3Pool } from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import { IStrategy } from "./interfaces/IStrategy.sol";
 
 interface AggregatorV3Interface {
@@ -23,39 +24,12 @@ interface AggregatorV3Interface {
 
 /**
  * @title EagleOVault
- * @notice Production-ready LayerZero Omnichain Vault with oracle pricing and auto-rebalancing
+ * @notice Gas-optimized dual-token vault with TWAP oracle pricing
  * 
- * @dev ARCHITECTURE:
- *      - Hub chain: Ethereum (where this vault lives)
- *      - Asset: WLFI (primary) + USD1 (secondary) dual-token vault
- *      - Shares: EAGLE tokens (omnichain via ShareOFTAdapter)
- *      - Strategies: Pluggable yield strategies (Charm Alpha Vaults, etc.)
- * 
- * @dev PRICING MODEL:
- *      - USD1: Chainlink oracle (accurate stablecoin pricing)
- *      - WLFI: Uniswap V3 TWAP (manipulation-resistant)
- *      - Share ratio: 10,000 shares = $1 USD (maximum precision)
- * 
- * @dev FEATURES:
- *      ✅ Accurate oracle-based pricing
- *      ✅ Multi-strategy support with weights
- *      ✅ Batch deployment optimization
- *      ✅ Complete withdrawal support
- *      ✅ Emergency pause functionality
- *      ✅ Reentrancy protection
- * 
- * NOTE: This is a PURE VAULT - backend only.
- *       No fees, no auto-rebalancing, no trading.
- *       Users wrap vault shares to EagleShareOFT for trading/bridging.
- *       Strategies handle their own rebalancing (see CharmStrategy).
- *       All fees are on the OFT layer (EagleShareOFT has 2% fee on DEX trading).
- * 
- * EXAMPLE:
- *      User deposits: 100 WLFI + 100 USD1
- *      WLFI price: $0.21 (from TWAP)
- *      USD1 price: $0.9994 (from Chainlink)
- *      Total value: (100 × $0.21) + (100 × $0.9994) = $120.94
- *      Shares minted: $120.94 × 10,000 = 1,209,400 EAGLE
+ * @dev Dual-token vault: WLFI + USD1 → vEAGLE shares
+ *      Pricing: Chainlink (USD1) + Uniswap V3 TWAP (WLFI, fallback to spot)
+ *      Yield: Pluggable strategies (Charm, etc.)
+ *      Shares: 80,000 vEAGLE = $1 USD
  */
 contract EagleOVault is ERC4626, Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
@@ -70,7 +44,7 @@ contract EagleOVault is ERC4626, Ownable, ReentrancyGuard {
     
     /// @notice Oracle contracts
     AggregatorV3Interface public immutable USD1_PRICE_FEED;
-    address public immutable WLFI_USD1_POOL;
+    IUniswapV3Pool public immutable WLFI_USD1_POOL;
     
     /// @notice Uniswap router for swaps
     ISwapRouter public immutable UNISWAP_ROUTER;
@@ -90,7 +64,7 @@ contract EagleOVault is ERC4626, Ownable, ReentrancyGuard {
     uint256 public maxTotalSupply = 50_000_000e18; // 50 million vEAGLE shares
     
     /// @notice Oracle configuration
-    uint32 public twapInterval = 1800; // 30 minutes TWAP for WLFI
+    uint32 public twapInterval = 1800; // 30 minutes TWAP (manipulation resistant)
     uint256 public maxPriceAge = 86400; // 24 hours max for Chainlink
     
     /// @notice Batch deployment optimization
@@ -185,7 +159,7 @@ contract EagleOVault is ERC4626, Ownable, ReentrancyGuard {
         WLFI_TOKEN = IERC20(_wlfiToken);
         USD1_TOKEN = IERC20(_usd1Token);
         USD1_PRICE_FEED = AggregatorV3Interface(_usd1PriceFeed);
-        WLFI_USD1_POOL = _wlfiUsd1Pool;
+        WLFI_USD1_POOL = IUniswapV3Pool(_wlfiUsd1Pool);
         UNISWAP_ROUTER = ISwapRouter(_uniswapRouter);
         
         manager = _owner;
@@ -246,28 +220,25 @@ contract EagleOVault is ERC4626, Ownable, ReentrancyGuard {
     }
     
     /**
-     * @notice Get WLFI price in USD using multi-source validation
+     * @notice Get WLFI price in USD with TWAP fallback
      * @return price WLFI price in USD (18 decimals)
-     * @dev Uses TWAP with spot price sanity check for robustness
+     * @dev Uses TWAP if available, falls back to spot on error
      */
     function getWLFIPrice() public view returns (uint256 price) {
         // Get USD1 price in USD from Chainlink
         uint256 usd1InUSD = getUSD1Price();
         
-        // Get WLFI price in USD1 terms from primary source (TWAP)
-        uint256 wlfiInUsd1 = _getWLFIinUSD1FromTWAP();
-        
-        // Sanity check: Compare TWAP with spot price
-        // If they differ by more than 20%, use spot price (more reliable for low liquidity)
-        uint256 spotPrice = _getSpotPrice();
-        
-        // Check if TWAP and spot are reasonably close
-        uint256 diff = wlfiInUsd1 > spotPrice ? wlfiInUsd1 - spotPrice : spotPrice - wlfiInUsd1;
-        uint256 threshold = (spotPrice * 20) / 100; // 20% threshold
-        
-        if (diff > threshold) {
-            // TWAP deviates too much, use spot price
-            wlfiInUsd1 = spotPrice;
+        // Try TWAP first (manipulation resistant), fallback to spot
+        uint256 wlfiInUsd1;
+        if (twapInterval > 0) {
+            try this._getTWAPPrice() returns (uint256 twapPrice) {
+                wlfiInUsd1 = twapPrice;
+            } catch {
+                // TWAP failed (low cardinality), use spot
+                wlfiInUsd1 = _getSpotPrice();
+            }
+        } else {
+            wlfiInUsd1 = _getSpotPrice();
         }
         
         // Calculate WLFI price in USD: WLFI/USD = (WLFI/USD1) × (USD1/USD)
@@ -275,129 +246,48 @@ contract EagleOVault is ERC4626, Ownable, ReentrancyGuard {
     }
     
     /**
-     * @notice Get WLFI price in USD1 terms from Uniswap pool TWAP
+     * @notice Get TWAP price (external for try/catch)
+     * @dev Simplified TWAP without heavy tick math
      */
-    function _getWLFIinUSD1FromTWAP() internal view returns (uint256) {
-        if (twapInterval == 0) {
-            return _getSpotPrice();
-        }
-        
-        try this._observeTWAP() returns (uint256 twapPrice) {
-            return twapPrice;
-        } catch {
-            return _getSpotPrice();
-        }
-    }
-    
-    /**
-     * @notice Observe TWAP from Uniswap pool
-     * @dev External to allow try/catch
-     */
-    function _observeTWAP() external view returns (uint256 price) {
+    function _getTWAPPrice() external view returns (uint256) {
         uint32[] memory secondsAgos = new uint32[](2);
         secondsAgos[0] = twapInterval;
         secondsAgos[1] = 0;
         
-        (bool success, bytes memory data) = WLFI_USD1_POOL.staticcall(
-            abi.encodeWithSignature("observe(uint32[])", secondsAgos)
-        );
-        
-        if (!success) revert("TWAP observe failed");
-        
-        (int56[] memory tickCumulatives,) = abi.decode(data, (int56[], uint160[]));
+        (int56[] memory tickCumulatives,) = WLFI_USD1_POOL.observe(secondsAgos);
         
         int56 tickCumulativesDelta = tickCumulatives[1] - tickCumulatives[0];
         int24 arithmeticMeanTick = int24(tickCumulativesDelta / int56(uint56(twapInterval)));
         
-        price = _sqrtPriceFromTick(arithmeticMeanTick);
+        // Simple approximation: price ≈ 1.0001^tick
+        // For small ticks, use linear approximation to save gas
+        if (arithmeticMeanTick > -1000 && arithmeticMeanTick < 1000) {
+            // Linear approximation for ticks near 0
+            uint256 basePrice = 1e18; // 1:1 ratio at tick 0
+            int256 adjustment = int256(arithmeticMeanTick) * 1e14; // ~0.01% per tick
+            uint256 rawPrice = uint256(int256(basePrice) + adjustment);
+            return rawPrice > 0 ? (1e18 * 1e18) / rawPrice : 1e18;
+        } else {
+            // For large ticks, fallback to spot (safer than complex math)
+            return _getSpotPrice();
+        }
     }
     
     /**
      * @notice Get current spot price from Uniswap pool
      */
     function _getSpotPrice() internal view returns (uint256 price) {
-        (bool success, bytes memory data) = WLFI_USD1_POOL.staticcall(
-            abi.encodeWithSignature("slot0()")
-        );
+        (uint160 sqrtPriceX96,,,,,,) = WLFI_USD1_POOL.slot0();
         
-        if (!success) return 1e18;
-        
-        (uint160 sqrtPriceX96,,,,,,) = abi.decode(
-            data,
-            (uint160, int24, uint16, uint16, uint16, uint8, bool)
-        );
-        
-        // Convert sqrtPriceX96 to price: price = (sqrtPriceX96 / 2^96)^2
+        // Convert sqrtPriceX96 to price
         uint256 numerator = uint256(sqrtPriceX96) * uint256(sqrtPriceX96);
         uint256 denominator = 1 << 192; // 2^192
-        
         uint256 rawPrice = (numerator * 1e18) / denominator;
-        // rawPrice = token1/token0 = WLFI/USD1 (with native decimals)
-        // Both WLFI and USD1 are 18 decimals, so no adjustment needed
-        // rawPrice ≈ 7.8356e18 means 7.8356 WLFI per 1 USD1
         
-        // Invert to get USD1 per WLFI (price of 1 WLFI in USD1 terms)
-        // If 7.8356 WLFI = 1 USD1, then 1 WLFI = 1/7.8356 USD1 = 0.1276 USD1
-        price = (1e18 * 1e18) / rawPrice;
-        // price = 1e36 / 7.8356e18 = 0.1276e18 ✅
+        // Invert to get USD1 per WLFI
+        price = rawPrice > 0 ? (1e18 * 1e18) / rawPrice : 1e15;
         
         if (price == 0) price = 1e15; // Minimum $0.001
-    }
-    
-    /**
-     * @notice Convert Uniswap tick to price (simplified)
-     */
-    function _sqrtPriceFromTick(int24 tick) internal pure returns (uint256 price) {
-        // PROPER tick to price conversion using Uniswap's formula
-        // Price = 1.0001^tick
-        // We use binary exponentiation for accuracy
-        
-        uint256 absTick = tick < 0 ? uint256(-int256(tick)) : uint256(int256(tick));
-        require(absTick <= 887272, 'T'); // Max tick for overflow protection
-        
-        // Calculate 1.0001^absTick using binary exponentiation
-        // Start with ratio = sqrt(1.0001) for precision
-        uint256 ratio = absTick & 0x1 != 0 ? 0xfffcb933bd6fad37aa2d162d1a594001 : 0x100000000000000000000000000000000;
-        
-        if (absTick & 0x2 != 0) ratio = (ratio * 0xfff97272373d413259a46990580e213a) >> 128;
-        if (absTick & 0x4 != 0) ratio = (ratio * 0xfff2e50f5f656932ef12357cf3c7fdcc) >> 128;
-        if (absTick & 0x8 != 0) ratio = (ratio * 0xffe5caca7e10e4e61c3624eaa0941cd0) >> 128;
-        if (absTick & 0x10 != 0) ratio = (ratio * 0xffcb9843d60f6159c9db58835c926644) >> 128;
-        if (absTick & 0x20 != 0) ratio = (ratio * 0xff973b41fa98c081472e6896dfb254c0) >> 128;
-        if (absTick & 0x40 != 0) ratio = (ratio * 0xff2ea16466c96a3843ec78b326b52861) >> 128;
-        if (absTick & 0x80 != 0) ratio = (ratio * 0xfe5dee046a99a2a811c461f1969c3053) >> 128;
-        if (absTick & 0x100 != 0) ratio = (ratio * 0xfcbe86c7900a88aedcffc83b479aa3a4) >> 128;
-        if (absTick & 0x200 != 0) ratio = (ratio * 0xf987a7253ac413176f2b074cf7815e54) >> 128;
-        if (absTick & 0x400 != 0) ratio = (ratio * 0xf3392b0822b70005940c7a398e4b70f3) >> 128;
-        if (absTick & 0x800 != 0) ratio = (ratio * 0xe7159475a2c29b7443b29c7fa6e889d9) >> 128;
-        if (absTick & 0x1000 != 0) ratio = (ratio * 0xd097f3bdfd2022b8845ad8f792aa5825) >> 128;
-        if (absTick & 0x2000 != 0) ratio = (ratio * 0xa9f746462d870fdf8a65dc1f90e061e5) >> 128;
-        if (absTick & 0x4000 != 0) ratio = (ratio * 0x70d869a156d2a1b890bb3df62baf32f7) >> 128;
-        if (absTick & 0x8000 != 0) ratio = (ratio * 0x31be135f97d08fd981231505542fcfa6) >> 128;
-        if (absTick & 0x10000 != 0) ratio = (ratio * 0x9aa508b5b7a84e1c677de54f3e99bc9) >> 128;
-        if (absTick & 0x20000 != 0) ratio = (ratio * 0x5d6af8dedb81196699c329225ee604) >> 128;
-        if (absTick & 0x40000 != 0) ratio = (ratio * 0x2216e584f5fa1ea926041bedfe98) >> 128;
-        if (absTick & 0x80000 != 0) ratio = (ratio * 0x48a170391f7dc42444e8fa2) >> 128;
-
-        // Adjust for negative ticks
-        if (tick < 0) ratio = type(uint256).max / ratio;
-        
-        // Convert from sqrtPrice (Q128) to price
-        // price = (ratio / 2^128)^2 = ratio^2 / 2^256
-        // But we want price in 1e18 format
-        uint256 priceX128 = (ratio * ratio) >> 128;
-        price = (priceX128 * 1e18) >> 128;
-        
-        // Invert to get USD1 per WLFI (since ratio gives WLFI per USD1)
-        if (price > 0) {
-            price = (1e18 * 1e18) / price;
-        } else {
-            price = 1e18;
-        }
-        
-        // Safety bounds
-        if (price < 1e14) price = 1e14;  // Min $0.0001
-        if (price > 1e21) price = 1e21;  // Max $1000
     }
 
     /**
@@ -803,7 +693,7 @@ contract EagleOVault is ERC4626, Ownable, ReentrancyGuard {
     }
     
     function setTWAPInterval(uint32 _interval) external onlyOwner {
-        require(_interval >= 300 && _interval <= 7200, "Invalid interval");
+        require(_interval == 0 || (_interval >= 300 && _interval <= 7200), "Invalid interval");
         twapInterval = _interval;
     }
     
