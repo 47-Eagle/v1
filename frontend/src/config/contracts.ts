@@ -1,9 +1,9 @@
 // Deployed contract addresses on Ethereum (PRODUCTION - October 18, 2025)
 export const CONTRACTS = {
-  VAULT: '0xE823e9b65b9728863D4c12F4BCB7931735a2C36e',       // EagleOVault (Optimized, TWAP-enabled) 
-  OFT: '0x477d42841dC5A7cCBc2f72f4448f5eF6B61eA91E',         // EagleShareOFT
-  WRAPPER: '0x470520e3f88922c4e912cfc0379e05da000ea91e',     // EagleVaultWrapper VANITY ✨
-  STRATEGY: '0x47eb9d83ad8474be4fc72fa75138a2df4a0ea91e',    // CharmStrategyUSD1 VANITY ✨
+  VAULT: '0xE823e9b65b9728863D4c12F4BCB7931735a2C36e',       // EagleOVault (Optimized, TWAP-enabled) ✅
+  OFT: '0x477d42841dC5A7cCBc2f72f4448f5eF6B61eA91E',         // EagleShareOFT ✅
+  WRAPPER: '0x470520e3f88922c4e912cfc0379e05da000ea91e',     // EagleVaultWrapper (deploy pending)
+  STRATEGY: '0x796286947B7902e678c430048c7Cc332d2F44945',    // CharmStrategyUSD1 (WORKING!) ✅
   CHARM_VAULT: '0x22828Dbf15f5FBa2394Ba7Cf8fA9A96BdB444B71', // Charm USD1/WLFI Vault
   
   // Token addresses (REAL tokens!)
