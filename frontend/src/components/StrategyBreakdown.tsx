@@ -36,7 +36,7 @@ export default function StrategyBreakdown({ provider }: Props) {
         
         // Calculate approximate USD value
         // Use oracle prices: fetch from vault for accuracy
-        const usdValue = (Number(wlfiFormatted) * 0.125) + (Number(wethFormatted) * 3796);
+        const usdValue = (Number(wlfiFormatted) * 0.125) + (Number(usd1Formatted) * 1.00);  // USD1 ≈ $1
         setTotalValue(usdValue.toFixed(2));
       } catch (error) {
         console.error('Error:', error);
@@ -80,8 +80,8 @@ export default function StrategyBreakdown({ provider }: Props) {
               <span className="text-sm font-medium text-gray-200">WLFI</span>
               <span className="text-gray-500">/</span>
               <img 
-                src="https://tomato-abundant-urial-204.mypinata.cloud/ipfs/bafkreiagnmvgbx3g7prmcg57pu3safks7ut6j3okopfmji7h5pndz2zeqy" 
-                alt="WETH"
+                src="https://tomato-abundant-urial-204.mypinata.cloud/ipfs/bafkreic74no55hhm544qjraibffhrb4h7zldae5sfsyipvu6dvfyqubppy" 
+                alt="USD1"
                 className="h-5 w-5"
               />
               <span className="text-sm font-medium text-gray-200">USD1</span>
@@ -100,7 +100,7 @@ export default function StrategyBreakdown({ provider }: Props) {
         <p className="text-3xl font-bold text-white">
           ${Number(totalValue).toLocaleString(undefined, { maximumFractionDigits: 2 })}
         </p>
-        <p className="text-sm text-gray-500 mt-1">Combined WLFI + WETH</p>
+        <p className="text-sm text-gray-500 mt-1">Combined WLFI + USD1</p>
       </div>
 
           {/* Token Breakdown with Visual Ratios */}
@@ -128,8 +128,8 @@ export default function StrategyBreakdown({ provider }: Props) {
                   style={{ 
                     width: `${(() => {
                       const wlfiValue = Number(wlfiAmount) * 0.125;
-                      const wethValue = Number(wethAmount) * 3796;
-                      const total = wlfiValue + wethValue;
+                      const usd1Value = Number(wethAmount) * 1.00  // USD1 price;
+                      const total = wlfiValue + usd1Value;
                       return total > 0 ? ((wlfiValue / total) * 100).toFixed(1) : 0;
                     })()}%` 
                   }}
@@ -138,8 +138,8 @@ export default function StrategyBreakdown({ provider }: Props) {
               <p className="text-xs text-gray-500 mt-1">
                 {(() => {
                   const wlfiValue = Number(wlfiAmount) * 1.00;
-                  const wethValue = Number(wethAmount) * 3796;
-                  const total = wlfiValue + wethValue;
+                  const usd1Value = Number(wethAmount) * 1.00  // USD1 price;
+                  const total = wlfiValue + usd1Value;
                   return total > 0 ? ((wlfiValue / total) * 100).toFixed(1) : 0;
                 })()}% of total value
               </p>
@@ -151,10 +151,10 @@ export default function StrategyBreakdown({ provider }: Props) {
                 <div className="flex items-center gap-2">
                   <img 
                     src="https://tomato-abundant-urial-204.mypinata.cloud/ipfs/bafkreiagnmvgbx3g7prmcg57pu3safks7ut6j3okopfmji7h5pndz2zeqy" 
-                    alt="WETH"
+                    alt="USD1"
                     className="h-5 w-5"
                   />
-                  <span className="text-gray-400">WETH Balance</span>
+                  <span className="text-gray-400">USD1 Balance</span>
                 </div>
                 <span className="text-white font-semibold">
                   {Number(wethAmount).toLocaleString(undefined, { maximumFractionDigits: 4 })}
@@ -166,9 +166,9 @@ export default function StrategyBreakdown({ provider }: Props) {
                   style={{ 
                     width: `${(() => {
                       const wlfiValue = Number(wlfiAmount) * 0.125;
-                      const wethValue = Number(wethAmount) * 3796;
-                      const total = wlfiValue + wethValue;
-                      return total > 0 ? ((wethValue / total) * 100).toFixed(1) : 0;
+                      const usd1Value = Number(wethAmount) * 1.00  // USD1 price;
+                      const total = wlfiValue + usd1Value;
+                      return total > 0 ? ((usd1Value / total) * 100).toFixed(1) : 0;
                     })()}%` 
                   }}
                 />
@@ -176,9 +176,9 @@ export default function StrategyBreakdown({ provider }: Props) {
               <p className="text-xs text-gray-500 mt-1">
                 {(() => {
                   const wlfiValue = Number(wlfiAmount) * 1.00;
-                  const wethValue = Number(wethAmount) * 3796;
-                  const total = wlfiValue + wethValue;
-                  return total > 0 ? ((wethValue / total) * 100).toFixed(1) : 0;
+                  const usd1Value = Number(wethAmount) * 1.00  // USD1 price;
+                  const total = wlfiValue + usd1Value;
+                  return total > 0 ? ((usd1Value / total) * 100).toFixed(1) : 0;
                 })()}% of total value
               </p>
             </div>
@@ -264,7 +264,7 @@ export default function StrategyBreakdown({ provider }: Props) {
                 <span className="text-white font-medium">${Number(totalValue).toLocaleString()}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-400">Total WETH:</span>
+                <span className="text-gray-400">Total USD1:</span>
                 <span className="text-white font-medium">{Number(wethAmount).toFixed(4)}</span>
               </div>
               <div className="flex justify-between text-sm">
@@ -276,10 +276,10 @@ export default function StrategyBreakdown({ provider }: Props) {
                 <span className="text-white font-medium">
                   {(() => {
                     const wlfiValue = Number(wlfiAmount) * 0.12502;
-                    const wethValue = Number(wethAmount) * 3796;
-                    const total = wlfiValue + wethValue;
+                    const usd1Value = Number(wethAmount) * 1.00  // USD1 price;
+                    const total = wlfiValue + usd1Value;
                     const wlfiPercent = total > 0 ? ((wlfiValue / total) * 100).toFixed(1) : '0.0';
-                    const wethPercent = total > 0 ? ((wethValue / total) * 100).toFixed(1) : '0.0';
+                    const wethPercent = total > 0 ? ((usd1Value / total) * 100).toFixed(1) : '0.0';
                     return `${wethPercent} : ${wlfiPercent}`;
                   })()}
                 </span>
