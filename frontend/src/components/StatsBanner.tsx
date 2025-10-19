@@ -10,7 +10,7 @@ export default function StatsBanner() {
   const [stats, setStats] = useState({
     charmTVL: '0',
     wlfiLiquidity: '0',
-    wethLiquidity: '0',
+    usd1Liquidity: '0',
   });
 
   useEffect(() => {
@@ -18,16 +18,16 @@ export default function StatsBanner() {
       try {
         const provider = new BrowserProvider((window as any).ethereum);
         const charmVault = new Contract(CONTRACTS.CHARM_VAULT, CHARM_VAULT_ABI, provider);
-        const [weth, wlfi] = await charmVault.getTotalAmounts();
+        const [usd1, wlfi] = await charmVault.getTotalAmounts();  // Charm vault is USD1/WLFI
         
         const wlfiFormatted = formatEther(wlfi);
-        const wethFormatted = formatEther(weth);
-        const tvl = (Number(wlfiFormatted) * 0.130 + Number(wethFormatted) * 3855).toFixed(2);
+        const usd1Formatted = formatEther(usd1);
+        const tvl = (Number(wlfiFormatted) * 0.130 + Number(usd1Formatted) * 1.00).toFixed(2);  // USD1 = $1
         
         setStats({
           charmTVL: tvl,
           wlfiLiquidity: Number(wlfiFormatted).toFixed(2),
-          wethLiquidity: Number(wethFormatted).toFixed(4),
+          usd1Liquidity: Number(usd1Formatted).toFixed(4),
         });
       } catch (error) {
         console.error('Error fetching stats:', error);
@@ -42,7 +42,7 @@ export default function StatsBanner() {
   const statItems = [
     { label: 'Charm Finance TVL', value: `$${Number(stats.charmTVL).toLocaleString()}`, icon: 'https://tomato-abundant-urial-204.mypinata.cloud/ipfs/bafkreid3difftzksqy3xlummzzobhk674ece35d7drmgo3ftt7wrix6dwu' },
     { label: 'WLFI Liquidity', value: `${Number(stats.wlfiLiquidity).toLocaleString()} WLFI`, icon: 'https://tomato-abundant-urial-204.mypinata.cloud/ipfs/bafkreifvnbzrefx4pdd6mr653dmrgkz2bdcamrwdsl334f7ed75miosaxu' },
-    { label: 'WETH Liquidity', value: `${stats.wethLiquidity} WETH`, icon: 'https://tomato-abundant-urial-204.mypinata.cloud/ipfs/bafkreiagnmvgbx3g7prmcg57pu3safks7ut6j3okopfmji7h5pndz2zeqy' },
+    { label: 'USD1 Liquidity', value: `${stats.usd1Liquidity} USD1`, icon: 'https://tomato-abundant-urial-204.mypinata.cloud/ipfs/bafkreic74no55hhm544qjraibffhrb4h7zldae5sfsyipvu6dvfyqubppy' },
     { label: 'Fee Tier', value: '1%', icon: 'https://tomato-abundant-urial-204.mypinata.cloud/ipfs/bafkreichw4b4wxvinfu4dmkloxajj4mm7672k6q3nyqzvdnvogvlbbycfq' },
   ];
 

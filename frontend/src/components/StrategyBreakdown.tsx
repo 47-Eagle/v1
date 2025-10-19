@@ -150,7 +150,7 @@ export default function StrategyBreakdown({ provider }: Props) {
               <div className="flex justify-between items-center text-sm mb-2">
                 <div className="flex items-center gap-2">
                   <img 
-                    src="https://tomato-abundant-urial-204.mypinata.cloud/ipfs/bafkreiagnmvgbx3g7prmcg57pu3safks7ut6j3okopfmji7h5pndz2zeqy" 
+                    src="https://tomato-abundant-urial-204.mypinata.cloud/ipfs/bafkreic74no55hhm544qjraibffhrb4h7zldae5sfsyipvu6dvfyqubppy" 
                     alt="USD1"
                     className="h-5 w-5"
                   />
