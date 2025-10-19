@@ -84,7 +84,7 @@ export default function TransactionSimulator({
   const gasCostUSD = Number(estimatedGas) * ethPrice;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in duration-200">
       <div className="bg-gradient-to-b from-gray-900 to-black rounded-2xl border border-eagle-gold/20 p-8 max-w-lg w-full shadow-2xl shadow-black/50 animate-in slide-in-from-bottom-4 duration-300">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
