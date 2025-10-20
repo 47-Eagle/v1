@@ -558,13 +558,8 @@ contract EagleOVault is ERC4626, Ownable, ReentrancyGuard {
                     wlfiBalance -= strategyWlfi;
                     usd1Balance -= strategyUsd1;
                     
-                    // Approve and let strategy pull tokens (ORIGINAL working method)
-                    if (strategyWlfi > 0) {
-                        WLFI_TOKEN.safeIncreaseAllowance(strategy, strategyWlfi);
-                    }
-                    if (strategyUsd1 > 0) {
-                        USD1_TOKEN.safeIncreaseAllowance(strategy, strategyUsd1);
-                    }
+                    // Skip approval - owner must pre-approve using approveTokensToStrategy()
+                    // This avoids SafeERC20 issues with contract-to-contract approvals
                     
                     IStrategy(strategy).deposit(strategyWlfi, strategyUsd1);
                     
@@ -695,6 +690,19 @@ contract EagleOVault is ERC4626, Ownable, ReentrancyGuard {
     function setTWAPInterval(uint32 _interval) external onlyOwner {
         require(_interval == 0 || (_interval >= 300 && _interval <= 7200), "Invalid interval");
         twapInterval = _interval;
+    }
+    
+    /**
+     * @notice Manually approve tokens to strategy (workaround for SafeERC20 issues)
+     * @dev Call this ONCE before deploying to strategies
+     */
+    function approveTokensToStrategy(address strategy, uint256 wlfiAmount, uint256 usd1Amount) external onlyOwner {
+        if (wlfiAmount > 0) {
+            WLFI_TOKEN.approve(strategy, wlfiAmount);
+        }
+        if (usd1Amount > 0) {
+            USD1_TOKEN.approve(strategy, usd1Amount);
+        }
     }
     
     function setMaxPriceAge(uint256 _maxPriceAge) external onlyOwner {

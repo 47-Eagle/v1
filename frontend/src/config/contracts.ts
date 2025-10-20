@@ -1,6 +1,6 @@
 // Deployed contract addresses on Ethereum (PRODUCTION - October 18, 2025)
 export const CONTRACTS = {
-  VAULT: '0xcd033522d822d8A127d04f1812a6Ba8C0DA798ae',       // EagleOVault (ORIGINAL safeIncreaseAllowance) ✅
+  VAULT: '0xF1BA178f27d5bB8dd5559CbEF8c35A6fBF670b62',       // EagleOVault (Working! Has your 960K shares) ✅
   OFT: '0x477d42841dC5A7cCBc2f72f4448f5eF6B61eA91E',         // EagleShareOFT ✅
   WRAPPER: '0x470520e3f88922c4e912cfc0379e05da000ea91e',     // EagleVaultWrapper (deploy pending)
   STRATEGY: '0x796286947B7902e678c430048c7Cc332d2F44945',    // CharmStrategyUSD1 (WORKING!) ✅
