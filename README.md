@@ -1,257 +1,228 @@
 # 🦅 Eagle Omnichain Vault
 
-**Production-ready omnichain vault with matching addresses across all chains**
+**Production-ready dual-token vault with Charm Finance integration and LayerZero omnichain capabilities**
 
-**EAGLE Token:** `0x47a8f1df6cafeb0d7104e7468b4688cf1cdea91e` (same on all chains!)
+**Network:** Ethereum Mainnet  
+**Status:** ✅ Live & Earning Yield
+
+---
+
+## 📍 Production Contract Addresses
+
+### Core Contracts (Ethereum Mainnet)
+
+| Contract | Address | Status |
+|----------|---------|--------|
+| **EagleOVault** | [`0x32a2544De7a644833fE7659dF95e5bC16E698d99`](https://etherscan.io/address/0x32a2544De7a644833fE7659dF95e5bC16E698d99) | ✅ Live |
+| **CharmStrategyUSD1** | [`0xd286Fdb2D3De4aBf44649649D79D5965bD266df4`](https://etherscan.io/address/0xd286Fdb2D3De4aBf44649649D79D5965bD266df4) | ✅ Earning |
+| **EagleVaultWrapper** | [`0xF9CEf2f5E9bb504437b770ED75cA4D46c407ba03`](https://etherscan.io/address/0xF9CEf2f5E9bb504437b770ED75cA4D46c407ba03) | ✅ Live |
+| **EagleShareOFT** | [`0x477d42841dC5A7cCBc2f72f4448f5eF6B61eA91E`](https://etherscan.io/address/0x477d42841dC5A7cCBc2f72f4448f5eF6B61eA91E) | ✅ Live |
+
+### External Integrations
+
+| Protocol | Address | Purpose |
+|----------|---------|---------|
+| **Charm Finance** | `0x22828Dbf15f5FBa2394Ba7Cf8fA9A96BdB444B71` | Yield farming |
+| **WLFI Token** | `0xdA5e1988097297dCdc1f90D4dFE7909e847CBeF6` | Vault asset |
+| **USD1 Token** | `0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d` | Vault asset |
+
+---
+
+## 🎯 What It Does
+
+### EagleOVault
+- Accepts deposits of WLFI + USD1 tokens
+- Issues vEAGLE vault shares (ERC4626)
+- Auto-deploys to yield strategies
+- Uses Chainlink + Uniswap TWAP oracles for pricing
+
+### Charm Strategy
+- Swaps tokens to optimal ratio for Charm Finance
+- Deposits to Charm's USD1/WLFI AlphaProVault
+- Earns Uniswap V3 trading fees
+- **99.5% capital efficiency**
+
+### Vault Wrapper
+- Converts vault shares (vEAGLE) ↔ OFT tokens (EAGLE)
+- Enables cross-chain bridging via LayerZero
+- 1:1 conversion with small fees (1% wrap, 2% unwrap)
+
+---
+
+## 📊 Current Status
+
+**Funds in Charm Finance:**
+- 19.12 WLFI + 0.067 USD1
+- 19.62 Charm LP shares
+- Status: Earning yield ✅
+
+**Capital Efficiency:** 99.5% deployed and earning
 
 ---
 
 ## 🚀 Quick Start
 
-**New here?** Start with these guides:
-- **[Start Here](docs/START_HERE.md)** - Choose your deployment path
-- **[System Diagram](docs/SYSTEM_DIAGRAM.md)** - Visual overview
-- **[Deployment Guide](docs/DEPLOYMENT_GUIDE.md)** - Complete walkthrough
-
----
-
-## 🎯 **Architecture Overview**
-
-This implementation follows the **official LayerZero OVault pattern** with 5 core contracts:
-
-### **🏛️ Hub Chain (Ethereum)**
-- **`EagleOVault`** - ERC4626 vault managing dual-token (WLFI + USD1) Uniswap V3 LP strategy
-- **`EagleShareOFTAdapter`** - Lockbox adapter for cross-chain share transfers  
-- **`EagleOVaultComposer`** - LayerZero composer orchestrating omnichain operations
-- **`WLFIAssetOFT`** & **`USD1AssetOFT`** - Asset OFTs for cross-chain token transfers
-
-### **🌐 Spoke Chains (BSC, Arbitrum, Base, Avalanche)**
-- **`EagleShareOFT`** - Omnichain share tokens representing vault ownership
-- **`WLFIAssetOFT`** & **`USD1AssetOFT`** - Asset OFTs mirroring hub chain tokens
-
-## 🎯 Core Contracts
-
-**4 Production-Ready Contracts:**
-
-1. **EagleOVault** (800 lines)
-   - ERC4626 vault with oracle pricing
-   - 10,000:1 share ratio for precision
-   - Multi-strategy support
-   - Chainlink + TWAP oracles
-
-2. **EagleShareOFT** (637 lines)
-   - OFT token at **same address on all chains**
-   - 2% fee on DEX trading (1% treasury + 1% vault)
-   - Uniswap V3 compatible
-   - Cross-chain via LayerZero
-
-3. **EagleVaultWrapper** (172 lines)
-   - Wraps vault shares → OFT tokens (1:1)
-   - Free wrapping/unwrapping
-   - Ethereum only
-
-4. **CharmStrategy** (582 lines)
-   - Smart auto-rebalancing
-   - Accounts for idle tokens
-   - Integrates with Charm Finance
-
-## 🏗️ Architecture
-
-### **Matching Address Design:**
-
-```
-Hub (Ethereum):
-  EagleOVault → Vault backend (deposits/withdrawals)
-  EagleVaultWrapper → 1:1 wrapper (free)
-  EagleShareOFT → 0x47a8...ea91e ← Trading token
-  
-Spoke Chains:
-  EagleShareOFT → 0x47a8...ea91e ← SAME address! ✅
-```
-
-### **Key Features:**
-- ✅ Same EAGLE address on all chains
-- ✅ Oracle pricing (Chainlink + TWAP)
-- ✅ 2% fee on DEX trading only
-- ✅ Free vault operations
-- ✅ V3 Uniswap compatible
-- ✅ Smart rebalancing (accounts for idle tokens)
-- ✅ Security reviewed (Slither 9/10)
-
-## 🎭 **Vanity Address Integration**
-
-The deployment system supports vanity addresses with the pattern `0x47...EA91E`:
-
-```typescript
-// In deployConfig.ts
-export const VANITY_CONFIG = {
-  targetPrefix: '47',
-  targetSuffix: 'EA91E',
-  create2Factory: ''
-}
-```
-
-## 🛠️ **Available Tasks**
-
-### **Deployment**
+### Setup
 ```bash
-npx hardhat deploy:eagle-ovault --network <network>
+npm install
+forge build
 ```
 
-### **Vault Operations**
+### Check Vault Status
 ```bash
-# Get vault info
-npx hardhat ovault:info --vault <address> --network <network>
-
-# Dual-token deposit
-npx hardhat ovault:deposit-dual --vault <address> --wlfi 1000 --usd1 1000 --network <network>
-
-# Dual-token withdrawal  
-npx hardhat ovault:withdraw-dual --vault <address> --shares 500 --network <network>
-
-# Rebalance portfolio
-npx hardhat ovault:rebalance --vault <address> --network <network>
+npx hardhat run scripts/check-current-vault-state.ts --network ethereum
 ```
 
-## 🔒 **Security Features**
-
-### **Reentrancy Protection**
-- `nonReentrant` modifiers on all external functions
-- Checks-Effects-Interactions pattern
-
-### **Input Validation**
-- Zero address checks on critical parameters
-- Amount validation for deposits/withdrawals
-- Balance verification before transfers
-
-### **Access Control**
-- Owner-only sensitive operations
-- Manager system for vault operations
-- Authorized user mapping
-
-### **Slippage Protection**
-- TWAP-based price validation
-- Configurable slippage limits
-- Rebalance thresholds
-
-## 📊 **Cross-Chain Flow Examples**
-
-### **Deposit Flow (BSC → Ethereum)**
+### Check Charm Position
+```bash
+npx hardhat run scripts/check-charm-success.ts --network ethereum
 ```
-1. User deposits WLFI on BSC
-2. BSC WLFI OFT → Ethereum WLFI OFT (LayerZero)
-3. Composer receives WLFI on Ethereum
-4. Composer deposits into EagleOVault
-5. Vault mints EAGLE shares
-6. Composer sends EAGLE shares to user's destination chain
-```
-
-### **Withdrawal Flow (Base → Ethereum)**
-```
-1. User withdraws EAGLE shares on Base
-2. Base EAGLE OFT → Ethereum Share Adapter (LayerZero)
-3. Composer receives shares on Ethereum
-4. Composer redeems from EagleOVault
-5. Vault burns shares, returns WLFI/USD1
-6. Composer sends assets to user's destination chain
-```
-
-## 🌐 **Network Configuration**
-
-| Chain | Chain ID | LayerZero EID | LZ Endpoint |
-|-------|----------|---------------|-------------|
-| Ethereum | 1 | 30101 | 0x1a44076050125825900e736c501f859c50fE728c |
-| BSC | 56 | 30102 | 0x1a44076050125825900e736c501f859c50fE728c |
-| Arbitrum | 42161 | 30110 | 0x1a44076050125825900e736c501f859c50fE728c |
-| Base | 8453 | 30184 | 0x1a44076050125825900e736c501f859c50fE728c |
-| Avalanche | 43114 | 30106 | 0x1a44076050125825900e736c501f859c50fE728c |
-
-## 🧪 **Testing Strategy**
-
-### **Unit Tests**
-- Individual contract functionality
-- Edge cases and error conditions
-- Gas optimization verification
-
-### **Integration Tests**
-- Cross-chain message flows
-- End-to-end deposit/withdrawal
-- Slippage and rebalancing logic
-
-### **Security Tests**
-- Static analysis with Slither
-- Formal verification of critical paths
-- Stress testing with large amounts
-
-## 🔄 **Differences from Previous Implementation**
-
-| Aspect | Previous | Clean Implementation |
-|--------|----------|---------------------|
-| **Architecture** | Custom hybrid | ✅ Official LayerZero OVault |
-| **Contracts** | Mixed standards | ✅ 5 standard OVault contracts |
-| **Deployment** | Manual scripts | ✅ Hardhat tasks with config |
-| **Testing** | Limited | ✅ Comprehensive test suite |
-| **Documentation** | Scattered | ✅ Centralized and clear |
-| **Security** | Basic | ✅ Production-ready hardening |
-
-## 🚀 Deployment
-
-**Ready to deploy?**
-
-1. **[Start Here](docs/START_HERE.md)** - Choose your path
-2. **[Deployment Guide](docs/DEPLOYMENT_GUIDE.md)** - Complete walkthrough
-3. **[Quick Deploy](docs/QUICK_DEPLOY.md)** - Copy-paste commands
-
-**Your EAGLE will be at:** `0x47a8f1df6cafeb0d7104e7468b4688cf1cdea91e` on all chains!
 
 ---
 
-## 📚 **Documentation**
+## 📁 Repository Structure
 
-**All documentation is in the [`docs/`](docs/) directory:**
-
-### **🚀 Getting Started**
-- [Start Here](docs/START_HERE.md) - Choose your deployment path
-- [System Diagram](docs/SYSTEM_DIAGRAM.md) - Visual overview
-- [Complete Summary](docs/COMPLETE.md) - Project overview
-- [Documentation Index](docs/README.md) - Full navigation
-
-### **Architecture & Design**
-- [Final Architecture Guide](docs/FINAL_ARCHITECTURE_GUIDE.md) - Complete architecture
-- [Dual Token Hub Architecture](docs/DUAL_TOKEN_HUB_ARCHITECTURE.md) - Hub chain details
-- [Design System](docs/design-system.md) - UI/UX specifications
-
-### **Deployment**
-- [Production Deployment](docs/deployment/production-deployment.md) - Mainnet preparation
-- [Cross-Chain Setup](docs/deployment/cross-chain-setup.md) - Multi-chain configuration
-- [LayerZero Security](docs/deployment/layerzero-security.md) - Security setup
-
-### **Fee System & Trading**
-- [Fee Structure](docs/FEE_STRUCTURE.md) - 2% fee on DEX trading
-- [Fee Setup Guide](docs/FEE_SETUP_GUIDE.md) - Quick fee configuration
-- [V3 Compatibility](docs/V3_COMPATIBILITY_TEST.md) - Uniswap V3 testing
-
-### **Security**
-- [Security Analysis](docs/SECURITY_ANALYSIS.md) - Detailed Slither analysis
-- [Security Review](docs/SECURITY_REVIEW_SUMMARY.md) - Quick overview
-
-### **Contracts**
-- [Price Oracle Guide](docs/contracts/price-oracle-guide.md) - Chainlink + TWAP oracles
-
-### **Frontend Application**
-- [Getting Started](docs/frontend/getting-started.md) - Frontend setup
-- [Features](docs/frontend/features.md) - Frontend capabilities
-- [Deployment](docs/frontend/deployment.md) - Deploy to production
-- [Vercel Guide](docs/frontend/vercel-deployment.md) - Vercel-specific deployment
-
-Frontend code is in the `frontend/` directory (Next.js 14 application).
+```
+eagle-ovault-clean/
+├── contracts/
+│   ├── EagleOVault.sol              # Main vault (ERC4626)
+│   ├── strategies/
+│   │   └── CharmStrategyUSD1.sol   # Charm Finance integration
+│   ├── EagleVaultWrapper.sol        # Vault share wrapper
+│   └── oft/
+│       └── EagleShareOFT.sol       # Cross-chain token
+├── frontend/                         # React + Vite UI
+├── scripts/                          # Deployment & monitoring
+├── deployments/                      # Deployment records
+└── docs/                            # Documentation
+```
 
 ---
 
-## 📝 **License**
+## 🔑 Key Features
 
-MIT License - see LICENSE file for details.
+### Vault
+- ✅ Dual-token deposits (WLFI + USD1)
+- ✅ ERC4626 standard compliance
+- ✅ Oracle-based pricing (Chainlink + TWAP)
+- ✅ Multi-strategy support
+- ✅ Auto-deployment to strategies
+
+### Charm Integration
+- ✅ Smart ratio matching via Uniswap swaps
+- ✅ Deposits to Charm AlphaProVault
+- ✅ Earns Uniswap V3 LP fees
+- ✅ Automatic rebalancing
+
+### Cross-Chain
+- ✅ LayerZero OFT standard
+- ✅ Wrapper for 1:1 conversion
+- ✅ Same OFT address all chains
+- ✅ Secure bridging
 
 ---
 
-**Built with ❤️ using LayerZero OVault Standard**
+## 📜 Scripts
+
+See `scripts/README.md` for full list.
+
+**Essential Commands:**
+```bash
+# Check vault
+npx hardhat run scripts/check-current-vault-state.ts --network ethereum
+
+# Check Charm position
+npx hardhat run scripts/check-charm-success.ts --network ethereum
+
+# Check approvals
+npx hardhat run scripts/check-strategy-approvals.ts --network ethereum
+
+# Set deployment threshold
+npx hardhat run scripts/set-deployment-threshold.ts --network ethereum
+```
+
+---
+
+## 🧪 Testing
+
+```bash
+# Run tests
+npx hardhat test
+
+# Specific test
+npx hardhat test test/VaultDeploymentTest.test.ts
+```
+
+---
+
+## 📖 Documentation
+
+- **[Charm Deployment Guide](CHARM_DEPLOYMENT_HANDOFF.md)** - Charm integration details
+- **[Wrapper Guide](WRAPPER_DEPLOYMENT.md)** - Wrapper setup
+- **[Deployment Success](DEPLOYMENT_SUCCESS.md)** - Recent deployments
+- **[Production README](PRODUCTION_README.md)** - Complete address list
+
+---
+
+## 🔧 Development
+
+### Prerequisites
+- Node.js v18+
+- Foundry
+- Hardhat
+
+### Install Dependencies
+```bash
+npm install
+forge install
+```
+
+### Compile Contracts
+```bash
+forge build
+# or
+npx hardhat compile
+```
+
+### Run Local Node
+```bash
+npx hardhat node
+```
+
+---
+
+## 🌐 Frontend
+
+Live at: **https://test.47eagle.com**
+
+```bash
+cd frontend
+npm install
+npm run dev    # Development
+npm run build  # Production
+```
+
+---
+
+## 📞 Support
+
+- **GitHub:** https://github.com/wenakita/EagleOVaultV2
+- **Network:** Ethereum Mainnet
+- **Explorer:** https://etherscan.io
+
+---
+
+## 🏆 Achievements
+
+- ✅ Deployed on Ethereum Mainnet
+- ✅ Integrated with Charm Finance
+- ✅ Earning Uniswap V3 fees
+- ✅ 99.5% capital efficiency
+- ✅ Production-ready frontend
+- ✅ LayerZero OFT enabled
+
+---
+
+**Last Updated:** October 20, 2025  
+**License:** MIT  
+**Version:** Production v1.0
