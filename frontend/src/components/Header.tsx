@@ -16,7 +16,9 @@ export default function Header({ account, onConnect, provider }: HeaderProps) {
   const [chainId, setChainId] = useState<number>(1);
 
   const handleDisconnect = () => {
-    // Clear state
+    // Set disconnect flag in localStorage to prevent auto-reconnect
+    localStorage.setItem('wallet_disconnected', 'true');
+    // Clear state and reload
     window.location.reload();
   };
 

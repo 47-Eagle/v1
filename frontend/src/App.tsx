@@ -38,6 +38,13 @@ function App() {
     const checkConnection = async () => {
       if (typeof window.ethereum !== 'undefined') {
         try {
+          // Check if user explicitly disconnected
+          const disconnected = localStorage.getItem('wallet_disconnected');
+          if (disconnected === 'true') {
+            console.log('User previously disconnected, skipping auto-connect');
+            return;
+          }
+
           const provider = new BrowserProvider(window.ethereum);
           
           // Check network FIRST
@@ -68,9 +75,13 @@ function App() {
       window.ethereum.on('accountsChanged', (accounts: string[]) => {
         if (accounts.length > 0) {
           setAccount(accounts[0]);
+          // Clear disconnect flag if user manually switched accounts
+          localStorage.removeItem('wallet_disconnected');
         } else {
+          // User disconnected from MetaMask
           setAccount('');
           setProvider(null);
+          localStorage.setItem('wallet_disconnected', 'true');
         }
       });
 
@@ -83,6 +94,9 @@ function App() {
   const connectWallet = async () => {
     if (typeof window.ethereum !== 'undefined') {
       try {
+        // Clear disconnect flag when manually connecting
+        localStorage.removeItem('wallet_disconnected');
+        
         const provider = new BrowserProvider(window.ethereum);
         const accounts = await provider.send('eth_requestAccounts', []);
         setAccount(accounts[0]);
