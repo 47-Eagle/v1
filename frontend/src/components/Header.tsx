@@ -57,7 +57,7 @@ export default function Header({ account, onConnect, provider }: HeaderProps) {
   }, [provider]);
 
   return (
-    <header className="bg-[#0a0a0a]/95 backdrop-blur-lg border-b border-gray-800">
+    <header className="sticky top-0 bg-[#0a0a0a]/95 backdrop-blur-lg border-b border-gray-800 z-[9999]">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between max-w-7xl">
         <div className="flex items-center gap-4">
           <img 
@@ -112,8 +112,8 @@ export default function Header({ account, onConnect, provider }: HeaderProps) {
               {/* Account Dropdown */}
               {showAccountMenu && (
                 <>
-                  <div className="fixed inset-0 z-[9998]" onClick={() => setShowAccountMenu(false)} />
-                  <div className="absolute right-0 mt-2 w-80 bg-[#1a1d2e] rounded-xl border border-gray-700 shadow-2xl z-[9999] overflow-hidden">
+                  <div className="fixed inset-0 z-[99998]" onClick={() => setShowAccountMenu(false)} />
+                  <div className="fixed right-4 top-16 w-80 bg-[#1a1d2e] rounded-xl border border-gray-700 shadow-2xl z-[99999] overflow-hidden">
                     {/* User Info */}
                     <div className="px-5 py-4 border-b border-gray-700 bg-[#0f1118]">
                       <p className="text-xs text-gray-400 mb-1.5 font-medium">Connected Wallet</p>
