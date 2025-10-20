@@ -3,7 +3,7 @@ export const CONTRACTS = {
   VAULT: '0x7D3F0f409CbF111005F8FcDDd2AEe34c7Ec33c11',       // EagleOVault (FIXED! Correct order) ✅
   OFT: '0x477d42841dC5A7cCBc2f72f4448f5eF6B61eA91E',         // EagleShareOFT ✅
   WRAPPER: '0x470520e3f88922c4e912cfc0379e05da000ea91e',     // EagleVaultWrapper (deploy pending)
-  STRATEGY: '0x796286947B7902e678c430048c7Cc332d2F44945',    // CharmStrategyUSD1 (WORKING!) ✅
+  STRATEGY: '0x751578461F84289A2b12FCA1950Dc514c904745f',    // CharmStrategyUSD1 (Vault-matched!) ✅
   CHARM_VAULT: '0x22828Dbf15f5FBa2394Ba7Cf8fA9A96BdB444B71', // Charm USD1/WLFI Vault
   
   // Token addresses (REAL tokens!)
