@@ -157,9 +157,10 @@ export default function VaultOverview({ provider, account }: Props) {
               <p className="text-3xl font-bold text-white">
                 ${Number(totalAssets).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
-              <p className="text-sm text-gray-500 mt-2">
-                {Number(totalSupply).toLocaleString(undefined, { maximumFractionDigits: 0 })} total shares
-              </p>
+              <div className="text-sm text-gray-500 mt-2 space-y-0.5">
+                <div>{Number(totalSupply).toLocaleString(undefined, { maximumFractionDigits: 0 })} total shares</div>
+                <div className="text-xs text-gray-600">Max: 50,000,000 shares</div>
+              </div>
             </>
           )}
         </div>

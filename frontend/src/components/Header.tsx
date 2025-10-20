@@ -112,8 +112,8 @@ export default function Header({ account, onConnect, provider }: HeaderProps) {
               {/* Account Dropdown */}
               {showAccountMenu && (
                 <>
-                  <div className="fixed inset-0 z-[100]" onClick={() => setShowAccountMenu(false)} />
-                  <div className="absolute right-0 mt-2 w-80 bg-[#1a1d2e] rounded-xl border border-gray-700 shadow-2xl z-[101] overflow-hidden">
+                  <div className="fixed inset-0 z-[9998]" onClick={() => setShowAccountMenu(false)} />
+                  <div className="absolute right-0 mt-2 w-80 bg-[#1a1d2e] rounded-xl border border-gray-700 shadow-2xl z-[9999] overflow-hidden">
                     {/* User Info */}
                     <div className="px-5 py-4 border-b border-gray-700 bg-[#0f1118]">
                       <p className="text-xs text-gray-400 mb-1.5 font-medium">Connected Wallet</p>
