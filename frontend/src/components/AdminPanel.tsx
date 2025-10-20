@@ -5,9 +5,13 @@ import { createPortal } from 'react-dom';
 
 // Authorized admin wallets
 const AUTHORIZED_ADMINS = [
-  '0x7310Dd6EF89b7f829839F140C6840bc929ba2031', // Deployer
+  '0xe5a1d534eb7f00397361F645f0F39e5D16cc1De3', // Multisig
   '0xc7027dACCa23C029e6EAfCD6C027f1124cF48F07', // AC
   '0xEdA067447102cb38D95e14ce99fe21D55C27152D', // AKITA, LLC
+  '0x4711068C4030d58F494705c4b1DD63c5237A7733', // Slynapes
+  '0x5A29149bE2006A6dADAaC43F42704551FD4f8140', // SirJigs
+  '0x58f7EE4150A4cb484d93a767Bf6d9d7DDb468771', // Vince
+  '0x7310Dd6EF89b7f829839F140C6840bc929ba2031', // Deployer
 ].map(addr => addr.toLowerCase());
 
 interface AdminPanelProps {
