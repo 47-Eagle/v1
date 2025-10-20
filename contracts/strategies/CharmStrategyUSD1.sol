@@ -260,8 +260,8 @@ contract CharmStrategyUSD1 is IStrategy, ReentrancyGuard, Ownable {
                 if (excessUsd1 > 0) {
                     uint256 moreWlfi = _swapUsd1ToWlfi(excessUsd1);
                     finalWlfi += moreWlfi;
-                    // Recalculate USD1 needed for new WLFI amount
-                    finalUsd1 = (finalWlfi * charmUsd1) / charmWlfi;
+                    // FIX: Use remaining USD1 balance after swap, don't recalculate
+                    finalUsd1 = USD1.balanceOf(address(this));
                 }
             } else {
                 // Not enough USD1 - swap some WLFI → USD1
