@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { BrowserProvider, Contract, formatEther } from 'ethers';
 import { CONTRACTS } from '../config/contracts';
 
@@ -59,7 +60,7 @@ export default function Header({ account, onConnect, provider }: HeaderProps) {
   }, [provider]);
 
   return (
-    <header className="sticky top-0 bg-[#0a0a0a]/95 backdrop-blur-lg border-b border-gray-800 z-[9999]">
+    <header className="sticky top-0 bg-[#0a0a0a]/95 backdrop-blur-lg border-b border-gray-800 z-50">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between max-w-7xl">
         <div className="flex items-center gap-4">
           <img 
@@ -111,8 +112,8 @@ export default function Header({ account, onConnect, provider }: HeaderProps) {
                 </svg>
               </button>
 
-              {/* Account Dropdown */}
-              {showAccountMenu && (
+              {/* Account Dropdown - Rendered via Portal */}
+              {showAccountMenu && createPortal(
                 <>
                   <div className="fixed inset-0 z-[99998]" onClick={() => setShowAccountMenu(false)} />
                   <div className="fixed right-4 top-16 w-80 bg-[#1a1d2e] rounded-xl border border-gray-700 shadow-2xl z-[99999] overflow-hidden">
@@ -167,7 +168,8 @@ export default function Header({ account, onConnect, provider }: HeaderProps) {
                       </button>
                     </div>
                   </div>
-                </>
+                </>,
+                document.body
               )}
             </div>
           ) : (
