@@ -1,6 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BrowserProvider } from 'ethers';
 import { ethers } from 'ethers';
+import { createPortal } from 'react-dom';
+
+// Authorized admin wallets
+const AUTHORIZED_ADMINS = [
+  '0x7310Dd6EF89b7f829839F140C6840bc929ba2031', // Deployer
+  '0xc7027dACCa23C029e6EAfCD6C027f1124cF48F07', // AC
+  '0xEdA067447102cb38D95e14ce99fe21D55C27152D', // AKITA, LLC
+].map(addr => addr.toLowerCase());
 
 interface AdminPanelProps {
   onClose: () => void;
@@ -8,6 +16,27 @@ interface AdminPanelProps {
 }
 
 export default function AdminPanel({ onClose, provider }: AdminPanelProps) {
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [currentAddress, setCurrentAddress] = useState('');
+
+  // Check if connected wallet is authorized
+  useEffect(() => {
+    const checkAuthorization = async () => {
+      if (!provider) return;
+      
+      try {
+        const signer = await provider.getSigner();
+        const address = await signer.getAddress();
+        setCurrentAddress(address);
+        setIsAuthorized(AUTHORIZED_ADMINS.includes(address.toLowerCase()));
+      } catch (error) {
+        console.error('Error checking authorization:', error);
+        setIsAuthorized(false);
+      }
+    };
+
+    checkAuthorization();
+  }, [provider]);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<string>('');
 
@@ -72,7 +101,34 @@ export default function AdminPanel({ onClose, provider }: AdminPanelProps) {
     }
   };
 
-  return (
+  // Show unauthorized message if not admin
+  if (!isAuthorized && currentAddress) {
+    return createPortal(
+      <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/95 backdrop-blur-lg animate-in fade-in duration-300">
+        <div className="bg-gradient-to-br from-red-900/50 via-black to-red-900/50 rounded-2xl border-2 border-red-500/30 p-8 max-w-md w-full shadow-2xl shadow-red-500/20">
+          <div className="text-center">
+            <div className="w-16 h-16 mx-auto mb-4 bg-red-500/20 rounded-full flex items-center justify-center">
+              <svg className="w-10 h-10 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <h3 className="text-2xl font-bold text-red-400 mb-2">Access Denied</h3>
+            <p className="text-gray-400 mb-4">Your wallet is not authorized for admin access.</p>
+            <p className="text-xs text-gray-500 font-mono break-all mb-6">{currentAddress}</p>
+            <button
+              onClick={onClose}
+              className="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-xl transition-all"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>,
+      document.body
+    );
+  }
+
+  return createPortal(
     <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/95 backdrop-blur-lg animate-in fade-in duration-300">
       <div className="bg-gradient-to-br from-gray-900 via-black to-gray-900 rounded-2xl border-2 border-eagle-gold/30 p-8 max-w-2xl w-full shadow-2xl shadow-eagle-gold/20 animate-in slide-in-from-bottom-4 duration-300">
         {/* Header */}
@@ -178,11 +234,12 @@ export default function AdminPanel({ onClose, provider }: AdminPanelProps) {
         {/* Secret Code Hint */}
         <div className="mt-6 pt-6 border-t border-gray-800/50">
           <p className="text-center text-xs text-gray-600">
-            Secret code: <span className="font-mono text-gray-500">↑ ↑ ↓ ↓ A</span>
+            Secret code: <span className="font-mono text-gray-500">↑ ↑ ↓ ↓ A</span> • Authorized: <span className="text-green-400">{currentAddress.slice(0,6)}...{currentAddress.slice(-4)}</span>
           </p>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
