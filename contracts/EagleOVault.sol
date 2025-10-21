@@ -100,6 +100,11 @@ contract EagleOVault is ERC4626, Ownable, ReentrancyGuard {
         uint256 wlfiAmount,
         uint256 usd1Amount
     );
+    
+    event BalancesSynced(
+        uint256 wlfiBalance,
+        uint256 usd1Balance
+    );
     event StrategyAdded(address indexed strategy, uint256 weight);
     event StrategyRemoved(address indexed strategy);
     event StrategyDeployed(address indexed strategy, uint256 wlfiDeployed, uint256 usd1Deployed);
@@ -601,6 +606,23 @@ contract EagleOVault is ERC4626, Ownable, ReentrancyGuard {
                 }
             }
         }
+    }
+    
+    /**
+     * @notice Sync vault balance tracking with actual token balances
+     * @dev Call this after Charm Finance rebalances or swaps tokens internally
+     * @dev Updates wlfiBalance and usd1Balance to match reality
+     */
+    function syncBalances() external onlyManager {
+        // Get actual balances in vault contract
+        uint256 actualWlfi = WLFI_TOKEN.balanceOf(address(this));
+        uint256 actualUsd1 = USD1_TOKEN.balanceOf(address(this));
+        
+        // Update state to match reality
+        wlfiBalance = actualWlfi;
+        usd1Balance = actualUsd1;
+        
+        emit BalancesSynced(actualWlfi, actualUsd1);
     }
     
     /**
