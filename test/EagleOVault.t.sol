@@ -23,8 +23,8 @@ contract EagleOVaultTest is Test {
     event BalancesSynced(uint256 wlfiBalance, uint256 usd1Balance);
     
     function setUp() public {
-        // Fork Ethereum mainnet for realistic testing
-        vm.createSelectFork("https://eth-mainnet.g.alchemy.com/v2/demo");
+        // Fork Ethereum mainnet for realistic testing (using Cloudflare public RPC)
+        vm.createSelectFork("https://cloudflare-eth.com");
         
         // Deploy vault as owner
         vm.prank(owner);
