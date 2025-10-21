@@ -326,24 +326,59 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
       const shares = parseEther(withdrawAmount);
       console.log('Shares in wei:', shares.toString());
       
-      // FINAL CHECK: Call maxRedeem right before transaction
-      const maxRedeem = await vault.maxRedeem(account);
-      const maxRedeemNum = Number(formatEther(maxRedeem));
+      // CALCULATE REAL MAXIMUM based on actual vault token balances
+      const wlfi = new Contract(CONTRACTS.WLFI, ERC20_ABI, provider);
+      const usd1 = new Contract(CONTRACTS.USD1, ERC20_ABI, provider);
       
-      console.log('Final maxRedeem:', maxRedeemNum.toFixed(4));
-
-      if (withdrawNum > maxRedeemNum) {
-        console.log('❌ BLOCKED: Exceeds maxRedeem');
+      const [totalSupply, vaultWlfiBal, vaultUsd1Bal, totalAssets] = await Promise.all([
+        vault.totalSupply(),
+        wlfi.balanceOf(CONTRACTS.VAULT),
+        usd1.balanceOf(CONTRACTS.VAULT),
+        vault.totalAssets(),
+      ]);
+      
+      const vaultWlfi = Number(formatEther(vaultWlfiBal));
+      const vaultUsd1 = Number(formatEther(vaultUsd1Bal));
+      const supply = Number(formatEther(totalSupply));
+      const assets = Number(formatEther(totalAssets));
+      
+      // Calculate what portion of total you're trying to withdraw
+      const withdrawPortion = withdrawNum / supply;
+      const expectedWlfi = assets * withdrawPortion * 0.5; // Assumes 50/50 split
+      const expectedUsd1 = assets * withdrawPortion * 0.5;
+      
+      console.log('Total supply:', supply.toFixed(2));
+      console.log('Total assets:', assets.toFixed(2));
+      console.log('Vault WLFI:', vaultWlfi.toFixed(2));
+      console.log('Vault USD1:', vaultUsd1.toFixed(2));
+      console.log('Expected WLFI needed:', expectedWlfi.toFixed(2));
+      console.log('Expected USD1 needed:', expectedUsd1.toFixed(2));
+      
+      // Check if vault has enough
+      if (vaultWlfi < expectedWlfi || vaultUsd1 < expectedUsd1) {
+        const limitingToken = vaultUsd1 < expectedUsd1 ? 'USD1' : 'WLFI';
+        const available = limitingToken === 'USD1' ? vaultUsd1 : vaultWlfi;
+        const needed = limitingToken === 'USD1' ? expectedUsd1 : expectedWlfi;
+        
+        // Calculate actual max based on limiting token
+        const maxByToken = limitingToken === 'USD1' 
+          ? (vaultUsd1 / expectedUsd1) * withdrawNum
+          : (vaultWlfi / expectedWlfi) * withdrawNum;
+        
+        console.log(`❌ BLOCKED: Not enough ${limitingToken}`);
+        console.log(`Available: ${available.toFixed(2)}, Needed: ${needed.toFixed(2)}`);
+        console.log(`Real maximum: ${maxByToken.toFixed(4)} vEAGLE`);
+        
         onToast({ 
-          message: `Vault can only redeem ${maxRedeemNum.toFixed(4)} vEAGLE right now. Auto-filled.`, 
+          message: `Vault only has ${available.toFixed(2)} ${limitingToken}. Maximum withdrawal: ${maxByToken.toFixed(4)} vEAGLE. Auto-filled.`, 
           type: 'error' 
         });
         setLoading(false);
-        setWithdrawAmount(maxRedeemNum.toFixed(4));
+        setWithdrawAmount(maxByToken.toFixed(4));
         return;
       }
 
-      console.log('✅ Proceeding with withdrawal');
+      console.log('✅ Vault has enough tokens, proceeding');
 
       // Proceed with withdrawal
       onToast({ message: 'Withdrawing from vault...', type: 'info' });
