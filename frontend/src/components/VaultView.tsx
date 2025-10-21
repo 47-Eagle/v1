@@ -176,7 +176,7 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
 
   return (
     <div className="bg-[#0a0a0a]">
-      <div className="container mx-auto px-8 py-6 pb-24 max-w-6xl">
+      <div className="container mx-auto px-8 py-6 max-w-6xl">
         {/* Back Button */}
         <motion.button 
           onClick={onNavigateUp}
