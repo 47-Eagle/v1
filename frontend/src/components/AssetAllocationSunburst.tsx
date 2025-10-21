@@ -35,9 +35,9 @@ export default function AssetAllocationSunburst({
     // Clear previous
     d3.select(svgRef.current).selectAll('*').remove();
 
-    const width = 400;
-    const height = 400;
-    const radius = Math.min(width, height) / 2 - 20;
+    const width = 450;
+    const height = 450;
+    const radius = Math.min(width, height) / 2 - 30;
 
     // Hierarchical data structure with Eagle Finance theme colors
     const data: HierarchyNode = {
@@ -95,88 +95,152 @@ export default function AssetAllocationSunburst({
       .innerRadius(d => d.y0)
       .outerRadius(d => d.y1 + 10);
 
-    // Create arcs
+    // Add subtle glow filter
+    const defs = svg.append('defs');
+    const filter = defs.append('filter')
+      .attr('id', 'glow');
+    
+    filter.append('feGaussianBlur')
+      .attr('stdDeviation', '3')
+      .attr('result', 'coloredBlur');
+    
+    const feMerge = filter.append('feMerge');
+    feMerge.append('feMergeNode').attr('in', 'coloredBlur');
+    feMerge.append('feMergeNode').attr('in', 'SourceGraphic');
+
+    // Create arcs with modern styling
     const paths = svg.selectAll('path')
       .data(root.descendants().filter(d => d.depth > 0))
       .join('path')
       .attr('d', arc as any)
-      .attr('fill', d => d.data.color || '#666')
-      .attr('opacity', d => selectedPath && d.data.name !== selectedPath ? 0.3 : 0.8)
-      .attr('stroke', '#0a0a0a')
-      .attr('stroke-width', 2)
+      .attr('fill', d => {
+        // Add subtle gradient based on depth
+        const baseColor = d.data.color || '#666';
+        return baseColor;
+      })
+      .attr('opacity', d => selectedPath && d.data.name !== selectedPath ? 0.3 : 0.85)
+      .attr('stroke', 'rgba(255, 255, 255, 0.1)')
+      .attr('stroke-width', 1.5)
       .style('cursor', 'pointer')
-      .style('transition', 'all 0.3s ease')
+      .style('transition', 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)')
+      .style('filter', 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3))')
       .on('mouseenter', function(event, d) {
         d3.select(this)
           .transition()
-          .duration(200)
+          .duration(300)
+          .ease(d3.easeCubicOut)
           .attr('d', arcHover as any)
-          .attr('opacity', 1);
+          .attr('opacity', 1)
+          .style('filter', 'drop-shadow(0 8px 16px rgba(0, 0, 0, 0.4)) drop-shadow(0 0 20px ' + (d.data.color || '#666') + '80)');
         
-        // Show tooltip
+        // Show elegant tooltip
         const percentage = grandTotal > 0 ? ((d.value || 0) / grandTotal * 100).toFixed(1) : '0';
         d3.select('#tooltip')
           .style('opacity', 1)
           .html(`
-            <div style="background: rgba(0,0,0,0.9); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);">
-              <div style="color: white; font-weight: 600; margin-bottom: 4px;">${d.data.name}</div>
-              <div style="color: #9ca3af; font-size: 12px;">${(d.value || 0).toFixed(2)} tokens</div>
-              <div style="color: #eab308; font-size: 12px;">${percentage}% of total</div>
+            <div style="
+              background: linear-gradient(135deg, rgba(0,0,0,0.95) 0%, rgba(20,20,20,0.95) 100%);
+              padding: 16px;
+              border-radius: 12px;
+              border: 1px solid rgba(255,255,255,0.2);
+              box-shadow: 0 20px 40px rgba(0,0,0,0.5), 0 0 20px ${d.data.color}40;
+              backdrop-filter: blur(10px);
+              min-width: 180px;
+            ">
+              <div style="color: ${d.data.color}; font-weight: 700; margin-bottom: 8px; font-size: 14px; letter-spacing: 0.5px;">${d.data.name.toUpperCase()}</div>
+              <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px;">
+                <span style="color: #9ca3af; font-size: 12px;">Amount:</span>
+                <span style="color: white; font-weight: 600; font-family: monospace; font-size: 13px;">${(d.value || 0).toFixed(2)}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                <span style="color: #9ca3af; font-size: 12px;">Share:</span>
+                <span style="color: #eab308; font-weight: 700; font-size: 16px;">${percentage}%</span>
+              </div>
             </div>
           `)
-          .style('left', (event.pageX + 10) + 'px')
+          .style('left', (event.pageX + 15) + 'px')
           .style('top', (event.pageY - 10) + 'px');
       })
-      .on('mouseleave', function() {
+      .on('mouseleave', function(event, d) {
         d3.select(this)
           .transition()
-          .duration(200)
+          .duration(250)
+          .ease(d3.easeCubicIn)
           .attr('d', arc as any)
-          .attr('opacity', d => selectedPath && d.data.name !== selectedPath ? 0.3 : 0.8);
+          .attr('opacity', selectedPath && d.data.name !== selectedPath ? 0.3 : 0.85)
+          .style('filter', 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3))');
         
-        d3.select('#tooltip').style('opacity', 0);
+        d3.select('#tooltip')
+          .transition()
+          .duration(200)
+          .style('opacity', 0);
       })
       .on('click', function(event, d) {
         event.stopPropagation();
         setSelectedPath(selectedPath === d.data.name ? null : d.data.name);
       });
 
-    // Add center text
-    svg.append('text')
+    // Add elegant center text with gradient
+    const centerGroup = svg.append('g');
+    
+    // Subtle circle background
+    centerGroup.append('circle')
+      .attr('r', 55)
+      .attr('fill', 'rgba(0, 0, 0, 0.4)')
+      .attr('stroke', 'rgba(212, 175, 55, 0.3)')
+      .attr('stroke-width', 1.5);
+    
+    centerGroup.append('text')
       .attr('text-anchor', 'middle')
-      .attr('y', -10)
-      .style('font-size', '28px')
-      .style('font-weight', 'bold')
-      .style('fill', 'white')
+      .attr('y', -8)
+      .style('font-size', '32px')
+      .style('font-weight', '700')
+      .style('fill', '#d4af37')
+      .style('letter-spacing', '1px')
       .text(grandTotal.toFixed(0));
 
-    svg.append('text')
+    centerGroup.append('text')
       .attr('text-anchor', 'middle')
-      .attr('y', 10)
-      .style('font-size', '12px')
+      .attr('y', 12)
+      .style('font-size', '11px')
       .style('fill', '#9ca3af')
+      .style('text-transform', 'uppercase')
+      .style('letter-spacing', '1.5px')
       .text('Total Tokens');
 
   }, [vaultWLFI, vaultUSD1, strategyWLFI, strategyUSD1, grandTotal, selectedPath]);
 
   return (
-    <div className="bg-gradient-to-br from-white/5 to-transparent border border-white/10 rounded-xl p-8 mb-8">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-white font-semibold text-lg">Asset Allocation</h3>
-        {selectedPath && (
-          <button
-            onClick={() => setSelectedPath(null)}
-            className="px-3 py-1.5 bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-400 text-xs font-semibold rounded-lg transition-all"
-          >
-            Reset View
-          </button>
-        )}
-      </div>
+    <div className="relative bg-gradient-to-br from-white/[0.07] via-white/[0.03] to-transparent border border-white/10 rounded-2xl p-8 mb-8 overflow-hidden">
+      {/* Subtle animated background gradient */}
+      <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-yellow-500/5 to-transparent rounded-full blur-3xl animate-pulse"></div>
       
-      <div className="flex items-center justify-center gap-8 max-w-4xl mx-auto">
-        {/* D3 Sunburst Chart */}
-        <div className="flex-shrink-0">
-          <svg ref={svgRef}></svg>
+      <div className="relative">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h3 className="text-white font-bold text-xl mb-1">Asset Allocation</h3>
+            <p className="text-sm text-gray-500">Real-time token distribution</p>
+          </div>
+          {selectedPath && (
+            <button
+              onClick={() => setSelectedPath(null)}
+              className="px-4 py-2 bg-gradient-to-r from-yellow-500/20 to-amber-500/20 hover:from-yellow-500/30 hover:to-amber-500/30 text-yellow-400 text-sm font-semibold rounded-xl transition-all shadow-lg"
+            >
+              <span className="flex items-center gap-2">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Reset
+              </span>
+            </button>
+          )}
+        </div>
+      
+      <div className="flex items-center justify-center gap-10 max-w-5xl mx-auto">
+        {/* D3 Sunburst Chart with glow effect */}
+        <div className="flex-shrink-0 relative">
+          <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/10 to-blue-500/10 rounded-full blur-2xl"></div>
+          <svg ref={svgRef} className="relative drop-shadow-2xl"></svg>
           <div 
             id="tooltip" 
             style={{ 
@@ -184,18 +248,18 @@ export default function AssetAllocationSunburst({
               opacity: 0, 
               pointerEvents: 'none',
               zIndex: 1000,
-              transition: 'opacity 0.2s'
+              transition: 'opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
             }}
           />
         </div>
 
-        {/* Interactive Legend */}
-        <div className="space-y-4 flex-shrink-0">
+        {/* Elegant Interactive Legend */}
+        <div className="space-y-3 flex-shrink-0">
           <div 
-            className={`cursor-pointer p-3 rounded-lg transition-all border ${
+            className={`cursor-pointer p-4 rounded-xl transition-all duration-300 border ${
               selectedPath?.includes('Vault') 
-                ? 'bg-yellow-500/20 border-yellow-500/50 shadow-lg' 
-                : 'border-white/5 hover:bg-white/5 hover:border-yellow-500/20'
+                ? 'bg-gradient-to-br from-yellow-500/20 to-amber-500/10 border-yellow-500/50 shadow-xl' 
+                : 'bg-black/20 border-white/5 hover:bg-black/30 hover:border-yellow-500/30 hover:shadow-lg'
             }`}
             onClick={() => setSelectedPath(selectedPath?.includes('Vault') ? null : 'Vault Reserves')}
           >
@@ -222,10 +286,10 @@ export default function AssetAllocationSunburst({
           </div>
           
           <div 
-            className={`cursor-pointer p-3 rounded-lg transition-all border ${
+            className={`cursor-pointer p-4 rounded-xl transition-all duration-300 border ${
               selectedPath?.includes('Strategy') 
-                ? 'bg-indigo-500/20 border-indigo-500/50' 
-                : 'border-white/5 hover:bg-white/5'
+                ? 'bg-gradient-to-br from-indigo-500/20 to-blue-500/10 border-indigo-500/50 shadow-xl' 
+                : 'bg-black/20 border-white/5 hover:bg-black/30 hover:border-indigo-500/30 hover:shadow-lg'
             }`}
             onClick={() => setSelectedPath(selectedPath?.includes('Strategy') ? null : 'Charm Strategy')}
           >
@@ -251,22 +315,31 @@ export default function AssetAllocationSunburst({
             </div>
           </div>
 
-          <div className="pt-3 border-t border-white/10">
-            <div className="text-xs text-gray-500">Total Assets</div>
-            <div className="text-2xl font-bold text-white">{grandTotal.toFixed(2)}</div>
+          <div className="pt-4 border-t border-white/10 mt-4">
+            <div className="bg-gradient-to-br from-yellow-500/10 to-transparent rounded-lg p-4">
+              <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">Total Assets</div>
+              <div className="text-3xl font-bold bg-gradient-to-r from-yellow-500 to-amber-500 bg-clip-text text-transparent">
+                {grandTotal.toFixed(2)}
+              </div>
+              <div className="text-xs text-gray-600 mt-1">WLFI + USD1</div>
+            </div>
           </div>
 
           {selectedPath && (
-            <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg animate-fadeIn">
-              <div className="text-xs text-yellow-400 font-semibold mb-1">
-                ✨ {selectedPath}
+            <div className="p-4 bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border border-yellow-500/30 rounded-xl shadow-lg animate-fadeIn">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+                <div className="text-sm text-yellow-400 font-bold">
+                  {selectedPath}
+                </div>
               </div>
               <p className="text-xs text-gray-400">
-                Click to deselect or choose another section
+                Click again to deselect, or click another section to compare
               </p>
             </div>
           )}
         </div>
+      </div>
       </div>
     </div>
   );
