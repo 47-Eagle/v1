@@ -277,6 +277,52 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
     }
   };
 
+  // Calculate expected withdrawal amounts based on ACTUAL vault composition
+  useEffect(() => {
+    const calculateWithdrawal = async () => {
+      if (!provider || !withdrawAmount || Number(withdrawAmount) <= 0) {
+        setData(prev => ({ 
+          ...prev, 
+          expectedWithdrawWLFI: '0',
+          expectedWithdrawUSD1: '0'
+        }));
+        return;
+      }
+
+      try {
+        const vault = new Contract(CONTRACTS.VAULT, VAULT_ABI, provider);
+        const wlfi = new Contract(CONTRACTS.WLFI, ERC20_ABI, provider);
+        const usd1 = new Contract(CONTRACTS.USD1, ERC20_ABI, provider);
+        
+        const [totalSupply, vaultWlfiBal, vaultUsd1Bal, strategyWlfiBal, strategyUsd1Bal] = await Promise.all([
+          vault.totalSupply(),
+          wlfi.balanceOf(CONTRACTS.VAULT),
+          usd1.balanceOf(CONTRACTS.VAULT),
+          wlfi.balanceOf(CONTRACTS.CHARM_VAULT),
+          usd1.balanceOf(CONTRACTS.CHARM_VAULT),
+        ]);
+        
+        const supply = Number(formatEther(totalSupply));
+        const totalWlfi = Number(formatEther(vaultWlfiBal)) + Number(formatEther(strategyWlfiBal));
+        const totalUsd1 = Number(formatEther(vaultUsd1Bal)) + Number(formatEther(strategyUsd1Bal));
+        
+        const withdrawPortion = Number(withdrawAmount) / supply;
+        const expectedWlfi = (totalWlfi * withdrawPortion).toFixed(4);
+        const expectedUsd1 = (totalUsd1 * withdrawPortion).toFixed(4);
+        
+        setData(prev => ({
+          ...prev,
+          expectedWithdrawWLFI: expectedWlfi,
+          expectedWithdrawUSD1: expectedUsd1,
+        }));
+      } catch (error) {
+        console.error('Error calculating withdrawal:', error);
+      }
+    };
+
+    calculateWithdrawal();
+  }, [provider, withdrawAmount]);
+
   const handleWithdraw = async () => {
     if (!provider || !account) {
       onToast({ message: 'Connect wallet to withdraw', type: 'error' });
