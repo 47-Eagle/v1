@@ -15,7 +15,7 @@ contract PostDeployment2_TestVault is Script {
     // Deployed contract addresses (LIVE on Sepolia - Block 9460340)
     address constant WLFI = 0x33fB8387d4C6F5B344ca6C6C68e4576db10BDEa3;
     address constant USD1 = 0xdDC8061BB5e2caE36E27856620086bc6d59C2242;
-    address payable constant VAULT = payable(0x84a744da7a4646942b5C9724897ca05bCbBbB10b);
+    address payable constant VAULT = payable(0xb7D1044Aa912AE4BC95099E8027dD26B1506F261); // FINAL: with pool + mock feed
     address constant SHARE_OFT = 0x532Ec3711C9E219910045e2bBfA0280ae0d8457e;
     address constant WRAPPER = 0x577D6cc9B905e628F6fBB9D1Ac6279709654b44f;
     
