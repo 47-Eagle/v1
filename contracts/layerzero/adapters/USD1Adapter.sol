@@ -1,14 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.22;
 
+import { OFTAdapter } from "@layerzerolabs/oft-evm/contracts/OFTAdapter.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import { OFTAdapter } from "@layerzerolabs/oft-evm/contracts/OFTAdapter.sol";
 
 /**
  * @title USD1Adapter
- * @dev LayerZero Asset OFT Adapter for USD1 token
- * Wraps the existing USD1 ERC20 token for cross-chain transfers
+ * @notice LayerZero OFT Adapter for existing USD1 token
+ * @dev Wraps the existing USD1 ERC20 token for cross-chain transfers
+ * 
+ * Use this if USD1 already exists as an ERC20 token.
+ * If USD1 doesn't exist yet, use USD1AssetOFT instead.
+ * 
+ * Deploy on hub chain (Ethereum) to enable cross-chain USD1 transfers.
  */
 contract USD1Adapter is OFTAdapter {
     /**
@@ -78,3 +83,4 @@ contract USD1Adapter is OFTAdapter {
         return size > 0;
     }
 }
+

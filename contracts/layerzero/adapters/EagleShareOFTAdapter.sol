@@ -14,7 +14,12 @@ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
  * - Unlocks shares on hub chain when bridging in
  * - Preserves totalSupply() of the vault share token
  * 
- * Compatible with LayerZero VaultComposerSync for omnichain vault operations
+ * NOTE: This adapter does NOT have fee-on-swap.
+ *       Fee-on-swap is only on spoke chains (EagleShareOFT).
+ *       This keeps the hub chain simple and vault-focused.
+ * 
+ * Compatible with LayerZero VaultComposerSync for omnichain vault operations.
+ * Deploy ONLY on hub chain (Ethereum).
  */
 contract EagleShareOFTAdapter is OFTAdapter {
     /**
@@ -27,6 +32,10 @@ contract EagleShareOFTAdapter is OFTAdapter {
         address _token,
         address _lzEndpoint,
         address _delegate
-    ) OFTAdapter(_token, _lzEndpoint, _delegate) Ownable(_delegate) {}
+    ) OFTAdapter(_token, _lzEndpoint, _delegate) Ownable(_delegate) {
+        require(_token != address(0), "EagleShareOFTAdapter: token cannot be zero address");
+        require(_lzEndpoint != address(0), "EagleShareOFTAdapter: endpoint cannot be zero address");
+        require(_delegate != address(0), "EagleShareOFTAdapter: delegate cannot be zero address");
+    }
 }
 

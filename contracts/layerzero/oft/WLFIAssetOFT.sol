@@ -5,27 +5,25 @@ import { OFT } from "@layerzerolabs/oft-evm/contracts/OFT.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
- * @title EagleAssetOFT
+ * @title WLFIAssetOFT
  * @notice LayerZero OFT for WLFI asset token
  * @dev Deploy on hub + spoke chains for cross-chain asset transfers
  * 
- * If WLFI is already an OFT, you can skip this contract and use the existing OFT.
- * If WLFI needs to be bridgeable, deploy this as the omnichain wrapper.
+ * Use this if WLFI doesn't already exist as an ERC20 token.
+ * If WLFI already exists, use WLFIAdapter instead.
+ * 
+ * The asset that users deposit into the omnichain vault.
  */
-contract EagleAssetOFT is OFT {
-    /**
-     * @notice Creates asset OFT
-     * @param _name Token name (e.g., "WLFI Omnichain")
-     * @param _symbol Token symbol (e.g., "WLFI")
-     * @param _lzEndpoint LayerZero endpoint
-     * @param _delegate Admin address
-     */
+contract WLFIAssetOFT is OFT {
     constructor(
         string memory _name,
         string memory _symbol,
         address _lzEndpoint,
         address _delegate
     ) OFT(_name, _symbol, _lzEndpoint, _delegate) Ownable(_delegate) {
+        require(_lzEndpoint != address(0), "WLFIAssetOFT: endpoint cannot be zero address");
+        require(_delegate != address(0), "WLFIAssetOFT: delegate cannot be zero address");
+        
         // NOTE: Uncomment for testing only - NOT for production
         // _mint(msg.sender, 1000000 ether); // 1M tokens for testing
     }

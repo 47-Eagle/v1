@@ -1,13 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.22;
 
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { OFTAdapter } from "@layerzerolabs/oft-evm/contracts/OFTAdapter.sol";
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * @title WLFIAdapter
- * @dev LayerZero Asset OFT Adapter for WLFI token
- * Wraps the existing WLFI ERC20 token for cross-chain transfers
+ * @notice LayerZero OFT Adapter for existing WLFI token
+ * @dev Wraps the existing WLFI ERC20 token for cross-chain transfers
+ * 
+ * Use this if WLFI already exists as an ERC20 token.
+ * If WLFI doesn't exist yet, use WLFIAssetOFT instead.
+ * 
+ * Deploy on hub chain (Ethereum) to enable cross-chain WLFI transfers.
  */
 contract WLFIAdapter is OFTAdapter {
     constructor(
@@ -20,3 +25,4 @@ contract WLFIAdapter is OFTAdapter {
         require(_delegate != address(0), "WLFIAdapter: delegate cannot be zero address");
     }
 }
+

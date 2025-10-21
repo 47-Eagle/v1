@@ -3,14 +3,13 @@ pragma solidity ^0.8.22;
 
 import { OFT } from "@layerzerolabs/oft-evm/contracts/OFT.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
-import { IChainRegistry } from "../../interfaces/IChainRegistry.sol";
 
 /**
  * @title EagleShareOFT
- * @notice Production-ready LayerZero OFT for Eagle Vault Shares
+ * @notice Production-ready LayerZero OFT for Eagle Vault Shares on spoke chains
  * 
  * @dev FEATURES:
- *      ✅ Optional registry integration (hub chain) or simple mode (spoke chains)
+ *      ✅ Optional fee-on-swap (configurable)
  *      ✅ V3 Uniswap pool compatibility (no "Insufficient Input Amount" errors)
  *      ✅ Smart DEX detection (V2, V3, routers, pools)
  *      ✅ Fee-on-swap only (regular transfers remain free)
@@ -18,17 +17,22 @@ import { IChainRegistry } from "../../interfaces/IChainRegistry.sol";
  *      ✅ Configurable fee structure
  *      ✅ Emergency controls
  * 
- * @dev MODES:
- *      - Registry Mode: For hub chain with registry integration
- *      - Simple Mode: For spoke chains without registry (pass address(0) for registry)
- *      - Bridge Mode: For hub chain, can mint/burn via VaultToOFTBridge
+ * @dev DEPLOYMENT:
+ *      - Deploy ONLY on spoke chains (Arbitrum, Optimism, Base, etc.)
+ *      - Do NOT deploy on hub chain (use EagleShareOFTAdapter on hub)
  * 
  * @dev FEE STRUCTURE:
- *      - Buy/Sell fees configurable separately
- *      - Two recipients: Treasury (50%), Vault Injection (50%)
+ *      - Buy/Sell fees configurable separately (default: 0%)
+ *      - Two recipients: Treasury (70%), Vault Injection (30%)
  *      - Fees only apply to DEX swaps, not regular transfers
  *      - V3-compatible dual-mode processing
- *      - No burn mechanism (all fees go to productive use)
+ * 
+ * @dev WARNING: 
+ *      NEVER mint shares directly in this contract!
+ *      Shares must ONLY be minted by the vault contract on the hub chain
+ *      to maintain the correct share-to-asset conversion rate.
+ *      
+ *      Shares are bridged FROM hub (via ShareOFTAdapter) TO spoke chains.
  */
 contract EagleShareOFT is OFT {
     // =================================
@@ -52,8 +56,8 @@ contract EagleShareOFT is OFT {
     struct SwapFeeConfig {
         uint16 buyFee;          // Buy fee in basis points
         uint16 sellFee;         // Sell fee in basis points  
-        uint16 treasuryShare;   // Treasury allocation (e.g., 5000 = 50%)
-        uint16 vaultShare;      // Vault injection (e.g., 5000 = 50%)
+        uint16 treasuryShare;   // Treasury allocation (e.g., 7000 = 70%)
+        uint16 vaultShare;      // Vault injection (e.g., 3000 = 30%)
         address treasury;       // Treasury address
         address vaultBeneficiary; // Vault beneficiary address
         bool feesEnabled;       // Global fee toggle
@@ -62,15 +66,6 @@ contract EagleShareOFT is OFT {
     // =================================
     // STATE VARIABLES
     // =================================
-    
-    /// @notice Registry contract (optional - address(0) for simple mode)
-    IChainRegistry public immutable CHAIN_REGISTRY;
-    
-    /// @notice Cached chain EID (0 if simple mode)
-    uint32 public immutable CHAIN_EID;
-    
-    /// @notice Vault bridge (for hub chain only - converts vault shares to OFT)
-    address public vaultBridge;
     
     /// @notice Fee configuration
     SwapFeeConfig public swapFeeConfig;
@@ -92,7 +87,6 @@ contract EagleShareOFT is OFT {
     // EVENTS
     // =================================
 
-    event RegistryConfigured(address indexed registry, address lzEndpoint, uint32 eid, uint256 chainId);
     event SwapFeeApplied(address indexed from, address indexed to, uint256 amount, uint256 feeAmount, string reason);
     event FeesDistributed(address indexed recipient, uint256 amount, string category);
     event V3PoolConfigured(address indexed pool, bool isV3);
@@ -104,8 +98,6 @@ contract EagleShareOFT is OFT {
     // =================================
 
     error ZeroAddress();
-    error ChainNotConfigured();
-    error RegistryCallFailed();
     error FeeExceedsLimit();
     error InvalidFeeRecipient();
     error InvalidFeeDistribution();
@@ -115,57 +107,27 @@ contract EagleShareOFT is OFT {
     // =================================
     
     /**
-     * @notice Creates Eagle Share OFT with optional registry
-     * @param _name Token name (identical on all chains)
-     * @param _symbol Token symbol (identical on all chains) 
-     * @param _lzEndpoint LayerZero endpoint (required in simple mode, ignored in registry mode)
-     * @param _registry Registry address (pass address(0) for simple mode)
+     * @notice Creates Eagle Share OFT for spoke chains
+     * @param _name Token name (e.g., "Eagle Vault Shares")
+     * @param _symbol Token symbol (e.g., "vEAGLE")
+     * @param _lzEndpoint LayerZero endpoint for this chain
      * @param _delegate Contract delegate/owner
-     * @param _feeConfig Initial fee configuration (can be zero fees)
      */
     constructor(
         string memory _name,
         string memory _symbol,
         address _lzEndpoint,
-        address _registry,
-        address _delegate,
-        SwapFeeConfig memory _feeConfig
-    ) OFT(
-        _name, 
-        _symbol, 
-        _registry != address(0) ? _getEndpointFromRegistry(_registry) : _lzEndpoint,
-        _delegate
-    ) Ownable(_delegate) {
+        address _delegate
+    ) OFT(_name, _symbol, _lzEndpoint, _delegate) Ownable(_delegate) {
         if (_delegate == address(0)) revert ZeroAddress();
-        
-        // Registry mode vs Simple mode
-        if (_registry != address(0)) {
-        CHAIN_REGISTRY = IChainRegistry(_registry);
-        uint16 currentChainId = CHAIN_REGISTRY.getCurrentChainId();
-        CHAIN_EID = uint32(CHAIN_REGISTRY.getEidForChainId(uint256(currentChainId)));
-        
-        emit RegistryConfigured(
-            _registry, 
-                address(endpoint),
-            CHAIN_EID,
-            block.chainid
-        );
-        } else {
-            // Simple mode: no registry
-            CHAIN_REGISTRY = IChainRegistry(address(0));
-            CHAIN_EID = 0;
-            
-            if (_lzEndpoint == address(0)) revert ZeroAddress();
-        }
-        
-        // Set up fee configuration
-        if (_feeConfig.treasury != address(0)) {
-            _setSwapFeeConfig(_feeConfig);
-        }
+        if (_lzEndpoint == address(0)) revert ZeroAddress();
         
         // Set deployer and contract as fee exempt
         feeExempt[_delegate] = true;
         feeExempt[address(this)] = true;
+        
+        // WARNING: Do NOT mint shares here - breaks vault accounting
+        // Shares are minted by the vault on hub chain only
     }
 
     // =================================
@@ -469,68 +431,8 @@ contract EagleShareOFT is OFT {
     }
     
     // =================================
-    // VAULT BRIDGE FUNCTIONS (HUB CHAIN ONLY)
-    // =================================
-    
-    /**
-     * @notice Set vault bridge address (one-time setup, hub chain only)
-     * @dev Allows VaultToOFTBridge to mint/burn for wrapping vault shares
-     * @param _bridge VaultToOFTBridge contract address
-     */
-    function setVaultBridge(address _bridge) external onlyOwner {
-        require(vaultBridge == address(0), "Bridge already set");
-        require(_bridge != address(0), "Zero address");
-        vaultBridge = _bridge;
-        
-        // Exempt bridge from fees (wrapping should be free)
-        feeExempt[_bridge] = true;
-    }
-    
-    /**
-     * @notice Mint OFT tokens (only callable by vault bridge)
-     * @dev Used when users wrap vault shares → OFT tokens
-     * @param to Recipient address
-     * @param amount Amount to mint
-     */
-    function mint(address to, uint256 amount) external {
-        require(msg.sender == vaultBridge, "Only vault bridge");
-        require(vaultBridge != address(0), "Bridge not set");
-        _mint(to, amount);
-    }
-    
-    /**
-     * @notice Burn OFT tokens (only callable by vault bridge)
-     * @dev Used when users unwrap OFT tokens → vault shares
-     * @param from Address to burn from
-     * @param amount Amount to burn
-     */
-    function burn(address from, uint256 amount) external {
-        require(msg.sender == vaultBridge, "Only vault bridge");
-        require(vaultBridge != address(0), "Bridge not set");
-        _burn(from, amount);
-    }
-    
-    // =================================
     // INTERNAL HELPERS
     // =================================
-    
-    /**
-     * @notice Internal function to get endpoint from registry
-     */
-    function _getEndpointFromRegistry(address _registry) private view returns (address) {
-        if (_registry == address(0)) revert ZeroAddress();
-        
-        try IChainRegistry(_registry).getCurrentChainId() returns (uint16 currentChainId) {
-            try IChainRegistry(_registry).getLayerZeroEndpoint(currentChainId) returns (address endpoint) {
-                if (endpoint == address(0)) revert ChainNotConfigured();
-                return endpoint;
-            } catch {
-                revert RegistryCallFailed();
-            }
-        } catch {
-            revert RegistryCallFailed();
-        }
-    }
 
     /**
      * @notice Internal function to set fee config with validation
@@ -554,53 +456,6 @@ contract EagleShareOFT is OFT {
     // =================================
     // VIEW FUNCTIONS
     // =================================
-    
-    /**
-     * @notice Get registry address (address(0) if simple mode)
-     */
-    function getRegistry() external view returns (address) {
-        return address(CHAIN_REGISTRY);
-    }
-
-    /**
-     * @notice Get cached chain EID (0 if simple mode)
-     */
-    function getChainEID() external view returns (uint32) {
-        return CHAIN_EID;
-    }
-
-    /**
-     * @notice Check if using registry mode
-     */
-    function isRegistryMode() external view returns (bool) {
-        return address(CHAIN_REGISTRY) != address(0);
-    }
-    
-    /**
-     * @notice Get chain config from registry (registry mode only)
-     */
-    function getChainConfig() external view returns (IChainRegistry.ChainConfig memory) {
-        if (address(CHAIN_REGISTRY) == address(0)) revert("Simple mode");
-        uint16 currentChainId = CHAIN_REGISTRY.getCurrentChainId();
-        return CHAIN_REGISTRY.getChainConfig(currentChainId);
-    }
-
-    /**
-     * @notice Verify configuration (registry mode only)
-     */
-    function verifyConfiguration() external view returns (bool) {
-        if (address(CHAIN_REGISTRY) == address(0)) return true; // Simple mode is always valid
-        
-        try CHAIN_REGISTRY.getCurrentChainId() returns (uint16 currentChainId) {
-            try CHAIN_REGISTRY.getLayerZeroEndpoint(currentChainId) returns (address registryEndpoint) {
-                return registryEndpoint == address(endpoint);
-            } catch {
-                return false;
-            }
-        } catch {
-            return false;
-        }
-    }
 
     /**
      * @notice Calculate swap fee for a given amount
@@ -634,8 +489,7 @@ contract EagleShareOFT is OFT {
      * @notice Get contract version
      */
     function version() external pure returns (string memory) {
-        return "3.0.0-unified";
+        return "1.0.0-production";
     }
-    
 }
 
