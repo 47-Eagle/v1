@@ -342,15 +342,33 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
       const supply = Number(formatEther(totalSupply));
       const assets = Number(formatEther(totalAssets));
       
+      // Get strategy balances too for total calculation
+      const [strategyWlfiBal, strategyUsd1Bal] = await Promise.all([
+        wlfi.balanceOf(CONTRACTS.CHARM_VAULT),
+        usd1.balanceOf(CONTRACTS.CHARM_VAULT),
+      ]);
+      
+      const strategyWlfi = Number(formatEther(strategyWlfiBal));
+      const strategyUsd1 = Number(formatEther(strategyUsd1Bal));
+      
+      // ACTUAL total tokens in system
+      const totalWlfiTokens = vaultWlfi + strategyWlfi;
+      const totalUsd1Tokens = vaultUsd1 + strategyUsd1;
+      
       // Calculate what portion of total you're trying to withdraw
       const withdrawPortion = withdrawNum / supply;
-      const expectedWlfi = assets * withdrawPortion * 0.5; // Assumes 50/50 split
-      const expectedUsd1 = assets * withdrawPortion * 0.5;
+      const expectedWlfi = totalWlfiTokens * withdrawPortion;
+      const expectedUsd1 = totalUsd1Tokens * withdrawPortion;
       
       console.log('Total supply:', supply.toFixed(2));
-      console.log('Total assets:', assets.toFixed(2));
+      console.log('Total assets (USD):', assets.toFixed(2));
+      console.log('Total WLFI tokens:', totalWlfiTokens.toFixed(2));
+      console.log('Total USD1 tokens:', totalUsd1Tokens.toFixed(2));
       console.log('Vault WLFI:', vaultWlfi.toFixed(2));
       console.log('Vault USD1:', vaultUsd1.toFixed(2));
+      console.log('Strategy WLFI:', strategyWlfi.toFixed(2));
+      console.log('Strategy USD1:', strategyUsd1.toFixed(2));
+      console.log('Withdraw portion:', (withdrawPortion * 100).toFixed(2) + '%');
       console.log('Expected WLFI needed:', expectedWlfi.toFixed(2));
       console.log('Expected USD1 needed:', expectedUsd1.toFixed(2));
       
