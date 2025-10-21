@@ -39,24 +39,24 @@ export default function AssetAllocationSunburst({
     const height = 400;
     const radius = Math.min(width, height) / 2;
 
-    // Hierarchical data structure
+    // Hierarchical data structure with Eagle Finance theme colors
     const data: HierarchyNode = {
       name: 'Total Assets',
       children: [
         {
           name: 'Vault Reserves',
-          color: '#10b981',
+          color: '#d4af37', // Eagle Gold
           children: [
-            { name: 'Vault WLFI', value: vaultWLFI, color: '#34d399' },
-            { name: 'Vault USD1', value: vaultUSD1, color: '#059669' }
+            { name: 'Vault WLFI', value: vaultWLFI, color: '#f6d55c' }, // Light Gold
+            { name: 'Vault USD1', value: vaultUSD1, color: '#b8941f' } // Dark Gold
           ]
         },
         {
           name: 'Charm Strategy',
-          color: '#6366f1',
+          color: '#6366f1', // Indigo (Strategy)
           children: [
-            { name: 'Strategy WLFI', value: strategyWLFI, color: '#818cf8' },
-            { name: 'Strategy USD1', value: strategyUSD1, color: '#4f46e5' }
+            { name: 'Strategy WLFI', value: strategyWLFI, color: '#818cf8' }, // Light Indigo
+            { name: 'Strategy USD1', value: strategyUSD1, color: '#4f46e5' } // Dark Indigo
           ]
         }
       ]
@@ -194,8 +194,8 @@ export default function AssetAllocationSunburst({
           <div 
             className={`cursor-pointer p-3 rounded-lg transition-all border ${
               selectedPath?.includes('Vault') 
-                ? 'bg-emerald-500/20 border-emerald-500/50' 
-                : 'border-white/5 hover:bg-white/5'
+                ? 'bg-yellow-500/20 border-yellow-500/50 shadow-lg' 
+                : 'border-white/5 hover:bg-white/5 hover:border-yellow-500/20'
             }`}
             onClick={() => setSelectedPath(selectedPath?.includes('Vault') ? null : 'Vault Reserves')}
           >
@@ -203,20 +203,20 @@ export default function AssetAllocationSunburst({
             <div className="space-y-2">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-emerald-400"></div>
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#f6d55c' }}></div>
                   <span className="text-sm text-gray-300">WLFI</span>
                 </div>
                 <span className="text-sm font-mono text-white">{vaultWLFI.toFixed(2)}</span>
               </div>
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-emerald-600"></div>
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#b8941f' }}></div>
                   <span className="text-sm text-gray-300">USD1</span>
                 </div>
                 <span className="text-sm font-mono text-white">{vaultUSD1.toFixed(2)}</span>
               </div>
             </div>
-            <div className="text-xs text-gray-600 mt-2">
+            <div className="text-xs text-yellow-500 mt-2 font-semibold">
               {grandTotal > 0 ? ((totalVault / grandTotal) * 100).toFixed(1) : '0'}% • Available now
             </div>
           </div>
