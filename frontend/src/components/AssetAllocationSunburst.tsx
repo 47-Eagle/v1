@@ -23,8 +23,8 @@ export default function AssetAllocationSunburst({
 }: AssetAllocationSunburstProps) {
   
   const svgRef = useRef<SVGSVGElement>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
-  const [zoomedNode, setZoomedNode] = useState<any>(null);
   
   const totalVault = vaultWLFI + vaultUSD1;
   const totalStrategy = strategyWLFI + strategyUSD1;
@@ -80,8 +80,14 @@ export default function AssetAllocationSunburst({
 
     partition(root);
 
-    // Arc generator
-    const arc = d3.arc<d3.HierarchyRectangularNode<HierarchyNode>>()
+    // Arc generators - collapsed state (small) and expanded state (full)
+    const arcCollapsed = d3.arc<d3.HierarchyRectangularNode<HierarchyNode>>()
+      .startAngle(d => d.x0)
+      .endAngle(d => d.x1)
+      .innerRadius(0)
+      .outerRadius(20); // Small circle when collapsed
+
+    const arcExpanded = d3.arc<d3.HierarchyRectangularNode<HierarchyNode>>()
       .startAngle(d => d.x0)
       .endAngle(d => d.x1)
       .padAngle(d => Math.min((d.x1 - d.x0) / 2, 0.005))
@@ -89,7 +95,7 @@ export default function AssetAllocationSunburst({
       .innerRadius(d => d.y0)
       .outerRadius(d => d.y1 - 1);
 
-    // Hover arc (expanded)
+    // Hover arc (even more expanded)
     const arcHover = d3.arc<d3.HierarchyRectangularNode<HierarchyNode>>()
       .startAngle(d => d.x0)
       .endAngle(d => d.x1)
@@ -109,40 +115,11 @@ export default function AssetAllocationSunburst({
     feMerge.append('feMergeNode').attr('in', 'coloredBlur');
     feMerge.append('feMergeNode').attr('in', 'SourceGraphic');
 
-    // Determine what to show based on zoom state
-    const visibleNodes = zoomedNode 
-      ? root.descendants().filter(d => {
-          // When zoomed, show the zoomed node and its children
-          return d === zoomedNode || d.parent === zoomedNode;
-        })
-      : root.descendants().filter(d => d.depth > 0);
-
-    // Create arcs with smooth transitions
+    // Create arcs that animate between collapsed and expanded states
     const paths = svg.selectAll('path')
-      .data(visibleNodes, (d: any) => d.data.name)
-      .join(
-        enter => enter.append('path')
-          .attr('d', arc as any)
-          .attr('opacity', 0)
-          .call(enter => enter.transition()
-            .duration(600)
-            .ease(d3.easeCubicOut)
-            .attr('opacity', 0.85)
-          ),
-        update => update
-          .call(update => update.transition()
-            .duration(600)
-            .ease(d3.easeCubicOut)
-            .attr('d', arc as any)
-          ),
-        exit => exit
-          .call(exit => exit.transition()
-            .duration(400)
-            .ease(d3.easeCubicIn)
-            .attr('opacity', 0)
-            .remove()
-          )
-      )
+      .data(root.descendants().filter(d => d.depth > 0))
+      .join('path')
+      .attr('d', (isExpanded ? arcExpanded : arcCollapsed) as any)
       .attr('fill', d => {
         // Add subtle gradient based on depth
         const baseColor = d.data.color || '#666';
@@ -207,17 +184,7 @@ export default function AssetAllocationSunburst({
       })
       .on('click', function(event, d) {
         event.stopPropagation();
-        
-        // Toggle zoom on click
-        if (zoomedNode && zoomedNode.data.name === d.data.name) {
-          // Zoom out
-          setZoomedNode(null);
-          setSelectedPath(null);
-        } else {
-          // Zoom in
-          setZoomedNode(d);
-          setSelectedPath(d.data.name);
-        }
+        setSelectedPath(d.data.name);
       });
 
     // Add elegant center text with gradient
@@ -230,6 +197,13 @@ export default function AssetAllocationSunburst({
       .attr('stroke', 'rgba(212, 175, 55, 0.3)')
       .attr('stroke-width', 1.5);
     
+    // Center content - always visible, clickable to toggle
+    centerGroup.append('circle')
+      .attr('r', 60)
+      .attr('fill', 'transparent')
+      .style('cursor', 'pointer')
+      .on('click', () => setIsExpanded(!isExpanded));
+
     centerGroup.append('text')
       .attr('text-anchor', 'middle')
       .attr('y', -8)
@@ -237,7 +211,9 @@ export default function AssetAllocationSunburst({
       .style('font-weight', '700')
       .style('fill', '#d4af37')
       .style('letter-spacing', '1px')
-      .text(grandTotal.toFixed(0));
+      .style('cursor', 'pointer')
+      .text(grandTotal.toFixed(0))
+      .on('click', () => setIsExpanded(!isExpanded));
 
     centerGroup.append('text')
       .attr('text-anchor', 'middle')
@@ -246,9 +222,18 @@ export default function AssetAllocationSunburst({
       .style('fill', '#9ca3af')
       .style('text-transform', 'uppercase')
       .style('letter-spacing', '1.5px')
-      .text('Total Tokens');
+      .style('cursor', 'pointer')
+      .text(isExpanded ? 'Click to Close' : 'Click to Open')
+      .on('click', () => setIsExpanded(!isExpanded));
 
-  }, [vaultWLFI, vaultUSD1, strategyWLFI, strategyUSD1, grandTotal, selectedPath, zoomedNode]);
+    // Animate arcs when expanded state changes
+    paths.transition()
+      .duration(800)
+      .ease(d3.easeCubicInOut)
+      .attr('d', (isExpanded ? arcExpanded : arcCollapsed) as any)
+      .attr('opacity', isExpanded ? 0.85 : 0);
+
+  }, [vaultWLFI, vaultUSD1, strategyWLFI, strategyUSD1, grandTotal, selectedPath, isExpanded]);
 
   return (
     <div className="relative bg-gradient-to-br from-white/[0.07] via-white/[0.03] to-transparent border border-white/10 rounded-2xl p-8 mb-8 overflow-hidden">
@@ -261,22 +246,28 @@ export default function AssetAllocationSunburst({
             <h3 className="text-white font-bold text-xl mb-1">Asset Allocation</h3>
             <p className="text-sm text-gray-500">Real-time token distribution</p>
           </div>
-          {zoomedNode && (
-            <button
-              onClick={() => {
-                setZoomedNode(null);
-                setSelectedPath(null);
-              }}
-              className="px-4 py-2 bg-gradient-to-r from-yellow-500/20 to-amber-500/20 hover:from-yellow-500/30 hover:to-amber-500/30 text-yellow-400 text-sm font-semibold rounded-xl transition-all shadow-lg animate-fadeIn"
-            >
-              <span className="flex items-center gap-2">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7" />
-                </svg>
-                Zoom Out
-              </span>
-            </button>
-          )}
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="px-4 py-2 bg-gradient-to-r from-yellow-500/20 to-amber-500/20 hover:from-yellow-500/30 hover:to-amber-500/30 text-yellow-400 text-sm font-semibold rounded-xl transition-all shadow-lg"
+          >
+            <span className="flex items-center gap-2">
+              {isExpanded ? (
+                <>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  Close
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                  </svg>
+                  Expand
+                </>
+              )}
+            </span>
+          </button>
         </div>
       
       <div className="flex items-center justify-center gap-10 max-w-5xl mx-auto">
@@ -368,19 +359,18 @@ export default function AssetAllocationSunburst({
             </div>
           </div>
 
-          {zoomedNode && (
-            <div className="p-4 bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border border-yellow-500/30 rounded-xl shadow-lg animate-fadeIn">
+          {!isExpanded && (
+            <div className="p-4 bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border border-yellow-500/30 rounded-xl shadow-lg">
               <div className="flex items-center gap-2 mb-2">
-                <svg className="w-4 h-4 text-yellow-500 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
-                  <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"/>
+                <svg className="w-4 h-4 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <div className="text-sm text-yellow-400 font-bold">
-                  Viewing: {zoomedNode.data.name}
+                <div className="text-sm text-yellow-400 font-semibold">
+                  Chart Collapsed
                 </div>
               </div>
               <p className="text-xs text-gray-400">
-                Click "Zoom Out" or click the section again to return
+                Click center or "Expand" button to view breakdown
               </p>
             </div>
           )}
