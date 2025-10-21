@@ -354,23 +354,29 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
       // ACTUAL total tokens in system
       const totalWlfiTokens = vaultWlfi + strategyWlfi;
       const totalUsd1Tokens = vaultUsd1 + strategyUsd1;
+      const totalTokens = totalWlfiTokens + totalUsd1Tokens;
+      
+      // Calculate ACTUAL ratio of tokens (not 50/50!)
+      const wlfiRatio = totalTokens > 0 ? totalWlfiTokens / totalTokens : 0.5;
+      const usd1Ratio = totalTokens > 0 ? totalUsd1Tokens / totalTokens : 0.5;
       
       // Calculate what portion of total you're trying to withdraw
       const withdrawPortion = withdrawNum / supply;
+      
+      // What you'll actually get (based on current vault composition)
       const expectedWlfi = totalWlfiTokens * withdrawPortion;
       const expectedUsd1 = totalUsd1Tokens * withdrawPortion;
       
-      console.log('Total supply:', supply.toFixed(2));
-      console.log('Total assets (USD):', assets.toFixed(2));
-      console.log('Total WLFI tokens:', totalWlfiTokens.toFixed(2));
-      console.log('Total USD1 tokens:', totalUsd1Tokens.toFixed(2));
+      console.log('Total supply:', supply.toFixed(2), 'vEAGLE');
+      console.log('Total WLFI in system:', totalWlfiTokens.toFixed(2), `(${(wlfiRatio * 100).toFixed(1)}%)`);
+      console.log('Total USD1 in system:', totalUsd1Tokens.toFixed(2), `(${(usd1Ratio * 100).toFixed(1)}%)`);
       console.log('Vault WLFI:', vaultWlfi.toFixed(2));
       console.log('Vault USD1:', vaultUsd1.toFixed(2));
       console.log('Strategy WLFI:', strategyWlfi.toFixed(2));
       console.log('Strategy USD1:', strategyUsd1.toFixed(2));
       console.log('Withdraw portion:', (withdrawPortion * 100).toFixed(2) + '%');
-      console.log('Expected WLFI needed:', expectedWlfi.toFixed(2));
-      console.log('Expected USD1 needed:', expectedUsd1.toFixed(2));
+      console.log('You will get:', expectedWlfi.toFixed(2), 'WLFI +', expectedUsd1.toFixed(2), 'USD1');
+      console.log('Vault needs to have:', expectedWlfi.toFixed(2), 'WLFI +', expectedUsd1.toFixed(2), 'USD1');
       
       // Check if vault has enough
       if (vaultWlfi < expectedWlfi || vaultUsd1 < expectedUsd1) {
