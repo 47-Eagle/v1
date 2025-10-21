@@ -24,15 +24,34 @@ interface AggregatorV3Interface {
 
 /**
  * @title EagleOVault
- * @notice Gas-optimized dual-token vault with TWAP oracle pricing
+ * @notice LayerZero OVault-compatible dual-token vault with advanced features
  * 
- * @dev Dual-token vault: WLFI + USD1 → vEAGLE shares
- *      Pricing: Chainlink (USD1) + Uniswap V3 TWAP (WLFI, fallback to spot)
- *      Yield: Pluggable strategies (Charm, etc.)
- *      Shares: 80,000 vEAGLE = $1 USD
+ * @dev ERC-4626 compliant vault for LayerZero omnichain integration
+ *      - Dual-token support: WLFI + USD1 → vEAGLE shares
+ *      - Chainlink + Uniswap V3 TWAP oracle pricing
+ *      - maxLoss parameter for safe withdrawals
+ *      - Profit unlocking mechanism (MEV protection)
+ *      - Multi-role access control
+ *      - Compatible with LayerZero VaultComposerSync
  */
 contract EagleOVault is ERC4626, Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
+
+    // =================================
+    // CONSTANTS
+    // =================================
+    
+    /// @notice Maximum performance fee (50%)
+    uint16 public constant MAX_FEE = 5_000;
+    
+    /// @notice Basis points denominator
+    uint256 internal constant MAX_BPS = 10_000;
+    
+    /// @notice Extended precision for profit unlocking rate
+    uint256 internal constant MAX_BPS_EXTENDED = 1_000_000_000_000;
+    
+    /// @notice Seconds per year
+    uint256 internal constant SECONDS_PER_YEAR = 31_556_952;
 
     // =================================
     // STATE VARIABLES
@@ -45,8 +64,6 @@ contract EagleOVault is ERC4626, Ownable, ReentrancyGuard {
     /// @notice Oracle contracts
     AggregatorV3Interface public immutable USD1_PRICE_FEED;
     IUniswapV3Pool public immutable WLFI_USD1_POOL;
-    
-    /// @notice Uniswap router for swaps
     ISwapRouter public immutable UNISWAP_ROUTER;
     
     /// @notice Current token balances held directly by vault
@@ -55,32 +72,52 @@ contract EagleOVault is ERC4626, Ownable, ReentrancyGuard {
     
     /// @notice Strategy management
     mapping(address => bool) public activeStrategies;
-    mapping(address => uint256) public strategyWeights; // Allocation weights in basis points
+    mapping(address => uint256) public strategyWeights;
     address[] public strategyList;
     uint256 public totalStrategyWeight;
     uint256 public constant MAX_STRATEGIES = 5;
     
-    /// @notice Maximum total supply (50M shares = $5,000 at 10,000:1 ratio)
-    uint256 public maxTotalSupply = 50_000_000e18; // 50 million vEAGLE shares
+    // =================================
+    // ADVANCED FEATURES
+    // =================================
     
-    /// @notice Oracle configuration
-    uint32 public twapInterval = 1800; // 30 minutes TWAP (manipulation resistant)
-    uint256 public maxPriceAge = 86400; // 24 hours max for Chainlink
+    /// @notice Access control roles
+    address public management;
+    address public pendingManagement;
+    address public keeper; // Can call report() and tend()
+    address public emergencyAdmin; // Can shutdown
     
-    /// @notice Batch deployment optimization
-    uint256 public deploymentThreshold = 100e18; // $100 minimum for deployment
+    /// @notice Performance fees
+    uint16 public performanceFee; // In basis points
+    address public performanceFeeRecipient;
+    
+    /// @notice Profit unlocking (prevents PPS manipulation)
+    uint256 public profitUnlockingRate; // Shares to unlock per second
+    uint96 public fullProfitUnlockDate; // When all profits unlocked
+    uint32 public profitMaxUnlockTime; // Max time to unlock
+    uint256 public totalLockedShares; // Shares locked from last report
+    
+    /// @notice Reporting
+    uint96 public lastReport;
+    uint256 public totalAssetsAtLastReport;
+    
+    /// @notice Shutdown flag
+    bool public isShutdown;
+    
+    // =================================
+    // LEGACY STATE
+    // =================================
+    
+    uint256 public maxTotalSupply = 50_000_000e18;
+    uint32 public twapInterval = 1800;
+    uint256 public maxPriceAge = 86400;
+    uint256 public deploymentThreshold = 100e18;
     uint256 public minDeploymentInterval = 5 minutes;
     uint256 public lastDeployment;
-    
-    /// @notice Access control
-    address public manager;
-    address public pendingManager;
-    bool public paused; // Pack with addresses (saves gas)
+    bool public paused;
     mapping(address => bool) public authorized;
-    
-    /// @notice Emergency controls
     uint256 public lastRebalance;
-    
+
     // =================================
     // EVENTS
     // =================================
@@ -94,24 +131,38 @@ contract EagleOVault is ERC4626, Ownable, ReentrancyGuard {
         uint256 totalUSDValue,
         uint256 shares
     );
+    
     event DualWithdraw(
         address indexed user,
         uint256 shares,
         uint256 wlfiAmount,
-        uint256 usd1Amount
+        uint256 usd1Amount,
+        uint256 loss
     );
     
-    event BalancesSynced(
-        uint256 wlfiBalance,
-        uint256 usd1Balance
+    event Reported(
+        uint256 profit,
+        uint256 loss,
+        uint256 performanceFees,
+        uint256 totalAssets
     );
+    
+    event UpdateKeeper(address indexed newKeeper);
+    event UpdateEmergencyAdmin(address indexed newEmergencyAdmin);
+    event UpdatePerformanceFee(uint16 newPerformanceFee);
+    event UpdatePerformanceFeeRecipient(address indexed newRecipient);
+    event UpdateProfitMaxUnlockTime(uint256 newProfitMaxUnlockTime);
+    event UpdateManagement(address indexed newManagement);
+    event UpdatePendingManagement(address indexed newPendingManagement);
+    event StrategyShutdown();
+    event BalancesSynced(uint256 wlfiBalance, uint256 usd1Balance);
     event StrategyAdded(address indexed strategy, uint256 weight);
     event StrategyRemoved(address indexed strategy);
     event StrategyDeployed(address indexed strategy, uint256 wlfiDeployed, uint256 usd1Deployed);
     event Rebalanced(uint256 newWlfiBalance, uint256 newUsd1Balance);
-    event ManagerSet(address indexed oldManager, address indexed newManager);
     event EmergencyPause(bool paused);
     event CapitalInjected(address indexed from, uint256 wlfiAmount, uint256 usd1Amount);
+    event EmergencyWithdraw(address indexed to, uint256 wlfiAmount, uint256 usd1Amount);
 
     // =================================
     // ERRORS
@@ -129,20 +180,14 @@ contract EagleOVault is ERC4626, Ownable, ReentrancyGuard {
     error InvalidWeight();
     error InvalidPrice();
     error StalePrice();
+    error LossExceeded(); // maxLoss protection
+    error VaultIsShutdown();
+    error VaultNotShutdown();
 
     // =================================
     // CONSTRUCTOR
     // =================================
     
-    /**
-     * @notice Creates the Eagle Omnichain Vault
-     * @param _wlfiToken WLFI token address
-     * @param _usd1Token USD1 token address
-     * @param _usd1PriceFeed Chainlink USD1/USD feed
-     * @param _wlfiUsd1Pool Uniswap V3 WLFI/USD1 pool for TWAP
-     * @param _uniswapRouter Uniswap V3 SwapRouter
-     * @param _owner Vault owner
-     */
     constructor(
         address _wlfiToken,
         address _usd1Token,
@@ -167,10 +212,18 @@ contract EagleOVault is ERC4626, Ownable, ReentrancyGuard {
         WLFI_USD1_POOL = IUniswapV3Pool(_wlfiUsd1Pool);
         UNISWAP_ROUTER = ISwapRouter(_uniswapRouter);
         
-        manager = _owner;
+        // Initialize roles
+        management = _owner;
+        keeper = _owner;
+        emergencyAdmin = _owner;
+        performanceFeeRecipient = _owner;
+        performanceFee = 1000; // 10% default
+        profitMaxUnlockTime = 7 days;
+        
         authorized[_owner] = true;
         lastDeployment = block.timestamp;
         lastRebalance = block.timestamp;
+        lastReport = uint96(block.timestamp);
     }
     
     receive() external payable {}
@@ -179,13 +232,22 @@ contract EagleOVault is ERC4626, Ownable, ReentrancyGuard {
     // MODIFIERS
     // =================================
     
-    modifier onlyAuthorized() {
-        if (!authorized[msg.sender] && msg.sender != owner()) revert Unauthorized();
+    modifier onlyManagement() {
+        if (msg.sender != management && msg.sender != owner()) revert Unauthorized();
         _;
     }
     
-    modifier onlyManager() {
-        if (msg.sender != manager && msg.sender != owner()) revert Unauthorized();
+    modifier onlyKeepers() {
+        if (msg.sender != keeper && msg.sender != management && msg.sender != owner()) {
+            revert Unauthorized();
+        }
+        _;
+    }
+    
+    modifier onlyEmergencyAuthorized() {
+        if (msg.sender != emergencyAdmin && msg.sender != management && msg.sender != owner()) {
+            revert Unauthorized();
+        }
         _;
     }
     
@@ -193,15 +255,16 @@ contract EagleOVault is ERC4626, Ownable, ReentrancyGuard {
         if (paused) revert Paused();
         _;
     }
+    
+    modifier whenNotShutdown() {
+        if (isShutdown) revert VaultIsShutdown();
+        _;
+    }
 
     // =================================
     // PRICE ORACLE FUNCTIONS
     // =================================
     
-    /**
-     * @notice Get USD1 price from Chainlink oracle
-     * @return price USD1 price in USD (18 decimals)
-     */
     function getUSD1Price() public view returns (uint256 price) {
         (
             uint80 roundId,
@@ -216,44 +279,29 @@ contract EagleOVault is ERC4626, Ownable, ReentrancyGuard {
         if (answeredInRound < roundId) revert StalePrice();
         if (block.timestamp - updatedAt > maxPriceAge) revert StalePrice();
         
-        // Convert from Chainlink decimals (8) to 18
         uint8 decimals = USD1_PRICE_FEED.decimals();
         price = uint256(answer) * (10 ** (18 - decimals));
         
-        // Sanity check: USD1 should be ~$1.00 (allow 5% deviation for stablecoins)
         if (price < 0.95e18 || price > 1.05e18) revert InvalidPrice();
     }
     
-    /**
-     * @notice Get WLFI price in USD with TWAP fallback
-     * @return price WLFI price in USD (18 decimals)
-     * @dev Uses TWAP if available, falls back to spot on error
-     */
     function getWLFIPrice() public view returns (uint256 price) {
-        // Get USD1 price in USD from Chainlink
         uint256 usd1InUSD = getUSD1Price();
         
-        // Try TWAP first (manipulation resistant), fallback to spot
         uint256 wlfiInUsd1;
         if (twapInterval > 0) {
             try this._getTWAPPrice() returns (uint256 twapPrice) {
                 wlfiInUsd1 = twapPrice;
             } catch {
-                // TWAP failed (low cardinality), use spot
                 wlfiInUsd1 = _getSpotPrice();
             }
         } else {
             wlfiInUsd1 = _getSpotPrice();
         }
         
-        // Calculate WLFI price in USD: WLFI/USD = (WLFI/USD1) × (USD1/USD)
         price = (wlfiInUsd1 * usd1InUSD) / 1e18;
     }
     
-    /**
-     * @notice Get TWAP price (external for try/catch)
-     * @dev Simplified TWAP without heavy tick math
-     */
     function _getTWAPPrice() external view returns (uint256) {
         uint32[] memory secondsAgos = new uint32[](2);
         secondsAgos[0] = twapInterval;
@@ -264,43 +312,28 @@ contract EagleOVault is ERC4626, Ownable, ReentrancyGuard {
         int56 tickCumulativesDelta = tickCumulatives[1] - tickCumulatives[0];
         int24 arithmeticMeanTick = int24(tickCumulativesDelta / int56(uint56(twapInterval)));
         
-        // Simple approximation: price ≈ 1.0001^tick
-        // For small ticks, use linear approximation to save gas
         if (arithmeticMeanTick > -1000 && arithmeticMeanTick < 1000) {
-            // Linear approximation for ticks near 0
-            uint256 basePrice = 1e18; // 1:1 ratio at tick 0
-            int256 adjustment = int256(arithmeticMeanTick) * 1e14; // ~0.01% per tick
+            uint256 basePrice = 1e18;
+            int256 adjustment = int256(arithmeticMeanTick) * 1e14;
             uint256 rawPrice = uint256(int256(basePrice) + adjustment);
             return rawPrice > 0 ? (1e18 * 1e18) / rawPrice : 1e18;
         } else {
-            // For large ticks, fallback to spot (safer than complex math)
             return _getSpotPrice();
         }
     }
     
-    /**
-     * @notice Get current spot price from Uniswap pool
-     */
     function _getSpotPrice() internal view returns (uint256 price) {
         (uint160 sqrtPriceX96,,,,,,) = WLFI_USD1_POOL.slot0();
         
-        // Convert sqrtPriceX96 to price
         uint256 numerator = uint256(sqrtPriceX96) * uint256(sqrtPriceX96);
-        uint256 denominator = 1 << 192; // 2^192
+        uint256 denominator = 1 << 192;
         uint256 rawPrice = (numerator * 1e18) / denominator;
         
-        // Invert to get USD1 per WLFI
         price = rawPrice > 0 ? (1e18 * 1e18) / rawPrice : 1e15;
         
-        if (price == 0) price = 1e15; // Minimum $0.001
+        if (price == 0) price = 1e15;
     }
 
-    /**
-     * @notice Calculate USD value of WLFI + USD1 holdings
-     * @param wlfiAmount Amount of WLFI tokens
-     * @param usd1Amount Amount of USD1 tokens
-     * @return usdValue Total value in USD (18 decimals)
-     */
     function calculateUSDValue(uint256 wlfiAmount, uint256 usd1Amount) 
         public 
         view 
@@ -316,79 +349,46 @@ contract EagleOVault is ERC4626, Ownable, ReentrancyGuard {
     }
 
     // =================================
-    // DEPOSIT FUNCTIONS
+    // PROFIT UNLOCKING
     // =================================
     
     /**
-     * @notice Deposit WLFI + USD1 with accurate oracle pricing
-     * @param wlfiAmount Amount of WLFI to deposit
-     * @param usd1Amount Amount of USD1 to deposit
-     * @param receiver Address to receive shares
-     * @return shares Amount of EAGLE shares minted
+     * @notice Calculate unlocked shares since last report
+     * @dev Prevents PPS manipulation by gradual unlock
      */
-    function depositDual(
-        uint256 wlfiAmount,
-        uint256 usd1Amount,
-        address receiver
-    ) external nonReentrant whenNotPaused returns (uint256 shares) {
-        if (wlfiAmount == 0 && usd1Amount == 0) revert InvalidAmount();
-        if (receiver == address(0)) revert ZeroAddress();
-        
-        // Get current prices
-        uint256 wlfiPriceUSD = getWLFIPrice();
-        uint256 usd1PriceUSD = getUSD1Price();
-        
-        // Transfer tokens from user
-        if (wlfiAmount > 0) {
-            WLFI_TOKEN.safeTransferFrom(msg.sender, address(this), wlfiAmount);
-            wlfiBalance += wlfiAmount;
-        }
-        if (usd1Amount > 0) {
-            USD1_TOKEN.safeTransferFrom(msg.sender, address(this), usd1Amount);
-            usd1Balance += usd1Amount;
+    function unlockedShares() public view returns (uint256) {
+        if (fullProfitUnlockDate <= block.timestamp || fullProfitUnlockDate == 0) {
+            return totalLockedShares;
         }
         
-        // Calculate USD value
-        uint256 totalUSDValue = calculateUSDValue(wlfiAmount, usd1Amount);
+        uint256 timeSinceLastReport = block.timestamp - lastReport;
+        uint256 unlockedAmount = (profitUnlockingRate * timeSinceLastReport) / MAX_BPS_EXTENDED;
         
-        // Calculate shares: 80,000 shares = $1 USD (maximum precision)
-        if (totalSupply() == 0) {
-            shares = totalUSDValue * 80000;
-        } else {
-            shares = (totalUSDValue * totalSupply()) / totalAssets();
-        }
-        
-        // Check max supply
-        if (totalSupply() + shares > maxTotalSupply) revert InvalidAmount();
-        
-        // Mint shares
-        _mint(receiver, shares);
-        
-        // Auto-deploy removed - use manual deployment for better control
-        // Owner calls forceDeployToStrategies() when ready
-        
-        emit DualDeposit(
-            msg.sender,
-            wlfiAmount,
-            usd1Amount,
-            wlfiPriceUSD,
-            usd1PriceUSD,
-            totalUSDValue,
-            shares
-        );
+        return unlockedAmount > totalLockedShares ? totalLockedShares : unlockedAmount;
     }
     
     /**
-     * @notice ERC4626 standard deposit (WLFI only)
-     * @param assets Amount of WLFI to deposit
-     * @param receiver Address to receive shares
-     * @return shares Amount of shares minted
+     * @notice Get total supply accounting for locked shares
+     * @dev Locked shares reduce circulating supply (increases PPS)
+     */
+    function totalSupply() public view override returns (uint256) {
+        return super.totalSupply() - (totalLockedShares - unlockedShares());
+    }
+
+    // =================================
+    // DEPOSIT FUNCTIONS (ERC-4626 Standard + Dual)
+    // =================================
+    
+    /**
+     * @notice LayerZero OVault compatible deposit
+     * @dev Standard ERC4626 deposit used by VaultComposerSync
      */
     function deposit(uint256 assets, address receiver) 
         public 
         override 
         nonReentrant 
         whenNotPaused 
+        whenNotShutdown
         returns (uint256 shares) 
     {
         if (assets == 0) revert InvalidAmount();
@@ -402,39 +402,138 @@ contract EagleOVault is ERC4626, Ownable, ReentrancyGuard {
                  usdValue * 80000 : 
                  (usdValue * totalSupply()) / totalAssets();
         
-        // Check max supply
         if (totalSupply() + shares > maxTotalSupply) revert InvalidAmount();
         
         _mint(receiver, shares);
         
-        // Auto-deploy removed - manual only
-        
         emit Deposit(msg.sender, receiver, assets, shares);
+    }
+    
+    /**
+     * @notice Dual-token deposit (WLFI + USD1)
+     * @param wlfiAmount Amount of WLFI to deposit
+     * @param usd1Amount Amount of USD1 to deposit
+     * @param receiver Address to receive shares
+     */
+    function depositDual(
+        uint256 wlfiAmount,
+        uint256 usd1Amount,
+        address receiver
+    ) external nonReentrant whenNotPaused whenNotShutdown returns (uint256 shares) {
+        if (wlfiAmount == 0 && usd1Amount == 0) revert InvalidAmount();
+        if (receiver == address(0)) revert ZeroAddress();
+        
+        uint256 wlfiPriceUSD = getWLFIPrice();
+        uint256 usd1PriceUSD = getUSD1Price();
+        
+        if (wlfiAmount > 0) {
+            WLFI_TOKEN.safeTransferFrom(msg.sender, address(this), wlfiAmount);
+            wlfiBalance += wlfiAmount;
+        }
+        if (usd1Amount > 0) {
+            USD1_TOKEN.safeTransferFrom(msg.sender, address(this), usd1Amount);
+            usd1Balance += usd1Amount;
+        }
+        
+        uint256 totalUSDValue = calculateUSDValue(wlfiAmount, usd1Amount);
+        
+        if (totalSupply() == 0) {
+            shares = totalUSDValue * 80000;
+        } else {
+            shares = (totalUSDValue * totalSupply()) / totalAssets();
+        }
+        
+        if (totalSupply() + shares > maxTotalSupply) revert InvalidAmount();
+        
+        _mint(receiver, shares);
+        
+        emit DualDeposit(
+            msg.sender,
+            wlfiAmount,
+            usd1Amount,
+            wlfiPriceUSD,
+            usd1PriceUSD,
+            totalUSDValue,
+            shares
+        );
     }
 
     // =================================
-    // WITHDRAWAL FUNCTIONS
+    // WITHDRAWAL FUNCTIONS (ERC-4626 + maxLoss)
     // =================================
     
     /**
-     * @notice Withdraw WLFI + USD1 proportionally
-     * @param shares Amount of shares to burn
-     * @param receiver Address to receive tokens
-     * @return wlfiAmount Amount of WLFI withdrawn
-     * @return usd1Amount Amount of USD1 withdrawn
+     * @notice LayerZero OVault compatible redeem
+     * @dev Standard ERC4626 redeem used by VaultComposerSync
      */
-    function withdrawDual(
-        uint256 shares,
-        address receiver
-    ) external nonReentrant returns (uint256 wlfiAmount, uint256 usd1Amount) {
+    function redeem(uint256 shares, address receiver, address owner)
+        public
+        override
+        nonReentrant
+        returns (uint256 assets)
+    {
         if (shares == 0) revert InvalidAmount();
         if (receiver == address(0)) revert ZeroAddress();
-        if (balanceOf(msg.sender) < shares) revert InsufficientBalance();
+        
+        // Standard ERC4626 approval check
+        if (msg.sender != owner) {
+            uint256 allowed = allowance(owner, msg.sender);
+            if (allowed != type(uint256).max) {
+                _approve(owner, msg.sender, allowed - shares);
+            }
+        }
         
         uint256 totalAssetAmount = totalAssets();
         uint256 totalShares = totalSupply();
         
-        uint256 totalWithdrawValue = (totalAssetAmount * shares) / totalShares;
+        // Calculate proportional assets
+        assets = (totalAssetAmount * shares) / totalShares;
+        
+        // Try vault balance first
+        uint256 wlfiFromVault = (wlfiBalance * shares) / totalShares;
+        uint256 usd1FromVault = (usd1Balance * shares) / totalShares;
+        
+        // Withdraw from strategies if needed
+        uint256 directValue = calculateUSDValue(wlfiFromVault, usd1FromVault);
+        if (directValue < assets) {
+            uint256 needFromStrategy = assets - directValue;
+            _withdrawFromStrategies(needFromStrategy);
+        }
+        
+        // Burn shares
+        _burn(owner, shares);
+        
+        // Update balances
+        wlfiBalance -= wlfiFromVault;
+        usd1Balance -= usd1FromVault;
+        
+        // Transfer WLFI (primary asset for ERC4626 compatibility)
+        if (wlfiFromVault > 0) WLFI_TOKEN.safeTransfer(receiver, wlfiFromVault);
+        
+        emit Withdraw(msg.sender, receiver, owner, assets, shares);
+    }
+    
+    /**
+     * @notice Withdraw with loss protection
+     * @param shares Amount of shares to burn
+     * @param receiver Address to receive tokens
+     * @param maxLoss Maximum acceptable loss in basis points (e.g., 100 = 1%)
+     */
+    function withdrawDual(
+        uint256 shares,
+        address receiver,
+        uint256 maxLoss
+    ) external nonReentrant returns (uint256 wlfiAmount, uint256 usd1Amount) {
+        if (shares == 0) revert InvalidAmount();
+        if (receiver == address(0)) revert ZeroAddress();
+        if (balanceOf(msg.sender) < shares) revert InsufficientBalance();
+        if (maxLoss > MAX_BPS) revert InvalidAmount();
+        
+        uint256 totalAssetAmount = totalAssets();
+        uint256 totalShares = totalSupply();
+        
+        // Expected value based on share proportion
+        uint256 expectedValue = (totalAssetAmount * shares) / totalShares;
         
         // Try vault balance first
         uint256 wlfiFromVault = (wlfiBalance * shares) / totalShares;
@@ -445,12 +544,26 @@ contract EagleOVault is ERC4626, Ownable, ReentrancyGuard {
         
         // Withdraw from strategies if needed
         uint256 directValue = calculateUSDValue(wlfiFromVault, usd1FromVault);
-        if (directValue < totalWithdrawValue) {
-            uint256 needFromStrategy = totalWithdrawValue - directValue;
+        if (directValue < expectedValue) {
+            uint256 needFromStrategy = expectedValue - directValue;
             (uint256 wlfiFromStrategies, uint256 usd1FromStrategies) = 
                 _withdrawFromStrategies(needFromStrategy);
             wlfiAmount += wlfiFromStrategies;
             usd1Amount += usd1FromStrategies;
+        }
+        
+        // Calculate actual value received
+        uint256 actualValue = calculateUSDValue(wlfiAmount, usd1Amount);
+        
+        // Check loss tolerance
+        uint256 loss = 0;
+        if (actualValue < expectedValue) {
+            loss = expectedValue - actualValue;
+            uint256 lossInBps = (loss * MAX_BPS) / expectedValue;
+            
+            if (lossInBps > maxLoss) {
+                revert LossExceeded();
+            }
         }
         
         // Burn shares
@@ -464,17 +577,103 @@ contract EagleOVault is ERC4626, Ownable, ReentrancyGuard {
         if (wlfiAmount > 0) WLFI_TOKEN.safeTransfer(receiver, wlfiAmount);
         if (usd1Amount > 0) USD1_TOKEN.safeTransfer(receiver, usd1Amount);
         
-        emit DualWithdraw(msg.sender, shares, wlfiAmount, usd1Amount);
+        emit DualWithdraw(msg.sender, shares, wlfiAmount, usd1Amount, loss);
+    }
+    
+    /**
+     * @notice Legacy withdrawDual (100% loss tolerance)
+     */
+    function withdrawDual(
+        uint256 shares,
+        address receiver
+    ) external nonReentrant returns (uint256 wlfiAmount, uint256 usd1Amount) {
+        return this.withdrawDual(shares, receiver, MAX_BPS);
+    }
+
+    // =================================
+    // REPORT FUNCTION
+    // =================================
+    
+    /**
+     * @notice Report profit/loss and charge fees
+     * @dev Called by keeper to harvest rewards and update accounting
+     */
+    function report() external nonReentrant onlyKeepers returns (uint256 profit, uint256 loss) {
+        uint256 currentTotalAssets = totalAssets();
+        uint256 previousTotalAssets = totalAssetsAtLastReport;
+        
+        if (currentTotalAssets > previousTotalAssets) {
+            profit = currentTotalAssets - previousTotalAssets;
+            
+            // Charge performance fee
+            uint256 performanceFees = 0;
+            if (performanceFee > 0 && profit > 0) {
+                performanceFees = (profit * performanceFee) / MAX_BPS;
+                
+                if (performanceFees > 0 && performanceFeeRecipient != address(0)) {
+                    uint256 feeShares = (performanceFees * totalSupply()) / currentTotalAssets;
+                    _mint(performanceFeeRecipient, feeShares);
+                }
+            }
+            
+            // Lock remaining profit
+            uint256 profitAfterFees = profit - performanceFees;
+            if (profitAfterFees > 0 && profitMaxUnlockTime > 0) {
+                uint256 profitShares = (profitAfterFees * totalSupply()) / currentTotalAssets;
+                
+                _mint(address(this), profitShares);
+                totalLockedShares += profitShares;
+                
+                fullProfitUnlockDate = uint96(block.timestamp + profitMaxUnlockTime);
+                profitUnlockingRate = (profitShares * MAX_BPS_EXTENDED) / profitMaxUnlockTime;
+            }
+            
+            emit Reported(profit, 0, performanceFees, currentTotalAssets);
+        } else {
+            loss = previousTotalAssets - currentTotalAssets;
+            
+            // Offset loss with locked shares
+            if (loss > 0 && totalLockedShares > 0) {
+                uint256 lossShares = (loss * totalSupply()) / currentTotalAssets;
+                uint256 sharesToBurn = lossShares > totalLockedShares ? totalLockedShares : lossShares;
+                
+                _burn(address(this), sharesToBurn);
+                totalLockedShares -= sharesToBurn;
+            }
+            
+            emit Reported(0, loss, 0, currentTotalAssets);
+        }
+        
+        lastReport = uint96(block.timestamp);
+        totalAssetsAtLastReport = currentTotalAssets;
+    }
+
+    // =================================
+    // TEND FUNCTION
+    // =================================
+    
+    /**
+     * @notice Perform maintenance without full report
+     */
+    function tend() external nonReentrant onlyKeepers {
+        uint256 idleWlfi = wlfiBalance;
+        uint256 idleUsd1 = usd1Balance;
+        
+        if (idleWlfi > 0 || idleUsd1 > 0) {
+            _deployToStrategies(idleWlfi, idleUsd1);
+        }
+    }
+    
+    function tendTrigger() external view returns (bool) {
+        uint256 idleValue = calculateUSDValue(wlfiBalance, usd1Balance);
+        return idleValue > deploymentThreshold && totalStrategyWeight > 0;
     }
 
     // =================================
     // STRATEGY MANAGEMENT
     // =================================
     
-    /**
-     * @notice Add a new yield strategy
-     */
-    function addStrategy(address strategy, uint256 weight) external onlyManager {
+    function addStrategy(address strategy, uint256 weight) external onlyManagement {
         if (strategy == address(0)) revert ZeroAddress();
         if (activeStrategies[strategy]) revert StrategyAlreadyActive();
         if (strategyList.length >= MAX_STRATEGIES) revert MaxStrategiesReached();
@@ -491,13 +690,9 @@ contract EagleOVault is ERC4626, Ownable, ReentrancyGuard {
         emit StrategyAdded(strategy, weight);
     }
     
-    /**
-     * @notice Remove a yield strategy
-     */
-    function removeStrategy(address strategy) external onlyManager {
+    function removeStrategy(address strategy) external onlyManagement {
         if (!activeStrategies[strategy]) revert StrategyNotActive();
         
-        // Withdraw all from strategy
         (uint256 wlfi, uint256 usd1) = IStrategy(strategy).withdraw(type(uint256).max);
         wlfiBalance += wlfi;
         usd1Balance += usd1;
@@ -506,7 +701,6 @@ contract EagleOVault is ERC4626, Ownable, ReentrancyGuard {
         totalStrategyWeight -= strategyWeights[strategy];
         strategyWeights[strategy] = 0;
         
-        // Remove from list
         uint256 length = strategyList.length;
         for (uint256 i = 0; i < length; i++) {
             if (strategyList[i] == strategy) {
@@ -519,20 +713,6 @@ contract EagleOVault is ERC4626, Ownable, ReentrancyGuard {
         emit StrategyRemoved(strategy);
     }
     
-    /**
-     * @notice Check if vault should deploy to strategies
-     */
-    function _shouldDeployToStrategies() internal view returns (bool) {
-        if (totalStrategyWeight == 0) return false;
-        uint256 idleValue = calculateUSDValue(wlfiBalance, usd1Balance);
-        if (idleValue < deploymentThreshold) return false;
-        if (block.timestamp < lastDeployment + minDeploymentInterval) return false;
-        return true;
-    }
-    
-    /**
-     * @notice Deploy funds to strategies based on weights
-     */
     function _deployToStrategies(uint256 wlfiAmount, uint256 usd1Amount) internal {
         if (totalStrategyWeight == 0) return;
         
@@ -545,16 +725,13 @@ contract EagleOVault is ERC4626, Ownable, ReentrancyGuard {
             if (activeStrategies[strategy] && strategyWeights[strategy] > 0) {
                 uint256 strategyValue = (totalValue * strategyWeights[strategy]) / totalStrategyWeight;
                 
-                // Proportional split
                 uint256 strategyWlfi = wlfiAmount > 0 ? (strategyValue * wlfiAmount) / totalValue : 0;
                 uint256 strategyUsd1 = usd1Amount > 0 ? (strategyValue * usd1Amount) / totalValue : 0;
                 
-                // Cap at available balance (prevent rounding-induced underflow)
                 if (strategyWlfi > wlfiBalance) strategyWlfi = wlfiBalance;
                 if (strategyUsd1 > usd1Balance) strategyUsd1 = usd1Balance;
                 
                 if (strategyWlfi > 0 || strategyUsd1 > 0) {
-                    // PUSH tokens to strategy first (cleaner than transferFrom)
                     if (strategyWlfi > 0) {
                         WLFI_TOKEN.safeTransfer(strategy, strategyWlfi);
                     }
@@ -562,11 +739,9 @@ contract EagleOVault is ERC4626, Ownable, ReentrancyGuard {
                         USD1_TOKEN.safeTransfer(strategy, strategyUsd1);
                     }
                     
-                    // Update tracking AFTER successful transfer
                     wlfiBalance -= strategyWlfi;
                     usd1Balance -= strategyUsd1;
                     
-                    // Call strategy.deposit() - it uses tokens already in its balance
                     IStrategy(strategy).deposit(strategyWlfi, strategyUsd1);
                     
                     emit StrategyDeployed(strategy, strategyWlfi, strategyUsd1);
@@ -575,9 +750,6 @@ contract EagleOVault is ERC4626, Ownable, ReentrancyGuard {
         }
     }
     
-    /**
-     * @notice Withdraw from strategies proportionally
-     */
     function _withdrawFromStrategies(uint256 valueNeeded) 
         internal 
         returns (uint256 wlfiTotal, uint256 usd1Total) 
@@ -608,27 +780,17 @@ contract EagleOVault is ERC4626, Ownable, ReentrancyGuard {
         }
     }
     
-    /**
-     * @notice Sync vault balance tracking with actual token balances
-     * @dev Call this after Charm Finance rebalances or swaps tokens internally
-     * @dev Updates wlfiBalance and usd1Balance to match reality
-     */
-    function syncBalances() external onlyManager {
-        // Get actual balances in vault contract
+    function syncBalances() external onlyManagement {
         uint256 actualWlfi = WLFI_TOKEN.balanceOf(address(this));
         uint256 actualUsd1 = USD1_TOKEN.balanceOf(address(this));
         
-        // Update state to match reality
         wlfiBalance = actualWlfi;
         usd1Balance = actualUsd1;
         
         emit BalancesSynced(actualWlfi, actualUsd1);
     }
     
-    /**
-     * @notice Force deployment to strategies (manager only)
-     */
-    function forceDeployToStrategies() external onlyManager nonReentrant {
+    function forceDeployToStrategies() external onlyManagement nonReentrant {
         if (totalStrategyWeight == 0) revert("No strategies");
         
         _deployToStrategies(wlfiBalance, usd1Balance);
@@ -639,13 +801,9 @@ contract EagleOVault is ERC4626, Ownable, ReentrancyGuard {
     // ERC4626 OVERRIDES
     // =================================
     
-    /**
-     * @notice Total assets valued in USD
-     */
     function totalAssets() public view override returns (uint256) {
         uint256 directValue = calculateUSDValue(wlfiBalance, usd1Balance);
         
-        // Add strategy values
         uint256 length = strategyList.length;
         for (uint256 i = 0; i < length; i++) {
             if (activeStrategies[strategyList[i]]) {
@@ -658,40 +816,102 @@ contract EagleOVault is ERC4626, Ownable, ReentrancyGuard {
     }
 
     // =================================
+    // EMERGENCY CONTROLS
+    // =================================
+    
+    /**
+     * @notice Shutdown the vault (one-way, irreversible)
+     */
+    function shutdownStrategy() external onlyEmergencyAuthorized {
+        isShutdown = true;
+        emit StrategyShutdown();
+    }
+    
+    /**
+     * @notice Emergency withdraw (only post-shutdown)
+     */
+    function emergencyWithdraw(
+        uint256 wlfiAmount,
+        uint256 usd1Amount,
+        address to
+    ) external onlyEmergencyAuthorized {
+        if (!isShutdown) revert VaultNotShutdown();
+        if (to == address(0)) revert ZeroAddress();
+        
+        if (wlfiAmount > 0) {
+            WLFI_TOKEN.safeTransfer(to, wlfiAmount);
+        }
+        if (usd1Amount > 0) {
+            USD1_TOKEN.safeTransfer(to, usd1Amount);
+        }
+        
+        wlfiBalance = WLFI_TOKEN.balanceOf(address(this));
+        usd1Balance = USD1_TOKEN.balanceOf(address(this));
+        
+        emit EmergencyWithdraw(to, wlfiAmount, usd1Amount);
+    }
+
+    // =================================
     // MANAGEMENT FUNCTIONS
     // =================================
+    
+    function setKeeper(address _keeper) external onlyManagement {
+        if (_keeper == address(0)) revert ZeroAddress();
+        keeper = _keeper;
+        emit UpdateKeeper(_keeper);
+    }
+    
+    function setEmergencyAdmin(address _emergencyAdmin) external onlyManagement {
+        if (_emergencyAdmin == address(0)) revert ZeroAddress();
+        emergencyAdmin = _emergencyAdmin;
+        emit UpdateEmergencyAdmin(_emergencyAdmin);
+    }
+    
+    function setPerformanceFee(uint16 _performanceFee) external onlyManagement {
+        if (_performanceFee > MAX_FEE) revert InvalidAmount();
+        performanceFee = _performanceFee;
+        emit UpdatePerformanceFee(_performanceFee);
+    }
+    
+    function setPerformanceFeeRecipient(address _performanceFeeRecipient) external onlyManagement {
+        if (_performanceFeeRecipient == address(0)) revert ZeroAddress();
+        performanceFeeRecipient = _performanceFeeRecipient;
+        emit UpdatePerformanceFeeRecipient(_performanceFeeRecipient);
+    }
+    
+    function setProfitMaxUnlockTime(uint256 _profitMaxUnlockTime) external onlyManagement {
+        if (_profitMaxUnlockTime > SECONDS_PER_YEAR) revert InvalidAmount();
+        profitMaxUnlockTime = uint32(_profitMaxUnlockTime);
+        emit UpdateProfitMaxUnlockTime(_profitMaxUnlockTime);
+    }
+    
+    function setPendingManagement(address _management) external onlyManagement {
+        if (_management == address(0)) revert ZeroAddress();
+        pendingManagement = _management;
+        emit UpdatePendingManagement(_management);
+    }
+    
+    function acceptManagement() external {
+        if (msg.sender != pendingManagement) revert Unauthorized();
+        
+        management = pendingManagement;
+        pendingManagement = address(0);
+        
+        emit UpdateManagement(management);
+    }
     
     function setPaused(bool _paused) external onlyOwner {
         paused = _paused;
         emit EmergencyPause(_paused);
     }
-    
-    function setManager(address _newManager) external onlyOwner {
-        if (_newManager == address(0)) revert ZeroAddress();
-        pendingManager = _newManager;
-    }
-    
-    function acceptManager() external {
-        if (msg.sender != pendingManager) revert Unauthorized();
-        
-        address oldManager = manager;
-        manager = pendingManager;
-        pendingManager = address(0);
-        authorized[manager] = true;
-        
-        emit ManagerSet(oldManager, manager);
-    }
 
-    /**
-     * @notice Inject capital without minting shares (increases share value)
-     * @dev Used for fee reinvestment or performance rewards
-     * @param wlfiAmount Amount of WLFI to inject
-     * @param usd1Amount Amount of USD1 to inject
-     */
-    function injectCapital(uint256 wlfiAmount, uint256 usd1Amount) external onlyAuthorized {
+    // =================================
+    // UTILITY FUNCTIONS
+    // =================================
+    
+    function injectCapital(uint256 wlfiAmount, uint256 usd1Amount) external {
         if (wlfiAmount == 0 && usd1Amount == 0) revert InvalidAmount();
         
-        // Transfer tokens from sender
         if (wlfiAmount > 0) {
             WLFI_TOKEN.safeTransferFrom(msg.sender, address(this), wlfiAmount);
             wlfiBalance += wlfiAmount;
@@ -701,10 +921,9 @@ contract EagleOVault is ERC4626, Ownable, ReentrancyGuard {
             usd1Balance += usd1Amount;
         }
         
-        // NO shares minted - this increases value per share!
         emit CapitalInjected(msg.sender, wlfiAmount, usd1Amount);
     }
-
+    
     function setDeploymentParams(uint256 _threshold, uint256 _interval) external onlyOwner {
         deploymentThreshold = _threshold;
         minDeploymentInterval = _interval;
@@ -715,38 +934,17 @@ contract EagleOVault is ERC4626, Ownable, ReentrancyGuard {
         twapInterval = _interval;
     }
     
-    /**
-     * @notice Manually approve tokens to strategy (workaround for SafeERC20 issues)
-     * @dev Call this ONCE before deploying to strategies
-     */
-    function approveTokensToStrategy(address strategy, uint256 wlfiAmount, uint256 usd1Amount) external onlyOwner {
-        if (wlfiAmount > 0) {
-            WLFI_TOKEN.approve(strategy, wlfiAmount);
-        }
-        if (usd1Amount > 0) {
-            USD1_TOKEN.approve(strategy, usd1Amount);
-        }
-    }
-    
     function setMaxPriceAge(uint256 _maxPriceAge) external onlyOwner {
-        require(_maxPriceAge >= 3600 && _maxPriceAge <= 172800, "Invalid age"); // 1 hour to 48 hours
+        require(_maxPriceAge >= 3600 && _maxPriceAge <= 172800, "Invalid age");
         maxPriceAge = _maxPriceAge;
     }
     
-    /**
-     * @notice Update maximum total supply
-     * @param _maxTotalSupply New maximum supply (in shares)
-     */
     function setMaxTotalSupply(uint256 _maxTotalSupply) external onlyOwner {
         require(_maxTotalSupply >= totalSupply(), "Below current supply");
-        require(_maxTotalSupply <= 1_000_000_000e18, "Too high"); // Max 1 billion
+        require(_maxTotalSupply <= 1_000_000_000e18, "Too high");
         maxTotalSupply = _maxTotalSupply;
     }
     
-    /**
-     * @notice Emergency ETH rescue function
-     * @dev Allows owner to rescue any ETH accidentally sent to the contract
-     */
     function rescueETH() external onlyOwner {
         uint256 balance = address(this).balance;
         if (balance > 0) {
@@ -754,9 +952,6 @@ contract EagleOVault is ERC4626, Ownable, ReentrancyGuard {
         }
     }
     
-    /**
-     * @notice Emergency token rescue (for tokens other than WLFI/USD1)
-     */
     function rescueToken(address token, uint256 amount, address to) external onlyOwner {
         if (token == address(WLFI_TOKEN) || token == address(USD1_TOKEN)) {
             revert("Use withdrawDual for vault tokens");
@@ -764,35 +959,6 @@ contract EagleOVault is ERC4626, Ownable, ReentrancyGuard {
         if (to == address(0)) revert ZeroAddress();
         IERC20(token).safeTransfer(to, amount);
     }
-    
-    /**
-     * @notice Emergency withdraw - Owner can pull WLFI/USD1 if vault is stuck
-     * @dev Use with extreme caution - bypasses normal accounting
-     * @dev Should only be used if syncBalances() doesn't fix the issue
-     */
-    function emergencyWithdrawTokens(
-        uint256 wlfiAmount,
-        uint256 usd1Amount,
-        address to
-    ) external onlyOwner {
-        if (to == address(0)) revert ZeroAddress();
-        
-        // Transfer actual tokens (not using cached balances)
-        if (wlfiAmount > 0) {
-            WLFI_TOKEN.safeTransfer(to, wlfiAmount);
-        }
-        if (usd1Amount > 0) {
-            USD1_TOKEN.safeTransfer(to, usd1Amount);
-        }
-        
-        // Sync balances after emergency withdraw
-        wlfiBalance = WLFI_TOKEN.balanceOf(address(this));
-        usd1Balance = USD1_TOKEN.balanceOf(address(this));
-        
-        emit EmergencyWithdraw(to, wlfiAmount, usd1Amount);
-    }
-    
-    event EmergencyWithdraw(address indexed to, uint256 wlfiAmount, uint256 usd1Amount);
 
     // =================================
     // VIEW FUNCTIONS
@@ -860,5 +1026,37 @@ contract EagleOVault is ERC4626, Ownable, ReentrancyGuard {
         shares = totalSupply() == 0 ? 
                  usdValue * 80000 : 
                  (usdValue * totalSupply()) / totalAssets();
+    }
+    
+    /**
+     * @notice Get max amount that can be withdrawn with given loss tolerance
+     */
+    function maxWithdraw(address owner, uint256 maxLoss) external view returns (uint256) {
+        uint256 userShares = balanceOf(owner);
+        if (userShares == 0) return 0;
+        
+        uint256 expectedValue = (totalAssets() * userShares) / totalSupply();
+        uint256 availableValue = calculateUSDValue(wlfiBalance, usd1Balance);
+        
+        uint256 length = strategyList.length;
+        for (uint256 i = 0; i < length; i++) {
+            if (activeStrategies[strategyList[i]]) {
+                (uint256 wlfi, uint256 usd1) = IStrategy(strategyList[i]).getTotalAmounts();
+                availableValue += calculateUSDValue(wlfi, usd1);
+            }
+        }
+        
+        if (availableValue >= expectedValue) {
+            return userShares;
+        }
+        
+        uint256 maxAcceptableLoss = (expectedValue * maxLoss) / MAX_BPS;
+        uint256 minAcceptableValue = expectedValue - maxAcceptableLoss;
+        
+        if (availableValue < minAcceptableValue) {
+            return (availableValue * userShares) / expectedValue;
+        }
+        
+        return userShares;
     }
 }
