@@ -41,10 +41,9 @@ export default function EagleHome({ onNavigateUp, onNavigateDown, provider }: Pr
   }, [provider]);
 
   return (
-    <div className="h-full bg-[#0a0a0a] overflow-y-auto overflow-x-hidden">
-      <div className="h-full flex flex-col">
-        {/* Hero Section */}
-        <div className="flex-1 px-6 py-8 max-w-7xl mx-auto w-full flex flex-col justify-center">
+    <div className="h-full flex flex-col overflow-hidden">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden">
+        <div className="px-6 py-8 max-w-7xl mx-auto w-full">
           {/* Header */}
           <motion.div
             className="text-center mb-8"
@@ -341,6 +340,6 @@ export default function EagleHome({ onNavigateUp, onNavigateDown, provider }: Pr
           </motion.div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
