@@ -45,6 +45,14 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
     usd1Price: '1.000',
   });
 
+  // Scroll parent container to top on mount
+  useEffect(() => {
+    const vaultFloor = document.getElementById('vault-floor');
+    if (vaultFloor) {
+      vaultFloor.scrollTop = 0;
+    }
+  }, []);
+
   useEffect(() => {
     const fetchData = async () => {
       if (!provider) return;
