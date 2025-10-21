@@ -41,8 +41,8 @@ export default function EagleHomeContent({ onNavigateUp, onNavigateDown, provide
   }, [provider]);
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="flex-1 overflow-y-auto px-6 py-2 max-w-7xl mx-auto w-full">
+    <div className="h-full flex flex-col overflow-hidden">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-2 max-w-7xl mx-auto w-full">
         {/* Header - COMPACT */}
           <motion.div
             className="text-center mb-4"
