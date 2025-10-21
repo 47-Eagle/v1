@@ -411,9 +411,15 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
 
       console.log('✅ Vault has enough tokens (within tolerance), proceeding!');
 
-      // Proceed with withdrawal
+      // SAFETY: Reduce by 1% to account for any contract-level fees or rounding
+      const safeShares = (BigInt(shares.toString()) * BigInt(99)) / BigInt(100);
+      console.log('Original shares:', shares.toString());
+      console.log('Safe shares (99%):', safeShares.toString());
+      console.log('Reduction:', (withdrawNum * 0.01).toFixed(4), 'vEAGLE');
+
+      // Proceed with withdrawal (using 99% to be safe)
       onToast({ message: 'Withdrawing from vault...', type: 'info' });
-      const tx = await vault.withdrawDual(shares, account);
+      const tx = await vault.withdrawDual(safeShares, account);
       onToast({ message: 'Transaction submitted...', type: 'info', txHash: tx.hash });
 
       await tx.wait();
