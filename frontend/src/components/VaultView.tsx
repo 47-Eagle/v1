@@ -249,11 +249,156 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
           </div>
         </motion.div>
 
-        {/* Main Grid - Deposit/Withdraw Left, Info Right */}
+        {/* Main Grid - Info Left (larger), Deposit/Withdraw Right (smaller) */}
         <div className="grid lg:grid-cols-3 gap-8">
-          {/* Left - Deposit/Withdraw Card */}
+          {/* Left - Info Sidebar (2/3 width) */}
           <motion.div 
             className="lg:col-span-2 bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+          >
+          {/* Content - No tabs, just stacked info */}
+          <div className="p-6 space-y-6">
+            {/* Description */}
+            <div>
+              <h3 className="text-sm font-semibold text-white mb-3">About</h3>
+              <p className="text-xs text-gray-400 leading-relaxed">
+                Deposit WLFI and USD1 to earn yield through automated strategies on Uniswap V3 via{' '}
+                <a href="https://worldlibertyfinancial.com/" target="_blank" rel="noopener noreferrer" className="text-yellow-500 hover:underline">
+                  World Liberty Financial
+                </a>.
+              </p>
+            </div>
+
+            {/* Strategy */}
+            <div>
+              <h3 className="text-sm font-semibold text-white mb-3">Strategy</h3>
+              <div className="space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Protocol</span>
+                  <span className="text-white">Charm Finance</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Type</span>
+                  <span className="text-white">Auto LP</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Pool</span>
+                  <span className="text-white">WLFI/USD1</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Fee Tier</span>
+                  <span className="text-white">1%</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Fees */}
+            <div>
+              <h3 className="text-sm font-semibold text-white mb-3">Fees</h3>
+              <div className="space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Deposit</span>
+                  <span className="text-white">0%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Withdrawal</span>
+                  <span className="text-white">0%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Performance</span>
+                  <span className="text-white">10%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Management</span>
+                  <span className="text-white">2% yearly</span>
+                </div>
+              </div>
+            </div>
+
+            {/* APY Breakdown */}
+            <div>
+              <h3 className="text-sm font-semibold text-white mb-3">APY Breakdown</h3>
+              <div className="space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Weekly</span>
+                  <span className="text-white">32.39%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Monthly</span>
+                  <span className="text-white">22.25%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Inception</span>
+                  <span className="text-white">117.92%</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Contracts */}
+            <div>
+              <h3 className="text-sm font-semibold text-white mb-3">Contracts</h3>
+              <div className="space-y-2 text-xs">
+                <div>
+                  <div className="text-gray-500 mb-1">Vault</div>
+                  <a 
+                    href={`https://etherscan.io/address/${CONTRACTS.VAULT}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-yellow-500 hover:underline break-all"
+                  >
+                    {CONTRACTS.VAULT.slice(0, 10)}...{CONTRACTS.VAULT.slice(-8)}
+                  </a>
+                </div>
+                <div>
+                  <div className="text-gray-500 mb-1">Strategy</div>
+                  <a 
+                    href={`https://etherscan.io/address/${CONTRACTS.STRATEGY}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-yellow-500 hover:underline break-all"
+                  >
+                    {CONTRACTS.STRATEGY.slice(0, 10)}...{CONTRACTS.STRATEGY.slice(-8)}
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            {/* Resources */}
+            <div>
+              <h3 className="text-sm font-semibold text-white mb-3">Resources</h3>
+              <div className="space-y-2">
+                <a 
+                  href="https://docs.47eagle.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-xs text-gray-400 hover:text-yellow-500 transition-colors"
+                >
+                  <span>Documentation</span>
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </a>
+                <a 
+                  href="https://t.me/Eagle_community_47" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-xs text-gray-400 hover:text-yellow-500 transition-colors"
+                >
+                  <span>Community</span>
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </a>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+          {/* Right - Deposit/Withdraw Card (1/3 width) */}
+          <motion.div 
+            className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
@@ -408,151 +553,6 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
             >
               {isLoading ? 'Processing...' : depositTab === 'deposit' ? 'Deposit' : 'Withdraw'}
             </button>
-          </div>
-        </motion.div>
-
-          {/* Right - Info Tabs */}
-          <motion.div 
-            className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-          >
-          {/* Content - No tabs, just stacked info */}
-          <div className="p-6 space-y-6">
-            {/* Description */}
-            <div>
-              <h3 className="text-sm font-semibold text-white mb-3">About</h3>
-              <p className="text-xs text-gray-400 leading-relaxed">
-                Deposit WLFI and USD1 to earn yield through automated strategies on Uniswap V3 via{' '}
-                <a href="https://worldlibertyfinancial.com/" target="_blank" rel="noopener noreferrer" className="text-yellow-500 hover:underline">
-                  World Liberty Financial
-                </a>.
-              </p>
-            </div>
-
-            {/* Strategy */}
-            <div>
-              <h3 className="text-sm font-semibold text-white mb-3">Strategy</h3>
-              <div className="space-y-2 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Protocol</span>
-                  <span className="text-white">Charm Finance</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Type</span>
-                  <span className="text-white">Auto LP</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Pool</span>
-                  <span className="text-white">WLFI/USD1</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Fee Tier</span>
-                  <span className="text-white">1%</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Fees */}
-            <div>
-              <h3 className="text-sm font-semibold text-white mb-3">Fees</h3>
-              <div className="space-y-2 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Deposit</span>
-                  <span className="text-white">0%</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Withdrawal</span>
-                  <span className="text-white">0%</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Performance</span>
-                  <span className="text-white">10%</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Management</span>
-                  <span className="text-white">2% yearly</span>
-                </div>
-              </div>
-            </div>
-
-            {/* APY Breakdown */}
-            <div>
-              <h3 className="text-sm font-semibold text-white mb-3">APY Breakdown</h3>
-              <div className="space-y-2 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Weekly</span>
-                  <span className="text-white">32.39%</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Monthly</span>
-                  <span className="text-white">22.25%</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Inception</span>
-                  <span className="text-white">117.92%</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Contracts */}
-            <div>
-              <h3 className="text-sm font-semibold text-white mb-3">Contracts</h3>
-              <div className="space-y-2 text-xs">
-                <div>
-                  <div className="text-gray-500 mb-1">Vault</div>
-                  <a 
-                    href={`https://etherscan.io/address/${CONTRACTS.VAULT}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-yellow-500 hover:underline break-all"
-                  >
-                    {CONTRACTS.VAULT.slice(0, 10)}...{CONTRACTS.VAULT.slice(-8)}
-                  </a>
-                </div>
-                <div>
-                  <div className="text-gray-500 mb-1">Strategy</div>
-                  <a 
-                    href={`https://etherscan.io/address/${CONTRACTS.STRATEGY}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-yellow-500 hover:underline break-all"
-                  >
-                    {CONTRACTS.STRATEGY.slice(0, 10)}...{CONTRACTS.STRATEGY.slice(-8)}
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            {/* Resources */}
-            <div>
-              <h3 className="text-sm font-semibold text-white mb-3">Resources</h3>
-              <div className="space-y-2">
-                <a 
-                  href="https://docs.47eagle.com" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-xs text-gray-400 hover:text-yellow-500 transition-colors"
-                >
-                  <span>Documentation</span>
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
-                </a>
-                <a 
-                  href="https://t.me/Eagle_community_47" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-xs text-gray-400 hover:text-yellow-500 transition-colors"
-                >
-                  <span>Community</span>
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
-                </a>
-              </div>
-            </div>
           </div>
         </motion.div>
         </div>
