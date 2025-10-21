@@ -27,5 +27,15 @@ contract WLFIAssetOFT is OFT {
         // NOTE: Uncomment for testing only - NOT for production
         // _mint(msg.sender, 1000000 ether); // 1M tokens for testing
     }
+    
+    /**
+     * @notice Mint tokens (owner only, for testnet)
+     * @dev Only for testnet deployment - remove in production
+     * @param to Address to mint tokens to
+     * @param amount Amount of tokens to mint
+     */
+    function mint(address to, uint256 amount) external onlyOwner {
+        _mint(to, amount);
+    }
 }
 

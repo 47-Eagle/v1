@@ -164,8 +164,8 @@ contract DeploySepoliaComplete is Script {
         
         console.log("Step 4: Configuring vault roles...");
         
-        vault.setManager(manager);
-        console.log("  Manager set to:", manager);
+        // Owner is management by default
+        console.log("  Management (owner):", owner);
         
         vault.setKeeper(keeper);
         console.log("  Keeper set to:", keeper);
