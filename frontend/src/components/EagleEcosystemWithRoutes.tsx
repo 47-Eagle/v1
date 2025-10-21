@@ -104,20 +104,21 @@ export default function EagleEcosystemWithRoutes({ provider, account, onToast }:
         </div>
 
         {/* Basement - Vault */}
-        <div className="h-[calc(100vh-64px-80px)] overflow-hidden relative" id="vault-floor">
-          <motion.div
-            animate={{
-              opacity: isTransitioning && currentFloor !== 'vault' ? 0.5 : 1,
-            }}
-            className="h-full overflow-y-auto"
-          >
-            <VaultView 
-              provider={provider}
-              account={account}
-              onToast={onToast}
-              onNavigateUp={() => navigateToFloor('home')}
-            />
-          </motion.div>
+        <div className="h-[calc(100vh-64px-80px)] relative" id="vault-floor">
+          <div className="h-full overflow-y-auto overflow-x-hidden">
+            <motion.div
+              animate={{
+                opacity: isTransitioning && currentFloor !== 'vault' ? 0.5 : 1,
+              }}
+            >
+              <VaultView 
+                provider={provider}
+                account={account}
+                onToast={onToast}
+                onNavigateUp={() => navigateToFloor('home')}
+              />
+            </motion.div>
+          </div>
         </div>
       </motion.div>
 

@@ -42,7 +42,7 @@ const UserPosition: FC = () => {
       <h3 className="text-lg font-semibold text-white mb-6">Your Position</h3>
       <div className="grid grid-cols-2 gap-6">
         <div>
-          <p className="text-xs text-dark-400 uppercase tracking-wider mb-2">Your vvvEAGLE</p>
+          <p className="text-xs text-dark-400 uppercase tracking-wider mb-2">Your vEAGLE</p>
           <p className="text-2xl font-bold golden-text mb-1">
             {parseFloat(formatEther(shares)).toLocaleString()}
           </p>
