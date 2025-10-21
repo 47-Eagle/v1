@@ -184,15 +184,27 @@ export default function VaultView({ provider, account, onToast }: Props) {
     <>
       <div className="max-w-6xl mx-auto px-6 py-6">
         {/* Back Button */}
-        <Link 
-          to="/"
-          className="flex items-center gap-2 text-gray-500 hover:text-gray-300 mb-6 transition-colors text-sm inline-flex"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
-          Back to vaults
-        </Link>
+        {onNavigateUp ? (
+          <button 
+            onClick={onNavigateUp}
+            className="flex items-center gap-2 text-gray-500 hover:text-gray-300 mb-6 transition-colors text-sm inline-flex"
+          >
+            <svg className="w-4 h-4 -rotate-90 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+            </svg>
+            Back to Home
+          </button>
+        ) : (
+          <Link 
+            to="/"
+            className="flex items-center gap-2 text-gray-500 hover:text-gray-300 mb-6 transition-colors text-sm inline-flex"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Back to vaults
+          </Link>
+        )}
 
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
