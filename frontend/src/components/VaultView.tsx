@@ -175,13 +175,13 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
 
   return (
     <div className="h-full bg-[#0a0a0a] overflow-y-auto">
-      <div className="container mx-auto px-8 py-8 pb-16 max-w-5xl">
+      <div className="container mx-auto px-8 py-6 pb-20 max-w-6xl">
         {/* Back Button */}
         <motion.button 
           onClick={onNavigateUp}
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-2 text-gray-500 hover:text-gray-300 mb-8 transition-colors"
+          className="flex items-center gap-2 text-gray-500 hover:text-gray-300 mb-6 transition-colors"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
@@ -191,16 +191,16 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
 
         {/* Header */}
         <motion.div 
-          className="text-center mb-8"
+          className="text-center mb-6"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
           <img 
             src="https://tomato-abundant-urial-204.mypinata.cloud/ipfs/bafybeigzyatm2pgrkqbnskyvflnagtqli6rgh7wv7t2znaywkm2pixmkxy" 
             alt="vEAGLE"
-            className="w-16 h-16 mx-auto mb-4"
+            className="w-14 h-14 mx-auto mb-3"
           />
-          <h1 className="text-4xl font-bold text-white mb-2">Eagle vEAGLE Vault</h1>
+          <h1 className="text-3xl font-bold text-white mb-2">Eagle vEAGLE Vault</h1>
           <p className="text-gray-500 text-sm">
             {CONTRACTS.VAULT.slice(0, 6)}...{CONTRACTS.VAULT.slice(-4)} • Ethereum
           </p>
@@ -208,7 +208,7 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
 
         {/* Network Badges */}
         <motion.div 
-          className="flex justify-center gap-3 mb-8"
+          className="flex justify-center gap-3 mb-6"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
@@ -223,36 +223,41 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
 
         {/* Stats Row */}
         <motion.div 
-          className="grid grid-cols-3 gap-6 mb-8"
+          className="grid grid-cols-4 gap-4 mb-8"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-6 text-center">
-            <div className="text-sm text-gray-500 mb-2">Total deposited in vEAGLE</div>
-            <div className="text-3xl font-bold text-white">${tvl.toFixed(2)}</div>
-            <div className="text-xs text-gray-600 mt-1">${tvl.toFixed(2)}</div>
+          <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-4 text-center">
+            <div className="text-xs text-gray-500 mb-1">Total Deposited</div>
+            <div className="text-2xl font-bold text-white">${tvl.toFixed(2)}</div>
           </div>
           
-          <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-6 text-center">
-            <div className="text-sm text-gray-500 mb-2">Historical APY</div>
-            <div className="text-3xl font-bold text-white">22.25%</div>
+          <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-4 text-center">
+            <div className="text-xs text-gray-500 mb-1">Historical APY</div>
+            <div className="text-2xl font-bold text-white">22.25%</div>
           </div>
           
-          <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-6 text-center">
-            <div className="text-sm text-gray-500 mb-2">Value in vEAGLE</div>
-            <div className="text-3xl font-bold text-white">{userVaultValue.toFixed(2)}</div>
-            <div className="text-xs text-gray-600 mt-1">${(userVaultValue * sharePrice).toFixed(2)}</div>
+          <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-4 text-center">
+            <div className="text-xs text-gray-500 mb-1">Your Position</div>
+            <div className="text-2xl font-bold text-white">{userVaultValue.toFixed(2)}</div>
+          </div>
+
+          <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-4 text-center">
+            <div className="text-xs text-gray-500 mb-1">Max Supply</div>
+            <div className="text-2xl font-bold text-white">50M</div>
           </div>
         </motion.div>
 
-        {/* Deposit/Withdraw Card */}
-        <motion.div 
-          className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg mb-8"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
+        {/* Main Grid - Deposit/Withdraw Left, Info Right */}
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Left - Deposit/Withdraw Card */}
+          <motion.div 
+            className="lg:col-span-2 bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
           {/* Tabs */}
           <div className="border-b border-[#2a2a2a]">
             <div className="flex">
@@ -406,220 +411,151 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
           </div>
         </motion.div>
 
-        {/* Info Tabs */}
-        <motion.div 
-          className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-        >
-          {/* Tab Headers */}
-          <div className="border-b border-[#2a2a2a]">
-            <div className="flex gap-6 px-6">
-              <button
-                onClick={() => setInfoTab('about')}
-                className={`py-4 text-sm font-medium transition-colors ${
-                  infoTab === 'about'
-                    ? 'text-white border-b-2 border-yellow-500'
-                    : 'text-gray-500 hover:text-gray-300'
-                }`}
-              >
-                About
-              </button>
-              <button
-                onClick={() => setInfoTab('strategies')}
-                className={`py-4 text-sm font-medium transition-colors ${
-                  infoTab === 'strategies'
-                    ? 'text-white border-b-2 border-yellow-500'
-                    : 'text-gray-500 hover:text-gray-300'
-                }`}
-              >
-                Strategies
-              </button>
-              <button
-                onClick={() => setInfoTab('info')}
-                className={`py-4 text-sm font-medium transition-colors ${
-                  infoTab === 'info'
-                    ? 'text-white border-b-2 border-yellow-500'
-                    : 'text-gray-500 hover:text-gray-300'
-                }`}
-              >
-                Info
-              </button>
+          {/* Right - Info Tabs */}
+          <motion.div 
+            className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+          >
+          {/* Content - No tabs, just stacked info */}
+          <div className="p-6 space-y-6">
+            {/* Description */}
+            <div>
+              <h3 className="text-sm font-semibold text-white mb-3">About</h3>
+              <p className="text-xs text-gray-400 leading-relaxed">
+                Deposit WLFI and USD1 to earn yield through automated strategies on Uniswap V3 via{' '}
+                <a href="https://worldlibertyfinancial.com/" target="_blank" rel="noopener noreferrer" className="text-yellow-500 hover:underline">
+                  World Liberty Financial
+                </a>.
+              </p>
+            </div>
+
+            {/* Strategy */}
+            <div>
+              <h3 className="text-sm font-semibold text-white mb-3">Strategy</h3>
+              <div className="space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Protocol</span>
+                  <span className="text-white">Charm Finance</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Type</span>
+                  <span className="text-white">Auto LP</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Pool</span>
+                  <span className="text-white">WLFI/USD1</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Fee Tier</span>
+                  <span className="text-white">1%</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Fees */}
+            <div>
+              <h3 className="text-sm font-semibold text-white mb-3">Fees</h3>
+              <div className="space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Deposit</span>
+                  <span className="text-white">0%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Withdrawal</span>
+                  <span className="text-white">0%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Performance</span>
+                  <span className="text-white">10%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Management</span>
+                  <span className="text-white">2% yearly</span>
+                </div>
+              </div>
+            </div>
+
+            {/* APY Breakdown */}
+            <div>
+              <h3 className="text-sm font-semibold text-white mb-3">APY Breakdown</h3>
+              <div className="space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Weekly</span>
+                  <span className="text-white">32.39%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Monthly</span>
+                  <span className="text-white">22.25%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Inception</span>
+                  <span className="text-white">117.92%</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Contracts */}
+            <div>
+              <h3 className="text-sm font-semibold text-white mb-3">Contracts</h3>
+              <div className="space-y-2 text-xs">
+                <div>
+                  <div className="text-gray-500 mb-1">Vault</div>
+                  <a 
+                    href={`https://etherscan.io/address/${CONTRACTS.VAULT}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-yellow-500 hover:underline break-all"
+                  >
+                    {CONTRACTS.VAULT.slice(0, 10)}...{CONTRACTS.VAULT.slice(-8)}
+                  </a>
+                </div>
+                <div>
+                  <div className="text-gray-500 mb-1">Strategy</div>
+                  <a 
+                    href={`https://etherscan.io/address/${CONTRACTS.STRATEGY}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-yellow-500 hover:underline break-all"
+                  >
+                    {CONTRACTS.STRATEGY.slice(0, 10)}...{CONTRACTS.STRATEGY.slice(-8)}
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            {/* Resources */}
+            <div>
+              <h3 className="text-sm font-semibold text-white mb-3">Resources</h3>
+              <div className="space-y-2">
+                <a 
+                  href="https://docs.47eagle.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-xs text-gray-400 hover:text-yellow-500 transition-colors"
+                >
+                  <span>Documentation</span>
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </a>
+                <a 
+                  href="https://t.me/Eagle_community_47" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-xs text-gray-400 hover:text-yellow-500 transition-colors"
+                >
+                  <span>Community</span>
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </a>
+              </div>
             </div>
           </div>
-
-          {/* Tab Content */}
-          <div className="p-6">
-            {infoTab === 'about' && (
-              <div className="grid grid-cols-2 gap-8">
-                <div>
-                  <h3 className="text-white font-semibold mb-3">Description</h3>
-                  <p className="text-sm text-gray-400 leading-relaxed mb-6">
-                    Deposit your WLFI and USD1 into Eagle's auto-compounding vault and start earning the maximum APY immediately. 
-                    The vault will handle everything else and earn you the best possible yield from{' '}
-                    <a href="https://worldlibertyfinancial.com/" target="_blank" rel="noopener noreferrer" className="text-yellow-500 hover:underline">
-                      World Liberty Financial
-                    </a>{' '}
-                    strategies.
-                  </p>
-
-                  <h3 className="text-white font-semibold mb-3">APY</h3>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Weekly APY</span>
-                      <span className="text-white">32.39%</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Monthly APY</span>
-                      <span className="text-white">22.25%</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Inception APY</span>
-                      <span className="text-white">117.92%</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="text-white font-semibold mb-3">Eagle Fees</h3>
-                  <div className="space-y-2 text-sm mb-6">
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Deposit/Withdrawal fee</span>
-                      <span className="text-white">0%</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Management fee</span>
-                      <span className="text-white">0%</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Performance fee</span>
-                      <span className="text-white">10%</span>
-                    </div>
-                  </div>
-
-                  <h3 className="text-white font-semibold mb-3">Cumulative Earnings</h3>
-                  <div className="bg-[#0a0a0a] border border-[#2a2a2a] rounded p-4 h-40 flex items-end">
-                    {/* Simple earnings visualization */}
-                    <div className="w-full h-full relative">
-                      <svg className="w-full h-full" viewBox="0 0 100 40" preserveAspectRatio="none">
-                        <polyline
-                          points="0,40 20,35 40,30 60,25 80,15 100,10"
-                          fill="none"
-                          stroke="#eab308"
-                          strokeWidth="0.5"
-                        />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {infoTab === 'strategies' && (
-              <div>
-                <h3 className="text-white font-semibold mb-4">Active Strategies</h3>
-                <div className="bg-[#0a0a0a] border border-[#2a2a2a] rounded p-4">
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-400">Protocol</span>
-                      <span className="text-sm text-white">Charm Finance</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-400">Type</span>
-                      <span className="text-sm text-white">Automated Uniswap V3 LP</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-400">Pool</span>
-                      <span className="text-sm text-white">WLFI/USD1</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-400">Fee Tier</span>
-                      <span className="text-sm text-white">1%</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-400">Allocation</span>
-                      <span className="text-sm text-white">100%</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-6">
-                  <h4 className="text-white text-sm font-semibold mb-3">Strategy Details</h4>
-                  <p className="text-sm text-gray-400 leading-relaxed">
-                    This strategy provides liquidity to the WLFI/USD1 pool on Uniswap V3 through Charm Finance's 
-                    automated vault system. The strategy automatically rebalances positions to maximize fee earnings 
-                    while managing impermanent loss risk.
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {infoTab === 'info' && (
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-white font-semibold mb-4">Vault Info</h3>
-                  <div className="space-y-3 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Version</span>
-                      <span className="text-white">0.4.6</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Vault Contract</span>
-                      <a 
-                        href={`https://etherscan.io/address/${CONTRACTS.VAULT}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-yellow-500 hover:underline text-xs"
-                      >
-                        {CONTRACTS.VAULT.slice(0, 10)}...{CONTRACTS.VAULT.slice(-8)}
-                      </a>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Strategy Contract</span>
-                      <a 
-                        href={`https://etherscan.io/address/${CONTRACTS.STRATEGY}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-yellow-500 hover:underline text-xs"
-                      >
-                        {CONTRACTS.STRATEGY.slice(0, 10)}...{CONTRACTS.STRATEGY.slice(-8)}
-                      </a>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="text-white font-semibold mb-4">Resources</h3>
-                  <div className="space-y-2">
-                    <a 
-                      href="https://docs.47eagle.com" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-sm text-gray-400 hover:text-yellow-500 transition-colors"
-                    >
-                      <span>Documentation</span>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                      </svg>
-                    </a>
-                    <a 
-                      href="https://t.me/Eagle_community_47" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-sm text-gray-400 hover:text-yellow-500 transition-colors"
-                    >
-                      <span>Telegram Community</span>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                      </svg>
-                    </a>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
         </motion.div>
+        </div>
       </div>
     </div>
   );

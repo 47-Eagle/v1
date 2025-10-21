@@ -102,12 +102,14 @@ export default function EagleEcosystem({ provider, account, onToast, VaultCompon
         </div>
       </motion.div>
 
-      {/* Floor Indicator (Elevator) */}
-      <FloorIndicator 
-        current={currentFloor}
-        onChange={navigateToFloor}
-        isTransitioning={isTransitioning}
-      />
+      {/* Floor Indicator (Elevator) - Hide on vault floor */}
+      {currentFloor !== 'vault' && (
+        <FloorIndicator 
+          current={currentFloor}
+          onChange={navigateToFloor}
+          isTransitioning={isTransitioning}
+        />
+      )}
     </div>
   );
 }
