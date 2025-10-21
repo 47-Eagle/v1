@@ -24,6 +24,7 @@ export default function AssetAllocationSunburst({
   
   const svgRef = useRef<SVGSVGElement>(null);
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
+  const [zoomedNode, setZoomedNode] = useState<any>(null);
   
   const totalVault = vaultWLFI + vaultUSD1;
   const totalStrategy = strategyWLFI + strategyUSD1;
