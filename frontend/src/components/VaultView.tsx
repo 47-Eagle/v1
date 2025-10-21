@@ -651,47 +651,88 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
                 )}
 
                 {infoTab === 'strategies' && (
-                  <div>
-                    <h3 className="text-white font-semibold mb-4">Active Strategies</h3>
-                    <div className="bg-black/40 border border-white/10 rounded-lg p-6">
-                      <div className="space-y-3 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Protocol</span>
-                          <span className="text-white">Charm Finance</span>
+                  <div className="space-y-6">
+                    {/* 3D Interactive Visualization */}
+                    <div>
+                      <h3 className="text-white font-semibold text-lg mb-3">Interactive 3D Liquidity Visualization</h3>
+                      <ErrorBoundary fallback={
+                        <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-6">
+                          <p className="text-sm text-orange-400">3D visualization unavailable. Your browser may not support WebGL.</p>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Type</span>
-                          <span className="text-white">Automated Uniswap V3 LP</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Pool</span>
-                          <span className="text-white">WLFI/USD1</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Fee Tier</span>
-                          <span className="text-white">1%</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Allocation</span>
-                          <span className="text-white">100%</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Status</span>
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                            <span className="text-emerald-400">Active</span>
+                      }>
+                        <Suspense fallback={
+                          <div className="bg-black/20 border border-white/5 rounded-xl p-8 flex items-center justify-center h-96">
+                            <div className="text-center">
+                              <svg className="animate-spin w-12 h-12 mx-auto mb-4 text-yellow-500" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              <p className="text-sm text-gray-400">Loading 3D visualization...</p>
+                            </div>
                           </div>
-                        </div>
-                      </div>
+                        }>
+                          <VaultVisualization currentPrice={Number(data.wlfiPrice)} />
+                        </Suspense>
+                      </ErrorBoundary>
                     </div>
 
-                    <div className="mt-6">
-                      <h4 className="text-white text-sm font-semibold mb-3">Strategy Description</h4>
-                      <p className="text-sm text-gray-400 leading-relaxed">
-                        This strategy provides concentrated liquidity to the WLFI/USD1 pool on Uniswap V3 through 
-                        Charm Finance's AlphaVault. Automated rebalancing maximizes fee earnings while managing impermanent loss.
-                      </p>
-                    </div>
+                    {/* Active Strategy Details */}
+                    {getActiveStrategies().map((strategy) => (
+                      <div key={strategy.id}>
+                        <h3 className="text-white font-semibold mb-4">{strategy.name}</h3>
+                        <div className="bg-black/40 border border-white/10 rounded-lg p-6">
+                          <div className="space-y-3 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-gray-400">Protocol</span>
+                              <span className="text-white">{strategy.protocol}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-400">Type</span>
+                              <span className="text-white capitalize">{strategy.type.replace('-', ' ')}</span>
+                            </div>
+                            {strategy.details?.pool && (
+                              <div className="flex justify-between">
+                                <span className="text-gray-400">Pool</span>
+                                <span className="text-white">{strategy.details.pool}</span>
+                              </div>
+                            )}
+                            {strategy.details?.feeTier && (
+                              <div className="flex justify-between">
+                                <span className="text-gray-400">Fee Tier</span>
+                                <span className="text-white">{strategy.details.feeTier}</span>
+                              </div>
+                            )}
+                            <div className="flex justify-between">
+                              <span className="text-gray-400">Allocation</span>
+                              <span className="text-white">{strategy.allocation}%</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-400">Status</span>
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                                <span className="text-emerald-400">Active</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="mt-6">
+                          <h4 className="text-white text-sm font-semibold mb-3">Strategy Description</h4>
+                          <p className="text-sm text-gray-400 leading-relaxed">{strategy.description}</p>
+                          
+                          {strategy.links && (
+                            <div className="flex gap-3 mt-4">
+                              {strategy.links.analytics && (
+                                <a href={strategy.links.analytics} target="_blank" rel="noopener noreferrer" 
+                                   className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm text-gray-300 hover:text-white transition-all">
+                                  View Analytics →
+                                </a>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
 
