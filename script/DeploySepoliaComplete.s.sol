@@ -3,6 +3,7 @@ pragma solidity ^0.8.22;
 
 import "forge-std/Script.sol";
 import "../contracts/EagleOVault.sol";
+import "../contracts/EagleRegistry.sol";
 import "../contracts/EagleVaultWrapper.sol";
 import "../contracts/layerzero/oft/WLFIAssetOFT.sol";
 import "../contracts/layerzero/oft/USD1AssetOFT.sol";
@@ -52,6 +53,7 @@ contract DeploySepoliaComplete is Script {
     // DEPLOYED CONTRACTS
     // =================================
     
+    EagleRegistry public registry;
     WLFIAssetOFT public wlfiOFT;
     USD1AssetOFT public usd1OFT;
     EagleOVault public vault;
@@ -89,14 +91,39 @@ contract DeploySepoliaComplete is Script {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         
         vm.startBroadcast(deployerPrivateKey);
-        
+
         console.log("=================================================");
         console.log("DEPLOYING EAGLE OVAULT SYSTEM TO SEPOLIA");
         console.log("=================================================");
         console.log("");
         console.log("Deployer:", deployer);
         console.log("Owner:", owner);
-        console.log("LayerZero Endpoint:", LZ_ENDPOINT_SEPOLIA);
+        console.log("");
+        
+        // =================================
+        // STEP 0: DEPLOY EAGLE REGISTRY
+        // =================================
+        
+        console.log("Step 0: Deploying EagleRegistry...");
+        registry = new EagleRegistry(owner);
+        console.log("  EagleRegistry deployed at:", address(registry));
+        
+        // Register Sepolia chain (use 11155 as registry ID since chain ID 11155111 is too large for uint16)
+        registry.registerChain(
+            11155,                       // Registry chain ID (shortened)
+            "Sepolia",                   // Chain name
+            0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14,  // WETH on Sepolia
+            "WETH",                      // Symbol
+            true                         // Active
+        );
+        
+        // Set LayerZero endpoint
+        registry.setLayerZeroEndpoint(11155, LZ_ENDPOINT_SEPOLIA);
+        registry.setChainIdToEid(11155111, 40161); // Map full chain ID to LayerZero EID
+        
+        console.log("  Registered Sepolia chain (registry ID: 11155, chain ID: 11155111)");
+        console.log("  LayerZero Endpoint:", LZ_ENDPOINT_SEPOLIA);
+        console.log("  LayerZero EID: 40161");
         console.log("");
         
         // =================================
@@ -104,11 +131,15 @@ contract DeploySepoliaComplete is Script {
         // =================================
         
         console.log("Step 1: Deploying Asset OFTs...");
+        console.log("  Using LayerZero endpoint from registry:", registry.getLayerZeroEndpoint(11155));
+        console.log("");
+        
+        address lzEndpoint = registry.getLayerZeroEndpoint(11155);
         
         wlfiOFT = new WLFIAssetOFT(
             "Wrapped LFI",
             "WLFI",
-            LZ_ENDPOINT_SEPOLIA,
+            lzEndpoint,
             owner
         );
         console.log("  WLFI OFT deployed at:", address(wlfiOFT));
@@ -116,7 +147,7 @@ contract DeploySepoliaComplete is Script {
         usd1OFT = new USD1AssetOFT(
             "USD1 Stablecoin",
             "USD1",
-            LZ_ENDPOINT_SEPOLIA,
+            lzEndpoint,
             owner
         );
         console.log("  USD1 OFT deployed at:", address(usd1OFT));
@@ -151,13 +182,14 @@ contract DeploySepoliaComplete is Script {
         
         console.log("Step 3: Deploying EagleOVault...");
         
+        // Deploy vault
         vault = new EagleOVault(
             address(wlfiOFT),           // WLFI token
             address(usd1OFT),           // USD1 token
-            WLFI_PRICE_FEED,            // WLFI price feed (mock)
             USD1_PRICE_FEED,            // USD1 price feed (mock)
-            WLFI_USD1_POOL,             // Uniswap V3 pool
-            UNISWAP_V3_ROUTER           // Uniswap router
+            WLFI_USD1_POOL,             // Uniswap V3 pool (dummy)
+            UNISWAP_V3_ROUTER,          // Uniswap router
+            owner                       // Owner address
         );
         console.log("  EagleOVault deployed at:", address(vault));
         console.log("");
@@ -190,7 +222,7 @@ contract DeploySepoliaComplete is Script {
         shareOFT = new EagleShareOFT(
             "Eagle Vault Shares",
             "vEAGLE",
-            LZ_ENDPOINT_SEPOLIA,
+            lzEndpoint,
             owner
         );
         console.log("  EagleShareOFT deployed at:", address(shareOFT));
@@ -216,11 +248,18 @@ contract DeploySepoliaComplete is Script {
         // =================================
         
         console.log("Step 7: Deploying EagleOVaultComposer...");
+        console.log("  Custom composer for wrapper architecture");
+        console.log("  Handles cross-chain coordination with vault + wrapper");
+        console.log("");
         
+        // Deploy custom composer that works with wrapper architecture
         composer = new EagleOVaultComposer(
-            address(vault),
-            address(wlfiOFT),    // Asset OFT
-            address(shareOFT)    // Share OFT
+            address(vault),         // Vault (ERC4626)
+            address(wlfiOFT),       // Asset OFT (bridgeable WLFI)
+            address(shareOFT),      // Share OFT (bridgeable vEAGLE)
+            address(wrapper),       // Wrapper (share conversion)
+            lzEndpoint,             // LayerZero endpoint (from registry)
+            owner                   // Admin/delegate
         );
         console.log("  EagleOVaultComposer deployed at:", address(composer));
         console.log("");
