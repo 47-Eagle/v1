@@ -67,6 +67,9 @@ contract EagleShareOFT is OFT {
     // STATE VARIABLES
     // =================================
     
+    /// @notice Minter permissions (for EagleVaultWrapper integration)
+    mapping(address => bool) public isMinter;
+    
     /// @notice Fee configuration
     SwapFeeConfig public swapFeeConfig;
     
@@ -92,6 +95,7 @@ contract EagleShareOFT is OFT {
     event V3PoolConfigured(address indexed pool, bool isV3);
     event OperationTypeUpdated(address indexed addr, OperationType opType);
     event FeeConfigUpdated(uint16 buyFee, uint16 sellFee, bool enabled);
+    event MinterUpdated(address indexed minter, bool status);
 
     // =================================
     // ERRORS
@@ -101,6 +105,7 @@ contract EagleShareOFT is OFT {
     error FeeExceedsLimit();
     error InvalidFeeRecipient();
     error InvalidFeeDistribution();
+    error NotMinter();
 
     // =================================
     // CONSTRUCTOR
@@ -490,6 +495,61 @@ contract EagleShareOFT is OFT {
      */
     function version() external pure returns (string memory) {
         return "1.0.0-production";
+    }
+    
+    // =================================
+    // MINTER FUNCTIONS (For EagleVaultWrapper Integration)
+    // =================================
+    
+    /**
+     * @notice Set minter permission
+     * @dev Allows EagleVaultWrapper to mint/burn tokens for wrapping/unwrapping
+     * @param minter Address to grant/revoke minting permission
+     * @param status True to grant, false to revoke
+     */
+    function setMinter(address minter, bool status) external onlyOwner {
+        if (minter == address(0)) revert ZeroAddress();
+        isMinter[minter] = status;
+        emit MinterUpdated(minter, status);
+    }
+    
+    /**
+     * @notice Mint tokens (minter only)
+     * @dev Used by EagleVaultWrapper when wrapping vault shares
+     * @param to Recipient address
+     * @param amount Amount to mint
+     */
+    function mint(address to, uint256 amount) external {
+        if (!isMinter[msg.sender] && msg.sender != owner()) revert NotMinter();
+        if (to == address(0)) revert ZeroAddress();
+        _mint(to, amount);
+    }
+    
+    /**
+     * @notice Burn tokens (minter only)
+     * @dev Used by EagleVaultWrapper when unwrapping to vault shares
+     * @param from Address to burn from
+     * @param amount Amount to burn
+     */
+    function burn(address from, uint256 amount) external {
+        if (!isMinter[msg.sender] && msg.sender != owner()) revert NotMinter();
+        if (from == address(0)) revert ZeroAddress();
+        
+        // Check allowance if caller is not the token owner
+        if (from != msg.sender) {
+            uint256 currentAllowance = allowance(from, msg.sender);
+            require(currentAllowance >= amount, "ERC20: insufficient allowance");
+            _approve(from, msg.sender, currentAllowance - amount);
+        }
+        
+        _burn(from, amount);
+    }
+    
+    /**
+     * @notice Check if address is a minter
+     */
+    function checkMinter(address account) external view returns (bool) {
+        return isMinter[account] || account == owner();
     }
 }
 
