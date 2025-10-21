@@ -738,62 +738,311 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
 
                 {infoTab === 'info' && (
                   <div className="space-y-6">
+                    {/* Smart Contracts */}
                     <div>
-                      <h3 className="text-white font-semibold mb-4">Vault Info</h3>
-                      <div className="space-y-3 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-gray-500">Version</span>
-                          <span className="text-white">0.4.6</span>
+                      <h3 className="text-white font-semibold text-lg mb-4 flex items-center gap-2">
+                        <svg className="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                        </svg>
+                        Smart Contracts
+                      </h3>
+                      <div className="bg-black/20 border border-white/5 rounded-xl p-6 space-y-5">
+                        {/* Eagle Vault */}
+                        <div>
+                          <div className="text-xs text-gray-500 mb-2">Eagle Vault Contract (ERC-4626)</div>
+                          <div className="flex items-center justify-between bg-black/30 rounded-lg p-3">
+                            <code className="text-sm font-mono text-yellow-500">{CONTRACTS.VAULT}</code>
+                            <a 
+                              href={`https://etherscan.io/address/${CONTRACTS.VAULT}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="p-2 bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
+                              title="View on Etherscan"
+                            >
+                              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                              </svg>
+                            </a>
+                          </div>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-500">Vault Contract</span>
-                          <a 
-                            href={`https://etherscan.io/address/${CONTRACTS.VAULT}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-yellow-500 hover:underline text-xs"
-                          >
-                            {CONTRACTS.VAULT.slice(0, 6)}...{CONTRACTS.VAULT.slice(-4)}
-                          </a>
+
+                        {/* Strategy Contract */}
+                        <div>
+                          <div className="text-xs text-gray-500 mb-2">Strategy Contract</div>
+                          <div className="flex items-center justify-between bg-black/30 rounded-lg p-3">
+                            <code className="text-sm font-mono text-yellow-500">{CONTRACTS.STRATEGY}</code>
+                            <a 
+                              href={`https://etherscan.io/address/${CONTRACTS.STRATEGY}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="p-2 bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
+                            >
+                              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                              </svg>
+                            </a>
+                          </div>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-500">Strategy Contract</span>
-                          <a 
-                            href={`https://etherscan.io/address/${CONTRACTS.STRATEGY}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-yellow-500 hover:underline text-xs"
-                          >
-                            {CONTRACTS.STRATEGY.slice(0, 6)}...{CONTRACTS.STRATEGY.slice(-4)}
-                          </a>
+
+                        {/* Charm Vault */}
+                        <div>
+                          <div className="text-xs text-gray-500 mb-2">Charm Finance Vault</div>
+                          <div className="flex items-center justify-between bg-black/30 rounded-lg p-3">
+                            <code className="text-sm font-mono text-yellow-500">{CONTRACTS.CHARM_VAULT}</code>
+                            <a 
+                              href={`https://etherscan.io/address/${CONTRACTS.CHARM_VAULT}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="p-2 bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
+                            >
+                              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                              </svg>
+                            </a>
+                          </div>
+                        </div>
+
+                        {/* Wrapper */}
+                        <div>
+                          <div className="text-xs text-gray-500 mb-2">Vault Wrapper Contract</div>
+                          <div className="flex items-center justify-between bg-black/30 rounded-lg p-3">
+                            <code className="text-sm font-mono text-yellow-500">{CONTRACTS.WRAPPER}</code>
+                            <a 
+                              href={`https://etherscan.io/address/${CONTRACTS.WRAPPER}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="p-2 bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
+                            >
+                              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                              </svg>
+                            </a>
+                          </div>
+                        </div>
+
+                        {/* OFT */}
+                        <div>
+                          <div className="text-xs text-gray-500 mb-2">LayerZero OFT Contract</div>
+                          <div className="flex items-center justify-between bg-black/30 rounded-lg p-3">
+                            <code className="text-sm font-mono text-yellow-500">{CONTRACTS.OFT}</code>
+                            <a 
+                              href={`https://etherscan.io/address/${CONTRACTS.OFT}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="p-2 bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
+                            >
+                              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                              </svg>
+                            </a>
+                          </div>
                         </div>
                       </div>
                     </div>
 
+                    {/* Token Contracts */}
                     <div>
-                      <h3 className="text-white font-semibold mb-3">Resources</h3>
-                      <div className="space-y-2">
+                      <h3 className="text-white font-semibold text-lg mb-4 flex items-center gap-2">
+                        <svg className="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Token Contracts
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* WLFI */}
+                        <div className="bg-black/20 border border-white/5 rounded-xl p-5">
+                          <div className="flex items-center gap-3 mb-3">
+                            <img src={ICONS.WLFI} alt="WLFI" className="w-10 h-10 rounded-full" />
+                            <div>
+                              <div className="text-sm font-semibold text-white">WLFI</div>
+                              <div className="text-xs text-gray-500">World Liberty Financial</div>
+                            </div>
+                          </div>
+                          <div className="space-y-2 text-xs">
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">Price</span>
+                              <span className="text-white font-mono">${data.wlfiPrice}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-gray-500">Contract</span>
+                              <a 
+                                href={`https://etherscan.io/token/${CONTRACTS.WLFI}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-yellow-500 hover:underline font-mono"
+                              >
+                                {CONTRACTS.WLFI.slice(0, 6)}...{CONTRACTS.WLFI.slice(-4)}
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* USD1 */}
+                        <div className="bg-black/20 border border-white/5 rounded-xl p-5">
+                          <div className="flex items-center gap-3 mb-3">
+                            <img src={ICONS.USD1} alt="USD1" className="w-10 h-10 rounded-full" />
+                            <div>
+                              <div className="text-sm font-semibold text-white">USD1</div>
+                              <div className="text-xs text-gray-500">World Liberty Stablecoin</div>
+                            </div>
+                          </div>
+                          <div className="space-y-2 text-xs">
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">Price</span>
+                              <span className="text-white font-mono">${data.usd1Price}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-gray-500">Contract</span>
+                              <a 
+                                href={`https://etherscan.io/token/${CONTRACTS.USD1}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-yellow-500 hover:underline font-mono"
+                              >
+                                {CONTRACTS.USD1.slice(0, 6)}...{CONTRACTS.USD1.slice(-4)}
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* WETH */}
+                        <div className="bg-black/20 border border-white/5 rounded-xl p-5">
+                          <div className="flex items-center gap-3 mb-3">
+                            <img src={ICONS.ETHEREUM} alt="WETH" className="w-10 h-10 rounded-full" />
+                            <div>
+                              <div className="text-sm font-semibold text-white">WETH</div>
+                              <div className="text-xs text-gray-500">Wrapped Ether</div>
+                            </div>
+                          </div>
+                          <div className="space-y-2 text-xs">
+                            <div className="flex justify-between items-center">
+                              <span className="text-gray-500">Contract</span>
+                              <a 
+                                href={`https://etherscan.io/token/${CONTRACTS.WETH}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-yellow-500 hover:underline font-mono"
+                              >
+                                {CONTRACTS.WETH.slice(0, 6)}...{CONTRACTS.WETH.slice(-4)}
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Technical Details */}
+                    <div>
+                      <h3 className="text-white font-semibold text-lg mb-4">Technical Details</h3>
+                      <div className="bg-black/20 border border-white/5 rounded-xl p-6">
+                        <div className="grid grid-cols-2 gap-6 text-sm">
+                          <div className="space-y-3">
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">Vault Standard</span>
+                              <span className="text-white font-semibold">ERC-4626</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">Share Token</span>
+                              <span className="text-white font-semibold">vEAGLE</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">Total Supply</span>
+                              <span className="text-white font-mono">{Number(data.totalSupply).toFixed(2)}</span>
+                            </div>
+                          </div>
+                          <div className="space-y-3">
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">Network</span>
+                              <span className="text-white font-semibold">Ethereum Mainnet</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">Chain ID</span>
+                              <span className="text-white font-mono">1</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">Version</span>
+                              <span className="text-white font-semibold">1.0</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Resources */}
+                    <div>
+                      <h3 className="text-white font-semibold text-lg mb-4">Resources</h3>
+                      <div className="grid grid-cols-2 gap-4">
                         <a 
                           href="https://docs.47eagle.com" 
                           target="_blank" 
                           rel="noopener noreferrer"
-                          className="flex items-center gap-2 text-sm text-gray-400 hover:text-yellow-500 transition-colors"
+                          className="bg-black/20 border border-white/5 hover:border-yellow-500/30 rounded-xl p-5 transition-all group"
                         >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                          </svg>
-                          Documentation
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 bg-blue-500/10 rounded-lg">
+                              <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                              </svg>
+                            </div>
+                            <div>
+                              <div className="text-sm font-semibold text-white group-hover:text-yellow-500 transition-colors">Documentation</div>
+                              <div className="text-xs text-gray-500">Learn about Eagle</div>
+                            </div>
+                          </div>
                         </a>
                         <a 
                           href="https://t.me/Eagle_community_47" 
                           target="_blank" 
                           rel="noopener noreferrer"
-                          className="flex items-center gap-2 text-sm text-gray-400 hover:text-yellow-500 transition-colors"
+                          className="bg-black/20 border border-white/5 hover:border-yellow-500/30 rounded-xl p-5 transition-all group"
                         >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
-                          </svg>
-                          Telegram Community
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 bg-blue-500/10 rounded-lg">
+                              <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
+                              </svg>
+                            </div>
+                            <div>
+                              <div className="text-sm font-semibold text-white group-hover:text-yellow-500 transition-colors">Community</div>
+                              <div className="text-xs text-gray-500">Join Telegram</div>
+                            </div>
+                          </div>
+                        </a>
+                        <a 
+                          href="https://x.com/teameagle47" 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="bg-black/20 border border-white/5 hover:border-yellow-500/30 rounded-xl p-5 transition-all group"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 bg-blue-500/10 rounded-lg">
+                              <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                              </svg>
+                            </div>
+                            <div>
+                              <div className="text-sm font-semibold text-white group-hover:text-yellow-500 transition-colors">Twitter</div>
+                              <div className="text-xs text-gray-500">Follow updates</div>
+                            </div>
+                          </div>
+                        </a>
+                        <a 
+                          href={`https://alpha.charm.fi/vault/${CONTRACTS.CHARM_VAULT}`}
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="bg-black/20 border border-white/5 hover:border-yellow-500/30 rounded-xl p-5 transition-all group"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 bg-purple-500/10 rounded-lg">
+                              <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                              </svg>
+                            </div>
+                            <div>
+                              <div className="text-sm font-semibold text-white group-hover:text-yellow-500 transition-colors">Charm Analytics</div>
+                              <div className="text-xs text-gray-500">View on Charm.fi</div>
+                            </div>
+                          </div>
                         </a>
                       </div>
                     </div>
