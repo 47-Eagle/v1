@@ -15,4 +15,5 @@ evm_version = "paris"
 
 [rpc_endpoints]
 ethereum = "https://eth.llamarpc.com"
+sepolia = "${SEPOLIA_RPC_URL}"
 

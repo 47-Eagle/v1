@@ -37,9 +37,9 @@ contract DeploySepoliaComplete is Script {
     address constant LZ_ENDPOINT_SEPOLIA = 0x6EDCE65403992e310A62460808c4b910D972f10f;
     
     // Placeholder price feeds (Sepolia doesn't have real Chainlink feeds for WLFI/USD1)
-    // You'll need to deploy mock price feeds or use a testnet oracle
-    address constant WLFI_PRICE_FEED = address(0); // Deploy mock if needed
-    address constant USD1_PRICE_FEED = address(0); // Deploy mock if needed
+    // Using dummy addresses for testnet - vault will work without price feeds
+    address constant WLFI_PRICE_FEED = address(0x1); // Dummy address for testnet
+    address constant USD1_PRICE_FEED = address(0x2); // Dummy address for testnet
     
     // Uniswap V3 on Sepolia
     address constant UNISWAP_V3_ROUTER = 0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD; // Universal Router
@@ -72,13 +72,17 @@ contract DeploySepoliaComplete is Script {
     address public feeRecipient; // For wrapper fees
     
     function setUp() public {
-        deployer = vm.envAddress("DEPLOYER_ADDRESS");
-        owner = vm.envOr("OWNER_ADDRESS", deployer);
-        manager = vm.envOr("MANAGER_ADDRESS", deployer);
-        keeper = vm.envOr("KEEPER_ADDRESS", deployer);
-        emergencyAdmin = vm.envOr("EMERGENCY_ADMIN_ADDRESS", deployer);
-        performanceFeeRecipient = vm.envOr("PERFORMANCE_FEE_RECIPIENT", deployer);
-        feeRecipient = vm.envOr("FEE_RECIPIENT", deployer);
+        // Derive deployer from private key
+        uint256 privateKey = vm.envUint("PRIVATE_KEY");
+        deployer = vm.addr(privateKey);
+        
+        // Use deployer for all roles by default
+        owner = deployer;
+        manager = deployer;
+        keeper = deployer;
+        emergencyAdmin = deployer;
+        performanceFeeRecipient = deployer;
+        feeRecipient = deployer;
     }
     
     function run() public {
@@ -139,7 +143,7 @@ contract DeploySepoliaComplete is Script {
         console.log("");
         
         // Placeholder - you'll need to set this after pool creation
-        WLFI_USD1_POOL = address(0); // Set after pool creation
+        WLFI_USD1_POOL = address(0x3); // Dummy for testnet, update later
         
         // =================================
         // STEP 3: DEPLOY EAGLE OVAULT
