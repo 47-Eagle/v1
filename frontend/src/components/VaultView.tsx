@@ -48,7 +48,15 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
 
   // Scroll to top when component mounts
   useEffect(() => {
+    // Scroll both window and the vault container
     window.scrollTo(0, 0);
+    const vaultFloor = document.getElementById('vault-floor');
+    if (vaultFloor) {
+      const scrollContainer = vaultFloor.querySelector('.overflow-y-auto');
+      if (scrollContainer) {
+        scrollContainer.scrollTop = 0;
+      }
+    }
   }, []);
 
   // Fetch balances
