@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Sector } from 'recharts';
+import { useEffect, useRef, useState } from 'react';
+import * as d3 from 'd3';
 
 interface AssetAllocationSunburstProps {
   vaultWLFI: number;
@@ -8,34 +8,12 @@ interface AssetAllocationSunburstProps {
   strategyUSD1: number;
 }
 
-const renderActiveShape = (props: any) => {
-  const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, payload } = props;
-  
-  return (
-    <g>
-      <Sector
-        cx={cx}
-        cy={cy}
-        innerRadius={innerRadius}
-        outerRadius={outerRadius + 10}
-        startAngle={startAngle}
-        endAngle={endAngle}
-        fill={fill}
-        opacity={0.9}
-      />
-      <Sector
-        cx={cx}
-        cy={cy}
-        innerRadius={innerRadius}
-        outerRadius={outerRadius + 15}
-        startAngle={startAngle}
-        endAngle={endAngle}
-        fill={fill}
-        opacity={0.3}
-      />
-    </g>
-  );
-};
+interface HierarchyNode {
+  name: string;
+  value?: number;
+  children?: HierarchyNode[];
+  color?: string;
+}
 
 export default function AssetAllocationSunburst({
   vaultWLFI,
@@ -44,55 +22,151 @@ export default function AssetAllocationSunburst({
   strategyUSD1
 }: AssetAllocationSunburstProps) {
   
-  const [activeIndex, setActiveIndex] = useState<number | null>(null);
-  const [activeInnerIndex, setActiveInnerIndex] = useState<number | null>(null);
-  const [selectedSection, setSelectedSection] = useState<string | null>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
+  const [selectedPath, setSelectedPath] = useState<string | null>(null);
   
   const totalVault = vaultWLFI + vaultUSD1;
   const totalStrategy = strategyWLFI + strategyUSD1;
   const grandTotal = totalVault + totalStrategy;
 
-  // Outer ring: Vault vs Strategies
-  const outerData = useMemo(() => [
-    { name: 'Vault Reserves', value: totalVault, color: '#10b981' },
-    { name: 'Charm Strategy', value: totalStrategy, color: '#6366f1' },
-  ], [totalVault, totalStrategy]);
+  useEffect(() => {
+    if (!svgRef.current) return;
+    
+    // Clear previous
+    d3.select(svgRef.current).selectAll('*').remove();
 
-  // Inner ring: Token breakdown
-  const innerData = useMemo(() => [
-    { name: 'Vault WLFI', value: vaultWLFI, color: '#34d399' },
-    { name: 'Vault USD1', value: vaultUSD1, color: '#059669' },
-    { name: 'Strategy WLFI', value: strategyWLFI, color: '#818cf8' },
-    { name: 'Strategy USD1', value: strategyUSD1, color: '#4f46e5' },
-  ], [vaultWLFI, vaultUSD1, strategyWLFI, strategyUSD1]);
+    const width = 500;
+    const height = 400;
+    const radius = Math.min(width, height) / 2;
 
-  const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      const data = payload[0];
-      const percentage = grandTotal > 0 ? ((data.value / grandTotal) * 100).toFixed(1) : '0';
-      return (
-        <div className="bg-black/90 border border-white/20 rounded-lg p-3 shadow-xl">
-          <p className="text-white font-semibold text-sm">{data.name}</p>
-          <p className="text-gray-400 text-xs mt-1">{data.value.toFixed(2)} tokens</p>
-          <p className="text-yellow-500 text-xs">{percentage}% of total</p>
-        </div>
-      );
-    }
-    return null;
-  };
+    // Hierarchical data structure
+    const data: HierarchyNode = {
+      name: 'Total Assets',
+      children: [
+        {
+          name: 'Vault Reserves',
+          color: '#10b981',
+          children: [
+            { name: 'Vault WLFI', value: vaultWLFI, color: '#34d399' },
+            { name: 'Vault USD1', value: vaultUSD1, color: '#059669' }
+          ]
+        },
+        {
+          name: 'Charm Strategy',
+          color: '#6366f1',
+          children: [
+            { name: 'Strategy WLFI', value: strategyWLFI, color: '#818cf8' },
+            { name: 'Strategy USD1', value: strategyUSD1, color: '#4f46e5' }
+          ]
+        }
+      ]
+    };
 
-  const handleSectionClick = (section: string) => {
-    setSelectedSection(selectedSection === section ? null : section);
-  };
+    const svg = d3.select(svgRef.current)
+      .attr('width', width)
+      .attr('height', height)
+      .append('g')
+      .attr('transform', `translate(${width / 2}, ${height / 2})`);
+
+    // Create hierarchy
+    const root = d3.hierarchy(data)
+      .sum(d => d.value || 0)
+      .sort((a, b) => (b.value || 0) - (a.value || 0));
+
+    // Create partition layout
+    const partition = d3.partition<HierarchyNode>()
+      .size([2 * Math.PI, radius]);
+
+    partition(root);
+
+    // Arc generator
+    const arc = d3.arc<d3.HierarchyRectangularNode<HierarchyNode>>()
+      .startAngle(d => d.x0)
+      .endAngle(d => d.x1)
+      .padAngle(d => Math.min((d.x1 - d.x0) / 2, 0.005))
+      .padRadius(radius / 2)
+      .innerRadius(d => d.y0)
+      .outerRadius(d => d.y1 - 1);
+
+    // Hover arc (expanded)
+    const arcHover = d3.arc<d3.HierarchyRectangularNode<HierarchyNode>>()
+      .startAngle(d => d.x0)
+      .endAngle(d => d.x1)
+      .innerRadius(d => d.y0)
+      .outerRadius(d => d.y1 + 10);
+
+    // Create arcs
+    const paths = svg.selectAll('path')
+      .data(root.descendants().filter(d => d.depth > 0))
+      .join('path')
+      .attr('d', arc as any)
+      .attr('fill', d => d.data.color || '#666')
+      .attr('opacity', d => selectedPath && d.data.name !== selectedPath ? 0.3 : 0.8)
+      .attr('stroke', '#0a0a0a')
+      .attr('stroke-width', 2)
+      .style('cursor', 'pointer')
+      .style('transition', 'all 0.3s ease')
+      .on('mouseenter', function(event, d) {
+        d3.select(this)
+          .transition()
+          .duration(200)
+          .attr('d', arcHover as any)
+          .attr('opacity', 1);
+        
+        // Show tooltip
+        const percentage = grandTotal > 0 ? ((d.value || 0) / grandTotal * 100).toFixed(1) : '0';
+        d3.select('#tooltip')
+          .style('opacity', 1)
+          .html(`
+            <div style="background: rgba(0,0,0,0.9); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);">
+              <div style="color: white; font-weight: 600; margin-bottom: 4px;">${d.data.name}</div>
+              <div style="color: #9ca3af; font-size: 12px;">${(d.value || 0).toFixed(2)} tokens</div>
+              <div style="color: #eab308; font-size: 12px;">${percentage}% of total</div>
+            </div>
+          `)
+          .style('left', (event.pageX + 10) + 'px')
+          .style('top', (event.pageY - 10) + 'px');
+      })
+      .on('mouseleave', function() {
+        d3.select(this)
+          .transition()
+          .duration(200)
+          .attr('d', arc as any)
+          .attr('opacity', d => selectedPath && d.data.name !== selectedPath ? 0.3 : 0.8);
+        
+        d3.select('#tooltip').style('opacity', 0);
+      })
+      .on('click', function(event, d) {
+        event.stopPropagation();
+        setSelectedPath(selectedPath === d.data.name ? null : d.data.name);
+      });
+
+    // Add center text
+    svg.append('text')
+      .attr('text-anchor', 'middle')
+      .attr('y', -10)
+      .style('font-size', '28px')
+      .style('font-weight', 'bold')
+      .style('fill', 'white')
+      .text(grandTotal.toFixed(0));
+
+    svg.append('text')
+      .attr('text-anchor', 'middle')
+      .attr('y', 10)
+      .style('font-size', '12px')
+      .style('fill', '#9ca3af')
+      .text('Total Tokens');
+
+  }, [vaultWLFI, vaultUSD1, strategyWLFI, strategyUSD1, grandTotal, selectedPath]);
 
   return (
     <div className="bg-gradient-to-br from-white/5 to-transparent border border-white/10 rounded-xl p-6 mb-8">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-white font-semibold">Asset Allocation</h3>
-        {selectedSection && (
+        {selectedPath && (
           <button
-            onClick={() => setSelectedSection(null)}
-            className="text-xs text-yellow-500 hover:text-yellow-400"
+            onClick={() => setSelectedPath(null)}
+            className="px-3 py-1.5 bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-400 text-xs font-semibold rounded-lg transition-all"
           >
             Reset View
           </button>
@@ -100,146 +174,95 @@ export default function AssetAllocationSunburst({
       </div>
       
       <div className="flex items-center gap-6">
-        {/* Interactive Sunburst Chart */}
-        <div className="flex-1 cursor-pointer">
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              {/* Inner ring - Token breakdown */}
-              <Pie
-                data={innerData}
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={90}
-                paddingAngle={2}
-                dataKey="value"
-                activeIndex={activeInnerIndex !== null ? activeInnerIndex : undefined}
-                activeShape={renderActiveShape}
-                onMouseEnter={(_, index) => setActiveInnerIndex(index)}
-                onMouseLeave={() => setActiveInnerIndex(null)}
-                onClick={(data) => handleSectionClick(data.name)}
-              >
-                {innerData.map((entry, index) => (
-                  <Cell 
-                    key={`inner-${index}`} 
-                    fill={entry.color}
-                    opacity={selectedSection && selectedSection !== entry.name ? 0.3 : 1}
-                  />
-                ))}
-              </Pie>
-              
-              {/* Outer ring - Vault vs Strategy */}
-              <Pie
-                data={outerData}
-                cx="50%"
-                cy="50%"
-                innerRadius={100}
-                outerRadius={130}
-                paddingAngle={3}
-                dataKey="value"
-                activeIndex={activeIndex !== null ? activeIndex : undefined}
-                activeShape={renderActiveShape}
-                onMouseEnter={(_, index) => setActiveIndex(index)}
-                onMouseLeave={() => setActiveIndex(null)}
-                onClick={(data) => handleSectionClick(data.name)}
-                label={({ name, value }) => 
-                  grandTotal > 0 ? `${((value / grandTotal) * 100).toFixed(0)}%` : '0%'
-                }
-              >
-                {outerData.map((entry, index) => (
-                  <Cell 
-                    key={`outer-${index}`} 
-                    fill={entry.color}
-                    opacity={selectedSection && selectedSection !== entry.name ? 0.3 : 1}
-                  />
-                ))}
-              </Pie>
-              
-              <Tooltip content={<CustomTooltip />} />
-            </PieChart>
-          </ResponsiveContainer>
-          
-          {/* Center Label */}
-          <div className="text-center -mt-48">
-            <div className="text-2xl font-bold text-white">{grandTotal.toFixed(0)}</div>
-            <div className="text-xs text-gray-500">Total Tokens</div>
-          </div>
+        {/* D3 Sunburst Chart */}
+        <div className="flex-1">
+          <svg ref={svgRef}></svg>
+          <div 
+            id="tooltip" 
+            style={{ 
+              position: 'fixed', 
+              opacity: 0, 
+              pointerEvents: 'none',
+              zIndex: 1000,
+              transition: 'opacity 0.2s'
+            }}
+          />
         </div>
 
         {/* Interactive Legend */}
         <div className="space-y-4">
           <div 
-            className={`cursor-pointer p-3 rounded-lg transition-all ${
-              selectedSection === 'Vault Reserves' 
-                ? 'bg-emerald-500/20 border border-emerald-500/50' 
-                : 'hover:bg-white/5'
+            className={`cursor-pointer p-3 rounded-lg transition-all border ${
+              selectedPath?.includes('Vault') 
+                ? 'bg-emerald-500/20 border-emerald-500/50' 
+                : 'border-white/5 hover:bg-white/5'
             }`}
-            onClick={() => handleSectionClick('Vault Reserves')}
+            onClick={() => setSelectedPath(selectedPath?.includes('Vault') ? null : 'Vault Reserves')}
           >
             <div className="text-xs text-gray-500 uppercase tracking-wider mb-2">Vault Reserves</div>
             <div className="space-y-2">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#34d399' }}></div>
+                  <div className="w-3 h-3 rounded-full bg-emerald-400"></div>
                   <span className="text-sm text-gray-300">WLFI</span>
                 </div>
                 <span className="text-sm font-mono text-white">{vaultWLFI.toFixed(2)}</span>
               </div>
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#059669' }}></div>
+                  <div className="w-3 h-3 rounded-full bg-emerald-600"></div>
                   <span className="text-sm text-gray-300">USD1</span>
                 </div>
                 <span className="text-sm font-mono text-white">{vaultUSD1.toFixed(2)}</span>
               </div>
             </div>
             <div className="text-xs text-gray-600 mt-2">
-              {grandTotal > 0 ? ((totalVault / grandTotal) * 100).toFixed(1) : '0'}% of total
+              {grandTotal > 0 ? ((totalVault / grandTotal) * 100).toFixed(1) : '0'}% • Available now
             </div>
           </div>
           
           <div 
-            className={`cursor-pointer p-3 rounded-lg transition-all ${
-              selectedSection === 'Charm Strategy' 
-                ? 'bg-indigo-500/20 border border-indigo-500/50' 
-                : 'hover:bg-white/5'
+            className={`cursor-pointer p-3 rounded-lg transition-all border ${
+              selectedPath?.includes('Strategy') 
+                ? 'bg-indigo-500/20 border-indigo-500/50' 
+                : 'border-white/5 hover:bg-white/5'
             }`}
-            onClick={() => handleSectionClick('Charm Strategy')}
+            onClick={() => setSelectedPath(selectedPath?.includes('Strategy') ? null : 'Charm Strategy')}
           >
             <div className="text-xs text-gray-500 uppercase tracking-wider mb-2">Charm Strategy</div>
             <div className="space-y-2">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#818cf8' }}></div>
+                  <div className="w-3 h-3 rounded-full bg-indigo-400"></div>
                   <span className="text-sm text-gray-300">WLFI</span>
                 </div>
                 <span className="text-sm font-mono text-white">{strategyWLFI.toFixed(2)}</span>
               </div>
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#4f46e5' }}></div>
+                  <div className="w-3 h-3 rounded-full bg-indigo-700"></div>
                   <span className="text-sm text-gray-300">USD1</span>
                 </div>
                 <span className="text-sm font-mono text-white">{strategyUSD1.toFixed(2)}</span>
               </div>
             </div>
             <div className="text-xs text-gray-600 mt-2">
-              {grandTotal > 0 ? ((totalStrategy / grandTotal) * 100).toFixed(1) : '0'}% of total
+              {grandTotal > 0 ? ((totalStrategy / grandTotal) * 100).toFixed(1) : '0'}% • Earning yield
             </div>
           </div>
 
           <div className="pt-3 border-t border-white/10">
             <div className="text-xs text-gray-500">Total Assets</div>
-            <div className="text-lg font-bold text-white">{grandTotal.toFixed(2)}</div>
+            <div className="text-2xl font-bold text-white">{grandTotal.toFixed(2)}</div>
           </div>
 
-          {selectedSection && (
-            <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+          {selectedPath && (
+            <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg animate-fadeIn">
               <div className="text-xs text-yellow-400 font-semibold mb-1">
-                ✨ {selectedSection} Selected
+                ✨ {selectedPath}
               </div>
               <p className="text-xs text-gray-400">
-                Click again to deselect, or click another section
+                Click to deselect or choose another section
               </p>
             </div>
           )}
@@ -248,4 +271,3 @@ export default function AssetAllocationSunburst({
     </div>
   );
 }
-
