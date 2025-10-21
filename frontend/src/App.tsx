@@ -336,7 +336,7 @@ function AppModern() {
 
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-5xl font-bold text-white">Yearn vEAGLE Vault</h1>
+                <h1 className="text-5xl font-bold text-white">Eagle Vault</h1>
                 <span className="px-3 py-1 bg-emerald-500/20 text-emerald-400 text-xs font-semibold rounded-full">
                   Active
                 </span>
@@ -348,17 +348,17 @@ function AppModern() {
 
             <div className="flex gap-2">
               <div className="px-4 py-2 bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border border-yellow-500/20 rounded-lg">
-                <p className="text-xs text-gray-400 mb-1">Yearn CRV</p>
+                <p className="text-xs text-gray-400 mb-1">Network</p>
                 <p className="text-white font-medium">Ethereum</p>
               </div>
             </div>
           </div>
 
-          {/* Key Metrics - Yearn Style */}
+          {/* Key Metrics - Modern Design */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             {/* Total Deposited */}
             <div className="bg-gradient-to-br from-white/5 to-white/[0.02] rounded-2xl border border-white/10 p-6">
-              <p className="text-sm text-gray-400 mb-2">Total deposited, st-yCRV</p>
+              <p className="text-sm text-gray-400 mb-2">Total deposited, vEAGLE</p>
               <p className="text-4xl font-bold text-white mb-1">
                 {Number(stats.totalAssets).toLocaleString(undefined, { maximumFractionDigits: 2 })}
               </p>
@@ -374,7 +374,7 @@ function AppModern() {
 
             {/* Your Value */}
             <div className="bg-gradient-to-br from-white/5 to-white/[0.02] rounded-2xl border border-white/10 p-6">
-              <p className="text-sm text-gray-400 mb-2">Value in yCRV</p>
+              <p className="text-sm text-gray-400 mb-2">Value in tokens</p>
               <p className="text-4xl font-bold text-white mb-1">${stats.userValue}</p>
               <p className="text-sm text-gray-500">
                 {account && Number(stats.userBalance) > 0 
@@ -557,7 +557,7 @@ function AppModern() {
                       </div>
                       <div>
                         <p className="text-white font-medium">
-                          {activeTab === 'deposit' ? 'st-yCRV' : 'yCRV'}
+                          {activeTab === 'deposit' ? 'vEAGLE' : 'tokens'}
                         </p>
                         <p className="text-xs text-gray-500">
                           {activeTab === 'deposit' ? 'Vault Shares' : 'Tokens'}
@@ -582,7 +582,7 @@ function AppModern() {
             </div>
           </div>
 
-          {/* Right Column - Info Tabs (Yearn Style) */}
+          {/* Right Column - Info Tabs (Modern Design) */}
           <div className="lg:col-span-2">
             <div className="bg-gradient-to-br from-white/5 to-white/[0.02] rounded-2xl border border-white/10 overflow-hidden">
               {/* Tab Headers */}
@@ -624,10 +624,10 @@ function AppModern() {
                       </p>
                     </div>
 
-                    {/* Yearn Fees */}
+                    {/* Vault Fees */}
                     <div className="grid grid-cols-2 gap-8">
                       <div>
-                        <h4 className="text-sm font-medium text-gray-300 mb-4">Yearn Fees</h4>
+                        <h4 className="text-sm font-medium text-gray-300 mb-4">Vault Fees</h4>
                         <div className="space-y-3 text-sm">
                           <div className="flex justify-between items-center">
                             <span className="text-gray-400">Deposit/Withdrawal fee</span>
