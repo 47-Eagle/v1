@@ -1,8 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo, Suspense, lazy } from 'react';
 import { Link } from 'react-router-dom';
 import { BrowserProvider, Contract, formatEther, parseEther } from 'ethers';
-import { motion } from 'framer-motion';
 import { CONTRACTS } from '../config/contracts';
+import { ICONS } from '../config/icons';
+import { getActiveStrategies } from '../config/strategies';
+import { ErrorBoundary } from './ErrorBoundary';
+
+// Lazy load 3D visualization
+const VaultVisualization = lazy(() => import('./VaultVisualization'));
 
 const VAULT_ABI = [
   'function totalAssets() view returns (uint256)',
@@ -12,12 +17,18 @@ const VAULT_ABI = [
   'function withdrawDual(uint256 shares, address receiver) returns (uint256, uint256)',
   'function getWLFIPrice() view returns (uint256)',
   'function getUSD1Price() view returns (uint256)',
+  'function convertToShares(uint256 assets) view returns (uint256)',
+  'function convertToAssets(uint256 shares) view returns (uint256)',
+  'function maxWithdraw(address owner) view returns (uint256)',
+  'function maxRedeem(address owner) view returns (uint256)',
 ];
 
 const ERC20_ABI = [
   'function balanceOf(address) view returns (uint256)',
   'function allowance(address, address) view returns (uint256)',
   'function approve(address, uint256) returns (bool)',
+  'function decimals() view returns (uint8)',
+  'function symbol() view returns (string)',
 ];
 
 interface Props {
@@ -35,6 +46,8 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
   const [withdrawAmount, setWithdrawAmount] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const [refreshing, setRefreshing] = useState(false);
+
   const [data, setData] = useState({
     totalAssets: '0',
     totalSupply: '0',
@@ -43,6 +56,21 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
     usd1Balance: '0',
     wlfiPrice: '0.132',
     usd1Price: '1.000',
+    userBalanceUSD: '0',
+    expectedShares: '0',
+    expectedWithdrawWLFI: '0',
+    expectedWithdrawUSD1: '0',
+    maxRedeemable: '0',
+    vaultLiquidWLFI: '0',
+    vaultLiquidUSD1: '0',
+    strategyWLFI: '0',
+    strategyUSD1: '0',
+    liquidTotal: '0',
+    strategyTotal: '0',
+    currentFeeApr: '0',
+    weeklyApy: '0',
+    monthlyApy: '0',
+    historicalSnapshots: [] as Array<{ timestamp: number; feeApr: string; totalValue: number }>,
   });
 
   // Scroll parent container to top on mount
@@ -53,55 +81,147 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
     }
   }, []);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!provider) return;
-
-      try {
-        const vault = new Contract(CONTRACTS.VAULT, VAULT_ABI, provider);
-        const wlfi = new Contract(CONTRACTS.WLFI, ERC20_ABI, provider);
-        const usd1 = new Contract(CONTRACTS.USD1, ERC20_ABI, provider);
-
-        const [totalAssets, totalSupply, wlfiPrice, usd1Price] = await Promise.all([
-          vault.totalAssets(),
-          vault.totalSupply(),
-          vault.getWLFIPrice(),
-          vault.getUSD1Price(),
-        ]);
-
-        let userBalance = '0';
-        let wlfiBalance = '0';
-        let usd1Balance = '0';
-
-        if (account) {
-          const [vEagle, wlfiBal, usd1Bal] = await Promise.all([
-            vault.balanceOf(account),
-            wlfi.balanceOf(account),
-            usd1.balanceOf(account),
-          ]);
-          userBalance = formatEther(vEagle);
-          wlfiBalance = formatEther(wlfiBal);
-          usd1Balance = formatEther(usd1Bal);
-        }
-
-        setData({
-          totalAssets: formatEther(totalAssets),
-          totalSupply: formatEther(totalSupply),
-          userBalance,
-          wlfiBalance,
-          usd1Balance,
-          wlfiPrice: Number(formatEther(wlfiPrice)).toFixed(3),
-          usd1Price: Number(formatEther(usd1Price)).toFixed(3),
-        });
-      } catch (error) {
-        console.error('Error fetching data:', error);
+  // Fetch Charm Finance historical data
+  const fetchCharmStats = useCallback(async () => {
+    try {
+      const query = `query GetVault($address: ID!) { vault(id: $address) { snapshot(orderBy: timestamp, orderDirection: asc, first: 1000) { timestamp feeApr annualVsHoldPerfSince totalAmount0 totalAmount1 totalSupply } } }`;
+      const response = await fetch('https://stitching-v2.herokuapp.com/1', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query, variables: { address: CONTRACTS.CHARM_VAULT.toLowerCase() } })
+      });
+      const result = await response.json();
+      if (result.data?.vault?.snapshot) {
+        const snapshots = result.data.vault.snapshot;
+        const current = snapshots[snapshots.length - 1];
+        const weeklyApy = current?.annualVsHoldPerfSince ? (parseFloat(current.annualVsHoldPerfSince) * 100).toFixed(2) : '0';
+        const monthlyApy = weeklyApy;
+        const currentFeeApr = current?.feeApr ? (parseFloat(current.feeApr) * 100).toFixed(2) : '0';
+        const historicalSnapshots = snapshots.map((s: any) => ({ timestamp: parseInt(s.timestamp), feeApr: (parseFloat(s.feeApr || '0') * 100).toFixed(2), totalValue: parseFloat(s.totalAmount0 || '0') + parseFloat(s.totalAmount1 || '0') }));
+        return { currentFeeApr, weeklyApy, monthlyApy, historicalSnapshots };
       }
-    };
+    } catch (error) {
+      console.error('Error fetching Charm stats:', error);
+    }
+    return null;
+  }, []);
 
+  const fetchData = useCallback(async () => {
+    if (!provider) return;
+
+    try {
+      const vault = new Contract(CONTRACTS.VAULT, VAULT_ABI, provider);
+      const wlfi = new Contract(CONTRACTS.WLFI, ERC20_ABI, provider);
+      const usd1 = new Contract(CONTRACTS.USD1, ERC20_ABI, provider);
+      
+      const charmStatsPromise = fetchCharmStats();
+
+      const [totalAssets, totalSupply, wlfiPrice, usd1Price] = await Promise.all([
+        vault.totalAssets(),
+        vault.totalSupply(),
+        vault.getWLFIPrice(),
+        vault.getUSD1Price(),
+      ]);
+
+      let userBalance = '0';
+      let wlfiBalance = '0';
+      let usd1Balance = '0';
+      let userBalanceUSD = '0';
+      let maxRedeemable = '0';
+      let vaultLiquidWLFI = '0';
+      let vaultLiquidUSD1 = '0';
+      let strategyWLFI = '0';
+      let strategyUSD1 = '0';
+
+      const [vaultWlfiBal, vaultUsd1Bal, strategyWlfiBal, strategyUsd1Bal] = await Promise.all([
+        wlfi.balanceOf(CONTRACTS.VAULT),
+        usd1.balanceOf(CONTRACTS.VAULT),
+        wlfi.balanceOf(CONTRACTS.CHARM_VAULT),
+        usd1.balanceOf(CONTRACTS.CHARM_VAULT),
+      ]);
+      
+      vaultLiquidWLFI = formatEther(vaultWlfiBal);
+      vaultLiquidUSD1 = formatEther(vaultUsd1Bal);
+      strategyWLFI = formatEther(strategyWlfiBal);
+      strategyUSD1 = formatEther(strategyUsd1Bal);
+
+      const liquidTotal = (Number(vaultLiquidWLFI) + Number(vaultLiquidUSD1)).toFixed(2);
+      const strategyTotal = (Number(strategyWLFI) + Number(strategyUSD1)).toFixed(2);
+
+      const charmStats = await charmStatsPromise;
+
+      if (account) {
+        const [vEagle, wlfiBal, usd1Bal, maxRedeem] = await Promise.all([
+          vault.balanceOf(account),
+          wlfi.balanceOf(account),
+          usd1.balanceOf(account),
+          vault.maxRedeem(account),
+        ]);
+        userBalance = formatEther(vEagle);
+        wlfiBalance = formatEther(wlfiBal);
+        usd1Balance = formatEther(usd1Bal);
+        maxRedeemable = formatEther(maxRedeem);
+
+        if (Number(totalSupply) > 0) {
+          const assetsPerShare = Number(formatEther(totalAssets)) / Number(formatEther(totalSupply));
+          const userAssets = Number(userBalance) * assetsPerShare;
+          userBalanceUSD = userAssets.toFixed(2);
+        }
+      }
+
+      setData(prev => ({
+        ...prev,
+        totalAssets: formatEther(totalAssets),
+        totalSupply: formatEther(totalSupply),
+        userBalance,
+        wlfiBalance,
+        usd1Balance,
+        wlfiPrice: Number(formatEther(wlfiPrice)).toFixed(3),
+        usd1Price: Number(formatEther(usd1Price)).toFixed(3),
+        userBalanceUSD,
+        maxRedeemable,
+        vaultLiquidWLFI,
+        vaultLiquidUSD1,
+        strategyWLFI,
+        strategyUSD1,
+        liquidTotal,
+        strategyTotal,
+        currentFeeApr: charmStats?.currentFeeApr || '0',
+        weeklyApy: charmStats?.weeklyApy || '0',
+        monthlyApy: charmStats?.monthlyApy || '0',
+        historicalSnapshots: charmStats?.historicalSnapshots || [],
+      }));
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  }, [provider, account, fetchCharmStats]);
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchData();
+    setTimeout(() => setRefreshing(false), 500);
+  }, [fetchData]);
+
+  useEffect(() => {
     fetchData();
     const interval = setInterval(fetchData, 15000);
     return () => clearInterval(interval);
-  }, [provider, account]);
+  }, [fetchData]);
+
+  // Memoize calculated values
+  const calculatedMetrics = useMemo(() => {
+    const totalAssetsNum = Number(data.totalAssets);
+    const totalSupplyNum = Number(data.totalSupply);
+    const liquidTotalNum = Number(data.liquidTotal);
+    const strategyTotalNum = Number(data.strategyTotal);
+    
+    const liquidPercent = totalAssetsNum > 0 ? ((liquidTotalNum / totalAssetsNum) * 100).toFixed(1) : '0';
+    const deployedPercent = totalAssetsNum > 0 ? ((strategyTotalNum / totalAssetsNum) * 100).toFixed(1) : '0';
+    const sharePrice = totalSupplyNum > 0 ? (totalAssetsNum / totalSupplyNum) : 1;
+    const netApy = (Number(data.monthlyApy) * 0.953).toFixed(2); // After 4.7% fee
+
+    return { liquidPercent, deployedPercent, sharePrice, netApy };
+  }, [data.totalAssets, data.totalSupply, data.liquidTotal, data.strategyTotal, data.monthlyApy]);
 
   const handleDeposit = async () => {
     if (!provider || !account) {
