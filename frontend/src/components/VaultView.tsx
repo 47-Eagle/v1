@@ -180,7 +180,7 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
   };
 
   return (
-    <div>
+    <>
       <div className="max-w-6xl mx-auto px-6 py-6">
         {/* Back Button */}
         <button 
@@ -622,6 +622,6 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
