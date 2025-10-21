@@ -50,7 +50,7 @@ export default function EagleEcosystem({ provider, account, onToast, VaultCompon
         }}
       >
         {/* Top Floor - EAGLE/ETH LP */}
-        <div className="h-[calc(100vh-64px-80px)]" id="lp-floor">
+        <div className="h-[calc(100vh-64px-80px)] overflow-hidden" id="lp-floor">
           <motion.div
             animate={{
               opacity: isTransitioning && currentFloor !== 'lp' ? 0.5 : 1,
@@ -66,7 +66,7 @@ export default function EagleEcosystem({ provider, account, onToast, VaultCompon
         </div>
 
         {/* Main Floor - Home */}
-        <div className="h-[calc(100vh-64px-80px)]" id="home-floor">
+        <div className="h-[calc(100vh-64px-80px)] overflow-hidden" id="home-floor">
           <motion.div
             animate={{
               opacity: isTransitioning && currentFloor !== 'home' ? 0.5 : 1,
