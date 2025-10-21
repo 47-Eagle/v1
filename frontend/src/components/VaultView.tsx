@@ -5,6 +5,7 @@ import { CONTRACTS } from '../config/contracts';
 import { ICONS } from '../config/icons';
 import { getActiveStrategies } from '../config/strategies';
 import { ErrorBoundary } from './ErrorBoundary';
+import AssetAllocationSunburst from './AssetAllocationSunburst';
 
 // Lazy load 3D visualization
 const VaultVisualization = lazy(() => import('./VaultVisualization'));
@@ -427,76 +428,13 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
           </div>
         </div>
 
-        {/* Asset Deployment Overview - NEW */}
-        <div className="bg-gradient-to-br from-white/5 to-transparent border border-white/10 rounded-xl p-6 mb-8">
-          <h3 className="text-white font-semibold mb-4">Asset Deployment</h3>
-          
-          <div className="grid grid-cols-2 gap-6 mb-6">
-            {/* Vault Reserves */}
-            <div className="bg-black/20 border border-white/5 rounded-lg p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-3 h-3 bg-emerald-500 rounded-full"></div>
-                <span className="text-sm font-semibold text-white">Vault Reserves</span>
-              </div>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-400">WLFI</span>
-                  <span className="text-white font-mono">{Number(data.vaultLiquidWLFI).toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">USD1</span>
-                  <span className="text-white font-mono">{Number(data.vaultLiquidUSD1).toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between pt-2 border-t border-white/10">
-                  <span className="text-gray-500">Total</span>
-                  <span className="text-white font-semibold">{data.liquidTotal}</span>
-                </div>
-              </div>
-              <p className="text-xs text-gray-600 mt-3">Available for withdrawals</p>
-            </div>
-
-            {/* Strategy Deployments */}
-            <div className="bg-black/20 border border-white/5 rounded-lg p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                <span className="text-sm font-semibold text-white">Charm Finance</span>
-              </div>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-400">WLFI</span>
-                  <span className="text-white font-mono">{Number(data.strategyWLFI).toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">USD1</span>
-                  <span className="text-white font-mono">{Number(data.strategyUSD1).toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between pt-2 border-t border-white/10">
-                  <span className="text-gray-500">Total</span>
-                  <span className="text-white font-semibold">{data.strategyTotal}</span>
-                </div>
-              </div>
-              <p className="text-xs text-gray-600 mt-3">Earning yield in Uniswap V3</p>
-            </div>
-          </div>
-
-          {/* Visual Bar */}
-          <div className="bg-black/40 rounded-lg p-3">
-            <div className="flex gap-0.5 h-2 rounded-full overflow-hidden bg-black/60 mb-2">
-              <div 
-                className="bg-gradient-to-r from-emerald-500 to-emerald-400 transition-all duration-500"
-                style={{ width: `${calculatedMetrics.liquidPercent}%` }}
-              ></div>
-              <div 
-                className="bg-gradient-to-r from-blue-500 to-blue-400 transition-all duration-500"
-                style={{ width: `${calculatedMetrics.deployedPercent}%` }}
-              ></div>
-            </div>
-            <div className="flex justify-between text-xs">
-              <span className="text-emerald-400">{calculatedMetrics.liquidPercent}% in Vault</span>
-              <span className="text-blue-400">{calculatedMetrics.deployedPercent}% in Strategies</span>
-            </div>
-          </div>
-        </div>
+        {/* Asset Deployment Sunburst Chart */}
+        <AssetAllocationSunburst
+          vaultWLFI={Number(data.vaultLiquidWLFI)}
+          vaultUSD1={Number(data.vaultLiquidUSD1)}
+          strategyWLFI={Number(data.strategyWLFI)}
+          strategyUSD1={Number(data.strategyUSD1)}
+        />
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4 mb-8">
