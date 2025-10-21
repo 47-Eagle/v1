@@ -283,14 +283,38 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
       return;
     }
 
-    if (!withdrawAmount) {
+    if (!withdrawAmount || withdrawAmount === '0' || withdrawAmount === '') {
       onToast({ message: 'Enter withdrawal amount', type: 'error' });
       return;
     }
 
     const withdrawNum = Number(withdrawAmount);
+    
+    console.log('=== WITHDRAWAL INITIATED ===');
+    console.log('Input value:', withdrawAmount);
+    console.log('Parsed number:', withdrawNum);
+    console.log('Your balance:', data.userBalance);
+    console.log('Max redeemable:', data.maxRedeemable);
+    
+    // Validate input is a valid number
+    if (isNaN(withdrawNum) || withdrawNum <= 0) {
+      onToast({ message: 'Invalid withdrawal amount', type: 'error' });
+      return;
+    }
+    
     if (withdrawNum > Number(data.userBalance)) {
-      onToast({ message: 'Insufficient vEAGLE balance', type: 'error' });
+      onToast({ message: `Insufficient balance. You have ${Number(data.userBalance).toFixed(4)} vEAGLE`, type: 'error' });
+      return;
+    }
+
+    // Check against maxRedeemable from data
+    const maxFromData = Number(data.maxRedeemable);
+    if (maxFromData > 0 && withdrawNum > maxFromData) {
+      onToast({ 
+        message: `Maximum withdrawal: ${maxFromData.toFixed(4)} vEAGLE. Auto-filled for you.`, 
+        type: 'error' 
+      });
+      setWithdrawAmount(maxFromData.toFixed(4));
       return;
     }
 
@@ -298,37 +322,20 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
     try {
       const signer = await provider.getSigner();
       const vault = new Contract(CONTRACTS.VAULT, VAULT_ABI, signer);
-      const wlfi = new Contract(CONTRACTS.WLFI, ERC20_ABI, provider);
-      const usd1 = new Contract(CONTRACTS.USD1, ERC20_ABI, provider);
 
       const shares = parseEther(withdrawAmount);
+      console.log('Shares in wei:', shares.toString());
       
-      // PRE-FLIGHT CHECK: Verify vault has enough tokens
-      onToast({ message: 'Checking vault liquidity...', type: 'info' });
-      
-      const [maxRedeem, vaultWlfiBal, vaultUsd1Bal] = await Promise.all([
-        vault.maxRedeem(account),
-        wlfi.balanceOf(CONTRACTS.VAULT),
-        usd1.balanceOf(CONTRACTS.VAULT),
-      ]);
-
+      // FINAL CHECK: Call maxRedeem right before transaction
+      const maxRedeem = await vault.maxRedeem(account);
       const maxRedeemNum = Number(formatEther(maxRedeem));
-      const vaultWlfi = Number(formatEther(vaultWlfiBal));
-      const vaultUsd1 = Number(formatEther(vaultUsd1Bal));
+      
+      console.log('Final maxRedeem:', maxRedeemNum.toFixed(4));
 
-      console.log('=== WITHDRAWAL CHECK ===');
-      console.log('Requested vEAGLE:', withdrawNum.toFixed(4));
-      console.log('Max Redeemable:', maxRedeemNum.toFixed(4));
-      console.log('Vault WLFI:', vaultWlfi.toFixed(2));
-      console.log('Vault USD1:', vaultUsd1.toFixed(2));
-      console.log('Your vEAGLE Balance:', Number(data.userBalance).toFixed(4));
-      console.log('Max Redeemable (data):', data.maxRedeemable);
-
-      // ALWAYS use maxRedeem - it knows the actual limit
       if (withdrawNum > maxRedeemNum) {
-        console.log('❌ Requested exceeds maxRedeem');
+        console.log('❌ BLOCKED: Exceeds maxRedeem');
         onToast({ 
-          message: `Maximum withdrawal: ${maxRedeemNum.toFixed(4)} vEAGLE (vault limited by token balances). Auto-filled for you.`, 
+          message: `Vault can only redeem ${maxRedeemNum.toFixed(4)} vEAGLE right now. Auto-filled.`, 
           type: 'error' 
         });
         setLoading(false);
@@ -336,7 +343,7 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
         return;
       }
 
-      console.log('✅ Pre-flight check passed');
+      console.log('✅ Proceeding with withdrawal');
 
       // Proceed with withdrawal
       onToast({ message: 'Withdrawing from vault...', type: 'info' });
