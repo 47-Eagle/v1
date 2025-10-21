@@ -457,15 +457,23 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
 
       console.log('✅ Vault has enough tokens (within tolerance), proceeding!');
 
-      // SAFETY: Reduce by 1% to account for any contract-level fees or rounding
-      const safeShares = (BigInt(shares.toString()) * BigInt(99)) / BigInt(100);
-      console.log('Original shares:', shares.toString());
-      console.log('Safe shares (99%):', safeShares.toString());
-      console.log('Reduction:', (withdrawNum * 0.01).toFixed(4), 'vEAGLE');
+      // Try to simulate first to see what contract will actually do
+      try {
+        console.log('🧪 Testing with contract simulation...');
+        const simulation = await vault.withdrawDual.staticCall(shares, account);
+        console.log('Contract says it will send:');
+        console.log('  WLFI:', formatEther(simulation[0]));
+        console.log('  USD1:', formatEther(simulation[1]));
+      } catch (simError: any) {
+        console.error('❌ Simulation failed:', simError.message);
+        onToast({ message: 'Contract simulation failed. The vault may have an accounting issue. Try a smaller amount.', type: 'error' });
+        setLoading(false);
+        return;
+      }
 
-      // Proceed with withdrawal (using 99% to be safe)
+      // Proceed with withdrawal
       onToast({ message: 'Withdrawing from vault...', type: 'info' });
-      const tx = await vault.withdrawDual(safeShares, account);
+      const tx = await vault.withdrawDual(shares, account);
       onToast({ message: 'Transaction submitted...', type: 'info', txHash: tx.hash });
 
       await tx.wait();
