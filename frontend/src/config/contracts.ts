@@ -1,9 +1,9 @@
 // Deployed contract addresses on Ethereum (PRODUCTION - Working!)
 export const CONTRACTS = {
-  VAULT: '0x32a2544De7a644833fE7659dF95e5bC16E698d99',       // EagleOVault (PUSH + Corrected) ✅
+  VAULT: '0x8A6755b9B40368e35aCEBc00feec08cFF0177F2E',       // EagleOVault V3 (Fixed Strategy - Oct 29, 2025) ✅
   OFT: '0x477d42841dC5A7cCBc2f72f4448f5eF6B61eA91E',         // EagleShareOFT ✅
   WRAPPER: '0xF9CEf2f5E9bb504437b770ED75cA4D46c407ba03',     // EagleVaultWrapper ✅
-  STRATEGY: '0x9cd26E95058B4dC1a6E1D4DBa2e8E015F4a20F55',    // CharmStrategyUSD1 V2 (Return Order Fixed - Oct 21, 2025) ✅
+  STRATEGY: '0x88C1C17842067150bd25eD1E5053B0F96A27A944',    // CharmStrategyUSD1 V3 (Oracle-based swaps - Oct 29, 2025) ✅
   CHARM_VAULT: '0x22828Dbf15f5FBa2394Ba7Cf8fA9A96BdB444B71', // Charm USD1/WLFI Vault
   
   // Token addresses (REAL tokens!)
