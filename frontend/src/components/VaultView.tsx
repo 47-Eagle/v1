@@ -13,7 +13,7 @@ import { UniswapBadge, CharmBadge, LayerZeroBadge } from './tech-stack';
 const VaultVisualization = lazy(() => import('./VaultVisualization'));
 
 // Strategy Row Component with Dropdown
-function StrategyRow({ strategy }: { strategy: any }) {
+function StrategyRow({ strategy, wlfiPrice }: { strategy: any; wlfiPrice?: string }) {
   const [isExpanded, setIsExpanded] = useState(strategy.status === 'active');
 
   return (
@@ -59,6 +59,32 @@ function StrategyRow({ strategy }: { strategy: any }) {
       {/* Expanded Content */}
       {isExpanded && (
         <div className="px-6 pb-6 pt-2 border-t border-gray-200/50 animate-fadeIn">
+          {/* 3D Visualization for Strategy 1 */}
+          {strategy.id === 1 && wlfiPrice && (
+            <div className="mb-6">
+              <h4 className="text-gray-900 font-semibold text-sm mb-3">Interactive 3D Liquidity Visualization</h4>
+              <ErrorBoundary fallback={
+                <div className="bg-orange-50 border-2 border-orange-300 shadow-neo-pressed rounded-xl p-6">
+                  <p className="text-sm text-orange-700 font-medium">3D visualization unavailable. Your browser may not support WebGL.</p>
+                </div>
+              }>
+                <Suspense fallback={
+                  <div className="bg-white/50 shadow-neo-pressed rounded-xl p-8 flex items-center justify-center h-96">
+                    <div className="text-center">
+                      <svg className="animate-spin w-12 h-12 mx-auto mb-4 text-yellow-600" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <p className="text-sm text-gray-700 font-medium">Loading 3D visualization...</p>
+                    </div>
+                  </div>
+                }>
+                  <VaultVisualization currentPrice={Number(wlfiPrice)} />
+                </Suspense>
+              </ErrorBoundary>
+            </div>
+          )}
+          
           <p className="text-gray-600 text-sm leading-relaxed mb-4">{strategy.description}</p>
           
           {strategy.status === 'active' && (
@@ -1043,30 +1069,6 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
                       </p>
                     </div>
 
-                    {/* 3D Interactive Visualization */}
-                    <div>
-                      <h3 className="text-gray-900 font-bold text-lg mb-4">Interactive 3D Liquidity Visualization</h3>
-                      <ErrorBoundary fallback={
-                        <div className="bg-orange-50 border-2 border-orange-300 shadow-neo-pressed rounded-xl p-6">
-                          <p className="text-sm text-orange-700 font-medium">3D visualization unavailable. Your browser may not support WebGL.</p>
-                        </div>
-                      }>
-                        <Suspense fallback={
-                          <div className="bg-white/50 shadow-neo-pressed rounded-xl p-8 flex items-center justify-center h-96">
-                            <div className="text-center">
-                              <svg className="animate-spin w-12 h-12 mx-auto mb-4 text-yellow-600" fill="none" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                              </svg>
-                              <p className="text-sm text-gray-700 font-medium">Loading 3D visualization...</p>
-                            </div>
-                          </div>
-                        }>
-                          <VaultVisualization currentPrice={Number(data.wlfiPrice)} />
-                        </Suspense>
-                      </ErrorBoundary>
-                    </div>
-
                     {/* All 5 Strategies as Expandable Rows */}
                     <div className="space-y-3">
                       {[
@@ -1111,7 +1113,7 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
                           status: 'coming-soon'
                         }
                       ].map((strategy) => (
-                        <StrategyRow key={strategy.id} strategy={strategy} />
+                        <StrategyRow key={strategy.id} strategy={strategy} wlfiPrice={data.wlfiPrice} />
                       ))}
                     </div>
                   </div>

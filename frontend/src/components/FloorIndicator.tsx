@@ -43,8 +43,9 @@ const floors: Array<{ id: Floor; label: string; icon: JSX.Element; color: string
 export default function FloorIndicator({ current, onChange, isTransitioning }: Props) {
   return (
     <div className="fixed right-8 top-1/2 -translate-y-1/2 z-50">
-      <div className="bg-black/80 backdrop-blur-2xl border border-white/10 rounded-2xl p-2 shadow-2xl">
-        <div className="space-y-2">
+      {/* Neumorphic container */}
+      <div className="bg-gradient-to-br from-gray-200 to-gray-300 rounded-3xl p-3 shadow-[8px_8px_16px_rgba(163,163,163,0.5),-8px_-8px_16px_rgba(255,255,255,0.9)]">
+        <div className="space-y-3">
           {floors.map((floor, index) => {
             const isActive = current === floor.id;
             
@@ -54,11 +55,11 @@ export default function FloorIndicator({ current, onChange, isTransitioning }: P
                   onClick={() => onChange(floor.id)}
                   disabled={isTransitioning}
                   className={`
-                    relative w-12 h-12 rounded-xl
+                    relative w-14 h-14 rounded-2xl
                     transition-all duration-300 group
                     ${isActive 
-                      ? `bg-gradient-to-br ${floor.color} shadow-lg` 
-                      : 'bg-white/5 hover:bg-white/10'
+                      ? `bg-gradient-to-br ${floor.color} shadow-[inset_2px_2px_4px_rgba(0,0,0,0.2),inset_-2px_-2px_4px_rgba(255,255,255,0.1)]` 
+                      : 'bg-gradient-to-br from-gray-200 to-gray-300 shadow-[4px_4px_8px_rgba(163,163,163,0.5),-4px_-4px_8px_rgba(255,255,255,0.9)] hover:shadow-[inset_2px_2px_4px_rgba(163,163,163,0.3),inset_-2px_-2px_4px_rgba(255,255,255,0.7)]'
                     }
                     ${isTransitioning ? 'cursor-wait opacity-50' : 'cursor-pointer'}
                   `}
@@ -67,10 +68,10 @@ export default function FloorIndicator({ current, onChange, isTransitioning }: P
                   {/* Active glow effect */}
                   {isActive && (
                     <motion.div
-                      className={`absolute inset-0 bg-gradient-to-br ${floor.color} rounded-xl opacity-50 blur-md -z-10`}
+                      className={`absolute inset-0 bg-gradient-to-br ${floor.color} rounded-2xl opacity-60 blur-lg -z-10`}
                       animate={{
-                        scale: [1, 1.2, 1],
-                        opacity: [0.5, 0.3, 0.5]
+                        scale: [1, 1.3, 1],
+                        opacity: [0.6, 0.3, 0.6]
                       }}
                       transition={{
                         duration: 2,
@@ -82,7 +83,7 @@ export default function FloorIndicator({ current, onChange, isTransitioning }: P
                   
                   <div className={`
                     absolute inset-0 flex items-center justify-center
-                    ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-white'}
+                    ${isActive ? 'text-white' : 'text-gray-600 group-hover:text-gray-800'}
                     transition-colors
                   `}>
                     {floor.icon}
@@ -90,23 +91,23 @@ export default function FloorIndicator({ current, onChange, isTransitioning }: P
 
                   {/* Label tooltip on hover */}
                   <div className="absolute right-full mr-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none whitespace-nowrap">
-                    <div className="bg-black/90 backdrop-blur-sm border border-white/20 rounded-lg px-4 py-2 shadow-xl">
-                      <p className="text-sm font-medium text-white">{floor.label}</p>
+                    <div className="bg-gradient-to-br from-gray-100 to-gray-200 border border-gray-300 rounded-xl px-4 py-2 shadow-[4px_4px_12px_rgba(163,163,163,0.6),-4px_-4px_12px_rgba(255,255,255,0.9)]">
+                      <p className="text-sm font-semibold text-gray-800">{floor.label}</p>
                       {floor.id === 'lp' && (
-                        <p className="text-xs text-gray-400 mt-0.5">Coming Soon</p>
+                        <p className="text-xs text-gray-500 mt-0.5">Coming Soon</p>
                       )}
                       {floor.id === 'vault' && (
-                        <p className="text-xs text-emerald-400 mt-0.5">Active</p>
+                        <p className="text-xs text-yellow-600 mt-0.5 font-medium">Active</p>
                       )}
                     </div>
                     {/* Arrow */}
-                    <div className="absolute left-full top-1/2 -translate-y-1/2 -ml-1 w-2 h-2 bg-black/90 border-r border-b border-white/20 rotate-[-45deg]"></div>
+                    <div className="absolute left-full top-1/2 -translate-y-1/2 -ml-1 w-3 h-3 bg-gradient-to-br from-gray-100 to-gray-200 border-r border-b border-gray-300 rotate-[-45deg]"></div>
                   </div>
                 </button>
 
                 {/* Connection line between floors */}
                 {index < floors.length - 1 && (
-                  <div className="absolute left-1/2 -translate-x-1/2 w-px h-2 bg-white/10" />
+                  <div className="absolute left-1/2 -translate-x-1/2 w-0.5 h-3 bg-gradient-to-b from-gray-400 to-gray-300" />
                 )}
               </div>
             );
@@ -114,8 +115,8 @@ export default function FloorIndicator({ current, onChange, isTransitioning }: P
         </div>
 
         {/* Current floor label */}
-        <div className="mt-3 pt-3 border-t border-white/10">
-          <p className="text-xs text-gray-400 text-center font-medium">
+        <div className="mt-4 pt-3 border-t border-gray-400/50">
+          <p className="text-xs text-gray-700 text-center font-semibold tracking-wide">
             {floors.find(f => f.id === current)?.label}
           </p>
         </div>
