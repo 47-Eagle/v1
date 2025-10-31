@@ -1296,11 +1296,12 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
                   rel="noopener noreferrer"
                   className="flex flex-col items-center gap-2 hover:opacity-80 transition-opacity group"
                 >
-                  <div className="w-12 h-12 rounded-xl bg-white/50 shadow-neo-inset flex items-center justify-center group-hover:shadow-neo-hover transition-all">
-                    <svg className="w-8 h-8" viewBox="0 0 48 48" fill="none">
-                      <path d="M23.921 11.084c-.736 0-1.341.605-1.341 1.341v9.098c0 .736.605 1.341 1.341 1.341h9.098c.736 0 1.341-.605 1.341-1.341v-9.098c0-.736-.605-1.341-1.341-1.341h-9.098z" fill="#FF007A"/>
-                      <path d="M16.584 25.477c-.736 0-1.341.605-1.341 1.341v9.098c0 .736.605 1.341 1.341 1.341h9.098c.736 0 1.341-.605 1.341-1.341v-9.098c0-.736-.605-1.341-1.341-1.341h-9.098z" fill="#FF007A"/>
-                    </svg>
+                  <div className="w-16 h-16 rounded-xl bg-white/50 shadow-neo-inset flex items-center justify-center group-hover:shadow-neo-hover transition-all p-2">
+                    <img 
+                      src="https://teal-working-dormouse-113.mypinata.cloud/ipfs/bafkreig3ynkhtw76tekx6lhp7po3xbfy54lg3pvcvvi3mlyhghmzavmlu4"
+                      alt="Uniswap"
+                      className="w-full h-full object-contain"
+                    />
                   </div>
                   <span className="text-xs text-gray-700 font-medium">Uniswap V3</span>
                 </a>
@@ -1312,13 +1313,12 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
                   rel="noopener noreferrer"
                   className="flex flex-col items-center gap-2 hover:opacity-80 transition-opacity group"
                 >
-                  <div className="w-12 h-12 rounded-xl bg-white/50 shadow-neo-inset flex items-center justify-center group-hover:shadow-neo-hover transition-all">
-                    <svg className="w-8 h-8" viewBox="0 0 48 48" fill="none">
-                      <circle cx="24" cy="24" r="10" fill="#6366f1" opacity="0.2"/>
-                      <path d="M24 14l7 10-7 10-7-10z" fill="#6366f1"/>
-                      <circle cx="24" cy="14" r="2" fill="#818cf8"/>
-                      <circle cx="24" cy="34" r="2" fill="#818cf8"/>
-                    </svg>
+                  <div className="w-16 h-16 rounded-xl bg-white/50 shadow-neo-inset flex items-center justify-center group-hover:shadow-neo-hover transition-all p-2">
+                    <img 
+                      src="https://teal-working-dormouse-113.mypinata.cloud/ipfs/bafkreid3difftzksqy3xlummzzobhk674ece35d7drmgo3ftt7wrix6dwu"
+                      alt="Charm Finance"
+                      className="w-full h-full object-contain"
+                    />
                   </div>
                   <span className="text-xs text-gray-700 font-medium">Charm Finance</span>
                 </a>
@@ -1330,15 +1330,12 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
                   rel="noopener noreferrer"
                   className="flex flex-col items-center gap-2 hover:opacity-80 transition-opacity group"
                 >
-                  <div className="w-12 h-12 rounded-xl bg-white/50 shadow-neo-inset flex items-center justify-center group-hover:shadow-neo-hover transition-all">
-                    <svg className="w-8 h-8" viewBox="0 0 48 48" fill="none">
-                      <rect x="12" y="18" width="24" height="12" rx="2" fill="#111111"/>
-                      <circle cx="18" cy="24" r="2" fill="#ffffff"/>
-                      <circle cx="24" cy="24" r="2" fill="#ffffff"/>
-                      <circle cx="30" cy="24" r="2" fill="#ffffff"/>
-                      <path d="M16 14h16v4H16z" fill="#111111" opacity="0.5"/>
-                      <path d="M16 30h16v4H16z" fill="#111111" opacity="0.5"/>
-                    </svg>
+                  <div className="w-16 h-16 rounded-xl bg-white/50 shadow-neo-inset flex items-center justify-center group-hover:shadow-neo-hover transition-all p-2">
+                    <img 
+                      src="https://teal-working-dormouse-113.mypinata.cloud/ipfs/bafkreihml3nahd2duwdjg2ltoeixax2xdj2ldp5unnrjwntyicar74nwra"
+                      alt="LayerZero"
+                      className="w-full h-full object-contain"
+                    />
                   </div>
                   <span className="text-xs text-gray-700 font-medium">LayerZero</span>
                 </a>
