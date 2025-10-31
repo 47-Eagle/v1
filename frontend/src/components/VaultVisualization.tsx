@@ -227,7 +227,7 @@ export default function VaultVisualization({ currentPrice = WLFI_PRICE_USD }: Va
                   </div>
                 </div>
               </div>
-              <p className="text-xs text-gray-500">Total weight distribution across all price ranges</p>
+              <p className="text-xs text-gray-300">Total weight distribution across all price ranges</p>
             </div>
             <div className="flex items-center gap-2">
               <UniswapBadge />
@@ -243,7 +243,7 @@ export default function VaultVisualization({ currentPrice = WLFI_PRICE_USD }: Va
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              <p className="text-xs text-gray-400">Loading position data...</p>
+              <p className="text-xs text-gray-300">Loading position data...</p>
             </div>
           </div>
         ) : (
@@ -419,23 +419,23 @@ export default function VaultVisualization({ currentPrice = WLFI_PRICE_USD }: Va
                 <div className="w-3 h-3 rounded" style={{ backgroundColor: pos.color }}></div>
                 <div>
                   <div className="text-white font-medium">{pos.name}</div>
-                  <div className="text-gray-500">{pos.weight.toFixed(1)}% of capital</div>
+                  <div className="text-gray-300">{pos.weight.toFixed(1)}% of capital</div>
                 </div>
               </div>
             ))}
           </div>
           <div className="pt-3 border-t border-white/5 space-y-2">
-            <div className="text-xs text-gray-600">
-              <strong className="text-gray-500">Controls:</strong> Rotate: Left-click • Zoom: Scroll • Pan: Right-click
+            <div className="text-xs text-gray-300">
+              <strong className="text-gray-200">Controls:</strong> Rotate: Left-click • Zoom: Scroll • Pan: Right-click
             </div>
-            <div className="text-xs text-gray-600">
+            <div className="text-xs text-gray-300">
               <strong className="text-emerald-400">Visualization:</strong> Each thin bar = 200 ticks of liquidity. 
               Color shows distance from current price (green = near, purple = far).
             </div>
             {revertData && (
               <div className="text-xs">
                 <span className="text-blue-400 font-semibold">Pool Analytics (7-day):</span>{' '}
-                <span className="text-gray-400">
+                <span className="text-gray-300">
                   TVL ${revertData.latest?.tvl_usd.toFixed(2) || '0'} • 
                   Avg APR {revertData.avgAPR?.toFixed(1) || '0'}% • 
                   Max APR {revertData.maxAPR?.toFixed(1) || '0'}% • 
