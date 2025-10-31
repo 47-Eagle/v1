@@ -12,6 +12,126 @@ import { UniswapBadge, CharmBadge, LayerZeroBadge } from './tech-stack';
 // Lazy load 3D visualization
 const VaultVisualization = lazy(() => import('./VaultVisualization'));
 
+// Strategy Row Component with Dropdown
+function StrategyRow({ strategy }: { strategy: any }) {
+  const [isExpanded, setIsExpanded] = useState(strategy.status === 'active');
+
+  return (
+    <div className="bg-gradient-to-br from-white/50 to-white/30 backdrop-blur-sm shadow-neo-inset rounded-xl border border-gray-200/50 overflow-hidden transition-all">
+      {/* Header - Always Visible */}
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full px-6 py-4 flex items-center justify-between hover:bg-white/30 transition-all"
+      >
+        <div className="flex items-center gap-4">
+          <div className="px-3 py-1 bg-yellow-100 border border-yellow-400 rounded-lg">
+            <span className="text-xs font-semibold text-yellow-700">Strategy {strategy.id}</span>
+          </div>
+          
+          {strategy.status === 'active' ? (
+            <div className="flex items-center gap-2 px-3 py-1 bg-green-100 rounded-full">
+              <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-xs text-green-700 font-medium">Active</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-full">
+              <div className="w-1.5 h-1.5 bg-gray-400 rounded-full"></div>
+              <span className="text-xs text-gray-600 font-medium">Coming Soon</span>
+            </div>
+          )}
+          
+          <div className="text-left">
+            <h4 className="text-gray-900 font-semibold text-base">{strategy.name}</h4>
+            <p className="text-xs text-gray-500">{strategy.protocol}</p>
+          </div>
+        </div>
+        
+        <svg 
+          className={`w-5 h-5 text-gray-600 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+          fill="none" 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {/* Expanded Content */}
+      {isExpanded && (
+        <div className="px-6 pb-6 pt-2 border-t border-gray-200/50 animate-fadeIn">
+          <p className="text-gray-600 text-sm leading-relaxed mb-4">{strategy.description}</p>
+          
+          {strategy.status === 'active' && (
+            <>
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                {strategy.pool && (
+                  <div>
+                    <div className="text-xs text-gray-500 mb-1">Pool</div>
+                    <div className="text-gray-900 font-medium">{strategy.pool}</div>
+                  </div>
+                )}
+                {strategy.feeTier && (
+                  <div>
+                    <div className="text-xs text-gray-500 mb-1">Fee Tier</div>
+                    <div className="text-gray-900 font-medium">{strategy.feeTier}</div>
+                  </div>
+                )}
+                {strategy.allocation && (
+                  <div>
+                    <div className="text-xs text-gray-500 mb-1">Allocation</div>
+                    <div className="text-yellow-600 font-semibold">{strategy.allocation}</div>
+                  </div>
+                )}
+              </div>
+
+              {strategy.analytics && (
+                <a 
+                  href={strategy.analytics} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-yellow-600 hover:text-yellow-700 font-medium text-sm inline-flex items-center gap-2 transition-colors mb-4"
+                >
+                  View Analytics on Charm Finance
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </a>
+              )}
+
+              {strategy.contract && (
+                <div className="bg-white/50 rounded-lg p-4 border border-gray-200/50 mt-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-600 font-medium">Strategy Contract</span>
+                    <a 
+                      href={`https://etherscan.io/address/${strategy.contract}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-yellow-600 hover:text-yellow-700 transition-colors"
+                    >
+                      <code className="text-xs font-mono">
+                        {strategy.contract.slice(0, 6)}...{strategy.contract.slice(-4)}
+                      </code>
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                    </a>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+          
+          {strategy.status === 'coming-soon' && (
+            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 text-center">
+              <p className="text-sm text-gray-600">This strategy will be available in a future update.</p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 const VAULT_ABI = [
   'function totalAssets() view returns (uint256)',
   'function totalSupply() view returns (uint256)',
@@ -947,85 +1067,53 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
                       </ErrorBoundary>
                     </div>
 
-                    {/* Active Strategy Card */}
-                    {getActiveStrategies().map((strategy, index) => (
-                      <div key={strategy.id} className="bg-gradient-to-br from-white/50 to-white/30 backdrop-blur-sm shadow-neo-inset rounded-2xl p-8 border border-gray-200/50">
-                        <div className="flex items-start justify-between mb-4">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2">
-                              <div className="px-3 py-1 bg-yellow-100 border border-yellow-400 rounded-lg">
-                                <span className="text-xs font-semibold text-yellow-700">Strategy {index + 1}</span>
-                              </div>
-                              <div className="flex items-center gap-2 px-3 py-1 bg-green-100 rounded-full">
-                                <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
-                                <span className="text-xs text-green-700 font-medium">Active</span>
-                              </div>
-                            </div>
-                            <h3 className="text-gray-900 font-semibold text-xl mb-2">{strategy.name}</h3>
-                            <p className="text-gray-600 leading-relaxed text-sm">{strategy.description}</p>
-                          </div>
-                        </div>
-                        
-                        <div className="grid grid-cols-2 gap-4 mt-6">
-                          <div>
-                            <div className="text-xs text-gray-500 mb-1">Protocol</div>
-                            <div className="text-gray-900 font-medium">{strategy.protocol}</div>
-                          </div>
-                          {strategy.details?.pool && (
-                            <div>
-                              <div className="text-xs text-gray-500 mb-1">Pool</div>
-                              <div className="text-gray-900 font-medium">{strategy.details.pool}</div>
-                            </div>
-                          )}
-                          {strategy.details?.feeTier && (
-                            <div>
-                              <div className="text-xs text-gray-500 mb-1">Fee Tier</div>
-                              <div className="text-gray-900 font-medium">{strategy.details.feeTier}</div>
-                            </div>
-                          )}
-                          <div>
-                            <div className="text-xs text-gray-500 mb-1">Allocation</div>
-                            <div className="text-yellow-600 font-semibold">{strategy.allocation}%</div>
-                          </div>
-                        </div>
-
-                        {strategy.links && strategy.links.analytics && (
-                          <div className="mt-6 pt-6 border-t border-gray-200/50 space-y-4">
-                            <a 
-                              href={strategy.links.analytics} 
-                              target="_blank" 
-                              rel="noopener noreferrer" 
-                              className="text-yellow-600 hover:text-yellow-700 font-medium text-sm inline-flex items-center gap-2 transition-colors"
-                            >
-                              View Analytics on Charm Finance
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                              </svg>
-                            </a>
-                            
-                            {/* Strategy Contract */}
-                            <div className="bg-white/50 rounded-lg p-4 border border-gray-200/50">
-                              <div className="flex items-center justify-between">
-                                <span className="text-xs text-gray-600 font-medium">Strategy Contract</span>
-                                <a 
-                                  href={`https://etherscan.io/address/${CONTRACTS.STRATEGY}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="flex items-center gap-2 text-yellow-600 hover:text-yellow-700 transition-colors"
-                                >
-                                  <code className="text-xs font-mono">
-                                    {CONTRACTS.STRATEGY.slice(0, 6)}...{CONTRACTS.STRATEGY.slice(-4)}
-                                  </code>
-                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                  </svg>
-                                </a>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                    {/* All 5 Strategies as Expandable Rows */}
+                    <div className="space-y-3">
+                      {[
+                        {
+                          id: 1,
+                          name: 'Charm USD1/WLFI Alpha Vault',
+                          protocol: 'Charm Finance',
+                          pool: 'USD1/WLFI',
+                          feeTier: '0.3%',
+                          allocation: '100%',
+                          status: 'active',
+                          description: 'Actively managed concentrated liquidity position on Uniswap V3, optimized for the USD1/WLFI 0.3% fee tier pool.',
+                          analytics: 'https://alpha.charm.fi/vault/1/0x47b2f57fb48177c02e9e219ad4f4e42d5f4f1a0c',
+                          contract: CONTRACTS.STRATEGY
+                        },
+                        {
+                          id: 2,
+                          name: 'Aave Lending Strategy',
+                          protocol: 'Aave V3',
+                          description: 'Supply assets to Aave V3 lending pools to earn interest on idle capital.',
+                          status: 'coming-soon'
+                        },
+                        {
+                          id: 3,
+                          name: 'Curve Liquidity Strategy',
+                          protocol: 'Curve Finance',
+                          description: 'Provide liquidity to Curve stablecoin pools for trading fees and CRV rewards.',
+                          status: 'coming-soon'
+                        },
+                        {
+                          id: 4,
+                          name: 'Compound V3 Strategy',
+                          protocol: 'Compound',
+                          description: 'Lend assets on Compound V3 to earn supply APY on deposited funds.',
+                          status: 'coming-soon'
+                        },
+                        {
+                          id: 5,
+                          name: 'Yearn Vault Strategy',
+                          protocol: 'Yearn Finance',
+                          description: 'Deposit into Yearn vaults for automated yield optimization across DeFi protocols.',
+                          status: 'coming-soon'
+                        }
+                      ].map((strategy) => (
+                        <StrategyRow key={strategy.id} strategy={strategy} />
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
