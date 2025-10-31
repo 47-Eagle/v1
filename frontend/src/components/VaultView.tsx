@@ -17,47 +17,47 @@ function StrategyRow({ strategy, wlfiPrice }: { strategy: any; wlfiPrice?: strin
   const [isExpanded, setIsExpanded] = useState(strategy.status === 'active');
 
   return (
-    <div className="bg-gradient-to-br from-white/50 to-white/30 backdrop-blur-sm shadow-neo-inset rounded-xl border border-gray-200/50 overflow-hidden transition-all">
+    <div className="bg-gradient-to-br from-white/50 to-white/30 dark:from-gray-800/50 dark:to-gray-900/30 backdrop-blur-sm shadow-neo-inset rounded-xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden transition-all">
       {/* Header - Always Visible - Aligned Columns */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full px-6 py-4 hover:bg-white/30 transition-all"
+        className="w-full px-6 py-4 hover:bg-white/30 dark:hover:bg-gray-700/30 transition-all"
       >
         <div className="grid grid-cols-[auto_auto_1fr_auto_auto] gap-4 items-center">
           {/* Column 1: Strategy Badge */}
-          <div className="px-3 py-1 bg-yellow-100 border border-yellow-400 rounded-lg w-[90px] text-center">
-            <span className="text-xs font-semibold text-yellow-700">Strategy {strategy.id}</span>
+          <div className="px-3 py-1 bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-400 dark:border-yellow-600 rounded-lg w-[90px] text-center">
+            <span className="text-xs font-semibold text-yellow-700 dark:text-yellow-400">Strategy {strategy.id}</span>
           </div>
           
           {/* Column 2: Status Badge */}
           {strategy.status === 'active' ? (
-            <div className="flex items-center gap-2 px-3 py-1 bg-green-100 rounded-full w-[110px] justify-center">
-              <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-xs text-green-700 font-medium">Active</span>
+            <div className="flex items-center gap-2 px-3 py-1 bg-green-100 dark:bg-green-900/30 rounded-full w-[110px] justify-center">
+              <div className="w-1.5 h-1.5 bg-green-500 dark:bg-green-400 rounded-full animate-pulse"></div>
+              <span className="text-xs text-green-700 dark:text-green-400 font-medium">Active</span>
             </div>
           ) : (
-            <div className="flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-full w-[110px] justify-center">
-              <div className="w-1.5 h-1.5 bg-gray-400 rounded-full"></div>
-              <span className="text-xs text-gray-600 font-medium">Coming Soon</span>
+            <div className="flex items-center gap-2 px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full w-[110px] justify-center">
+              <div className="w-1.5 h-1.5 bg-gray-400 dark:bg-gray-500 rounded-full"></div>
+              <span className="text-xs text-gray-600 dark:text-gray-400 font-medium">Coming Soon</span>
             </div>
           )}
           
           {/* Column 3: Name & Protocol */}
           <div className="text-left">
-            <h4 className="text-gray-900 font-semibold text-base">{strategy.name}</h4>
-            <p className="text-xs text-gray-500">{strategy.protocol}</p>
+            <h4 className="text-gray-900 dark:text-white font-semibold text-base">{strategy.name}</h4>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{strategy.protocol}</p>
           </div>
           
           {/* Column 4: Allocation Badge */}
           {strategy.allocation && (
-            <div className="px-3 py-1 bg-gradient-to-r from-yellow-50 to-yellow-100 border border-yellow-400 rounded-lg min-w-[70px] text-center">
-              <span className="text-sm font-bold text-yellow-700">{strategy.allocation}</span>
+            <div className="px-3 py-1 bg-gradient-to-r from-yellow-50 to-yellow-100 dark:from-yellow-900/30 dark:to-yellow-800/20 border border-yellow-400 dark:border-yellow-600 rounded-lg min-w-[70px] text-center">
+              <span className="text-sm font-bold text-yellow-700 dark:text-yellow-400">{strategy.allocation}</span>
             </div>
           )}
           
           {/* Column 5: Expand Arrow */}
           <svg 
-            className={`w-5 h-5 text-gray-600 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+            className={`w-5 h-5 text-gray-600 dark:text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
             fill="none" 
             stroke="currentColor" 
             viewBox="0 0 24 24"
@@ -69,23 +69,23 @@ function StrategyRow({ strategy, wlfiPrice }: { strategy: any; wlfiPrice?: strin
 
       {/* Expanded Content */}
       {isExpanded && (
-        <div className="px-6 pb-6 pt-2 border-t border-gray-200/50 animate-fadeIn">
+        <div className="px-6 pb-6 pt-2 border-t border-gray-200/50 dark:border-gray-700/50 animate-fadeIn">
           {/* 3D Visualization for Strategy 1 */}
           {strategy.id === 1 && wlfiPrice && (
             <div className="mb-6">
               <ErrorBoundary fallback={
-                <div className="bg-orange-50 border border-orange-300 rounded-lg p-4 text-center">
-                  <p className="text-xs text-orange-700">3D visualization unavailable</p>
+                <div className="bg-orange-50 dark:bg-orange-900/30 border border-orange-300 dark:border-orange-700 rounded-lg p-4 text-center">
+                  <p className="text-xs text-orange-700 dark:text-orange-400">3D visualization unavailable</p>
                 </div>
               }>
                 <Suspense fallback={
-                  <div className="bg-white/30 rounded-lg p-6 flex items-center justify-center h-64">
+                  <div className="bg-white/30 dark:bg-gray-800/30 rounded-lg p-6 flex items-center justify-center h-64">
                     <div className="text-center">
-                      <svg className="animate-spin w-8 h-8 mx-auto mb-2 text-yellow-600" fill="none" viewBox="0 0 24 24">
+                      <svg className="animate-spin w-8 h-8 mx-auto mb-2 text-yellow-600 dark:text-yellow-400" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
-                      <p className="text-xs text-gray-600">Loading...</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400">Loading...</p>
                     </div>
                   </div>
                 }>
@@ -95,21 +95,21 @@ function StrategyRow({ strategy, wlfiPrice }: { strategy: any; wlfiPrice?: strin
             </div>
           )}
           
-          <p className="text-gray-600 text-sm mb-4">{strategy.description}</p>
+          <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">{strategy.description}</p>
           
           {strategy.status === 'active' && (
             <>
               <div className="grid grid-cols-2 gap-4 mb-4">
                 {strategy.pool && (
                   <div>
-                    <div className="text-xs text-gray-500 mb-1">Pool</div>
-                    <div className="text-gray-900 font-medium">{strategy.pool}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Pool</div>
+                    <div className="text-gray-900 dark:text-white font-medium">{strategy.pool}</div>
                   </div>
                 )}
                 {strategy.feeTier && (
                   <div>
-                    <div className="text-xs text-gray-500 mb-1">Fee Tier</div>
-                    <div className="text-gray-900 font-medium">{strategy.feeTier}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Fee Tier</div>
+                    <div className="text-gray-900 dark:text-white font-medium">{strategy.feeTier}</div>
                   </div>
                 )}
               </div>
@@ -119,7 +119,7 @@ function StrategyRow({ strategy, wlfiPrice }: { strategy: any; wlfiPrice?: strin
                   href={strategy.analytics} 
                   target="_blank" 
                   rel="noopener noreferrer" 
-                  className="text-yellow-600 hover:text-yellow-700 font-medium text-sm inline-flex items-center gap-2 transition-colors mb-4"
+                  className="text-yellow-600 dark:text-yellow-400 hover:text-yellow-700 dark:hover:text-yellow-300 font-medium text-sm inline-flex items-center gap-2 transition-colors mb-4"
                 >
                   View Analytics on Charm Finance
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -129,14 +129,14 @@ function StrategyRow({ strategy, wlfiPrice }: { strategy: any; wlfiPrice?: strin
               )}
 
               {strategy.contract && (
-                <div className="bg-white/50 rounded-lg p-4 border border-gray-200/50 mt-4">
+                <div className="bg-white/50 dark:bg-gray-800/50 rounded-lg p-4 border border-gray-200/50 dark:border-gray-700/50 mt-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-600 font-medium">Strategy Contract</span>
+                    <span className="text-xs text-gray-600 dark:text-gray-400 font-medium">Strategy Contract</span>
                     <a 
                       href={`https://etherscan.io/address/${strategy.contract}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-yellow-600 hover:text-yellow-700 transition-colors"
+                      className="flex items-center gap-2 text-yellow-600 dark:text-yellow-400 hover:text-yellow-700 dark:hover:text-yellow-300 transition-colors"
                     >
                       <code className="text-xs font-mono">
                         {strategy.contract.slice(0, 6)}...{strategy.contract.slice(-4)}
@@ -152,8 +152,8 @@ function StrategyRow({ strategy, wlfiPrice }: { strategy: any; wlfiPrice?: strin
           )}
           
           {strategy.status === 'coming-soon' && (
-            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 text-center">
-              <p className="text-sm text-gray-600">This strategy will be available in a future update.</p>
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 text-center">
+              <p className="text-sm text-gray-600 dark:text-gray-400">This strategy will be available in a future update.</p>
             </div>
           )}
         </div>
@@ -712,7 +712,7 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
   };
 
   return (
-    <div className="bg-neo-bg dark:bg-gray-900 min-h-screen pb-24 transition-colors">
+    <div className="bg-neo-bg dark:bg-black min-h-screen pb-24 transition-colors">
       <div className="max-w-6xl mx-auto px-6 pt-6 pb-24">
         {/* Back Button */}
         {onNavigateUp ? (
@@ -1006,55 +1006,55 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
 
                     {/* Fee Structure */}
                     <div className="max-w-2xl mx-auto">
-                      <h4 className="text-gray-900 font-semibold mb-4 text-center">Fee Structure</h4>
+                      <h4 className="text-gray-900 dark:text-white font-semibold mb-4 text-center">Fee Structure</h4>
                       <div className="grid grid-cols-3 gap-4">
-                        <div className="bg-gradient-to-br from-white/60 to-white/40 backdrop-blur-sm shadow-neo-inset rounded-xl p-5 border border-gray-200/50 hover:shadow-neo-hover transition-all">
-                          <div className="text-xs text-gray-600 font-medium mb-2">Deposit</div>
-                          <div className="text-2xl font-bold text-gray-900">1%</div>
+                        <div className="bg-gradient-to-br from-white/60 to-white/40 dark:from-gray-800/60 dark:to-gray-900/40 backdrop-blur-sm shadow-neo-inset rounded-xl p-5 border border-gray-200/50 dark:border-gray-700/50 hover:shadow-neo-hover transition-all">
+                          <div className="text-xs text-gray-600 dark:text-gray-400 font-medium mb-2">Deposit</div>
+                          <div className="text-2xl font-bold text-gray-900 dark:text-white">1%</div>
                         </div>
-                        <div className="bg-gradient-to-br from-white/60 to-white/40 backdrop-blur-sm shadow-neo-inset rounded-xl p-5 border border-gray-200/50 hover:shadow-neo-hover transition-all">
-                          <div className="text-xs text-gray-600 font-medium mb-2">Withdrawal</div>
-                          <div className="text-2xl font-bold text-gray-900">2%</div>
+                        <div className="bg-gradient-to-br from-white/60 to-white/40 dark:from-gray-800/60 dark:to-gray-900/40 backdrop-blur-sm shadow-neo-inset rounded-xl p-5 border border-gray-200/50 dark:border-gray-700/50 hover:shadow-neo-hover transition-all">
+                          <div className="text-xs text-gray-600 dark:text-gray-400 font-medium mb-2">Withdrawal</div>
+                          <div className="text-2xl font-bold text-gray-900 dark:text-white">2%</div>
                         </div>
-                        <div className="bg-gradient-to-br from-yellow-50 to-yellow-100/80 shadow-neo-inset rounded-xl p-5 border-2 border-yellow-400/70 hover:shadow-neo-hover transition-all">
-                          <div className="text-xs text-gray-700 font-medium mb-2">Performance</div>
-                          <div className="text-2xl font-bold text-yellow-700">4.7%</div>
-                          <div className="text-xs text-gray-600 mt-2">On profits only</div>
+                        <div className="bg-gradient-to-br from-yellow-50 to-yellow-100/80 dark:from-yellow-900/30 dark:to-yellow-800/20 shadow-neo-inset rounded-xl p-5 border-2 border-yellow-400/70 dark:border-yellow-500/50 hover:shadow-neo-hover transition-all">
+                          <div className="text-xs text-gray-700 dark:text-yellow-300 font-medium mb-2">Performance</div>
+                          <div className="text-2xl font-bold text-yellow-700 dark:text-yellow-400">4.7%</div>
+                          <div className="text-xs text-gray-600 dark:text-gray-400 mt-2">On profits only</div>
                         </div>
                         </div>
                       </div>
 
                     {/* Vault Assets */}
                     <div className="max-w-xl mx-auto">
-                      <h4 className="text-gray-900 font-semibold mb-4 text-center">Accepted Assets</h4>
+                      <h4 className="text-gray-900 dark:text-white font-semibold mb-4 text-center">Accepted Assets</h4>
                       <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-gradient-to-br from-white/50 to-white/30 backdrop-blur-sm shadow-neo-inset rounded-xl p-6 border border-gray-200/50 text-center">
-                          <img src={ICONS.WLFI} alt="WLFI" className="w-16 h-16 rounded-full mx-auto mb-3 border-2 border-white shadow-lg" />
-                          <div className="text-gray-900 font-semibold text-lg">WLFI</div>
-                          <div className="text-sm text-yellow-600 font-medium">${data.wlfiPrice}</div>
-                          <div className="text-xs text-gray-500 mt-1">World Liberty Financial</div>
+                        <div className="bg-gradient-to-br from-white/50 to-white/30 dark:from-gray-800/50 dark:to-gray-900/30 backdrop-blur-sm shadow-neo-inset rounded-xl p-6 border border-gray-200/50 dark:border-gray-700/50 text-center">
+                          <img src={ICONS.WLFI} alt="WLFI" className="w-16 h-16 rounded-full mx-auto mb-3 border-2 border-white dark:border-gray-700 shadow-lg" />
+                          <div className="text-gray-900 dark:text-white font-semibold text-lg">WLFI</div>
+                          <div className="text-sm text-yellow-600 dark:text-yellow-400 font-medium">${data.wlfiPrice}</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">World Liberty Financial</div>
                       </div>
-                        <div className="bg-gradient-to-br from-white/50 to-white/30 backdrop-blur-sm shadow-neo-inset rounded-xl p-6 border border-gray-200/50 text-center">
-                          <img src={ICONS.USD1} alt="USD1" className="w-16 h-16 rounded-full mx-auto mb-3 border-2 border-white shadow-lg" />
-                          <div className="text-gray-900 font-semibold text-lg">USD1</div>
-                          <div className="text-sm text-yellow-600 font-medium">${data.usd1Price}</div>
-                          <div className="text-xs text-gray-500 mt-1">Stablecoin</div>
+                        <div className="bg-gradient-to-br from-white/50 to-white/30 dark:from-gray-800/50 dark:to-gray-900/30 backdrop-blur-sm shadow-neo-inset rounded-xl p-6 border border-gray-200/50 dark:border-gray-700/50 text-center">
+                          <img src={ICONS.USD1} alt="USD1" className="w-16 h-16 rounded-full mx-auto mb-3 border-2 border-white dark:border-gray-700 shadow-lg" />
+                          <div className="text-gray-900 dark:text-white font-semibold text-lg">USD1</div>
+                          <div className="text-sm text-yellow-600 dark:text-yellow-400 font-medium">${data.usd1Price}</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Stablecoin</div>
                     </div>
                   </div>
                     </div>
 
                     {/* Vault Contract */}
                     <div className="max-w-2xl mx-auto">
-                      <h4 className="text-gray-900 font-semibold mb-4 text-center">Vault Contract</h4>
-                      <div className="bg-gradient-to-br from-white/50 to-white/30 backdrop-blur-sm shadow-neo-inset rounded-xl p-6 border border-gray-200/50">
+                      <h4 className="text-gray-900 dark:text-white font-semibold mb-4 text-center">Vault Contract</h4>
+                      <div className="bg-gradient-to-br from-white/50 to-white/30 dark:from-gray-800/50 dark:to-gray-900/30 backdrop-blur-sm shadow-neo-inset rounded-xl p-6 border border-gray-200/50 dark:border-gray-700/50">
                             <a 
                               href={`https://etherscan.io/address/${CONTRACTS.VAULT}`}
                               target="_blank"
                               rel="noopener noreferrer"
                           className="flex justify-between items-center group"
                         >
-                          <span className="text-gray-700 text-sm">ERC-4626 Vault</span>
-                          <div className="flex items-center gap-2 text-yellow-600 hover:text-yellow-700 transition-colors">
+                          <span className="text-gray-700 dark:text-gray-300 text-sm">ERC-4626 Vault</span>
+                          <div className="flex items-center gap-2 text-yellow-600 dark:text-yellow-400 hover:text-yellow-700 dark:hover:text-yellow-300 transition-colors">
                             <code className="text-xs font-mono">
                               {CONTRACTS.VAULT.slice(0, 6)}...{CONTRACTS.VAULT.slice(-4)}
                             </code>

@@ -47,10 +47,10 @@ export const NeoInput = ({
           placeholder={placeholder}
           className="
             w-full px-4 py-3 rounded-2xl
-            bg-neo-bg dark:bg-gray-800 
-            shadow-neo-pressed dark:shadow-[inset_8px_8px_16px_rgba(0,0,0,0.3),inset_-8px_-8px_16px_rgba(255,255,255,0.05)]
-            focus:shadow-neo-raised dark:focus:shadow-[8px_8px_16px_rgba(0,0,0,0.3),-8px_-8px_16px_rgba(255,255,255,0.05)]
-            text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-500
+            bg-neo-bg dark:bg-gray-900 
+            shadow-neo-pressed dark:shadow-[inset_8px_8px_16px_rgba(0,0,0,0.8),inset_-8px_-8px_16px_rgba(255,255,255,0.03)]
+            focus:shadow-neo-raised dark:focus:shadow-[8px_8px_16px_rgba(0,0,0,0.8),-8px_-8px_16px_rgba(255,255,255,0.03)]
+            text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-600
             text-lg font-medium
             focus:outline-none
             transition-all duration-300

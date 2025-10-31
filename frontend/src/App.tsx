@@ -70,7 +70,7 @@ function AppContent() {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-neo-bg dark:bg-gray-900 transition-colors">
+    <div className="h-screen flex flex-col bg-neo-bg dark:bg-black transition-colors">
       {/* Fixed Header */}
       <div className="relative z-20 flex-shrink-0">
         <ModernHeader />
@@ -86,7 +86,7 @@ function AppContent() {
       </div>
 
       {/* Fixed Footer */}
-      <footer className="relative z-20 flex-shrink-0 border-t border-gray-300 dark:border-gray-700 bg-neo-bg/95 dark:bg-gray-900/95 backdrop-blur-xl shadow-neo-pressed transition-colors">
+      <footer className="relative z-20 flex-shrink-0 border-t border-gray-300 dark:border-gray-800 bg-neo-bg/95 dark:bg-black/95 backdrop-blur-xl shadow-neo-pressed transition-colors">
         <div className="container mx-auto px-6 py-4">
           <div className="flex flex-col md:flex-row justify-between items-center gap-3">
             <div className="flex items-center gap-3">
