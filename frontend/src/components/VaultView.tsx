@@ -139,8 +139,8 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
       const [vaultWlfiBal, vaultUsd1Bal, strategyWlfiBal, strategyUsd1Bal] = await Promise.all([
         wlfi.balanceOf(CONTRACTS.VAULT),
         usd1.balanceOf(CONTRACTS.VAULT),
-        wlfi.balanceOf(CONTRACTS.CHARM_VAULT),
-        usd1.balanceOf(CONTRACTS.CHARM_VAULT),
+        wlfi.balanceOf(CONTRACTS.STRATEGY), // Strategy contract holds the tokens
+        usd1.balanceOf(CONTRACTS.STRATEGY), // Strategy contract holds the tokens
       ]);
       
       vaultLiquidWLFI = formatEther(vaultWlfiBal);
@@ -336,8 +336,8 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
           vault.totalSupply(),
           wlfi.balanceOf(CONTRACTS.VAULT),
           usd1.balanceOf(CONTRACTS.VAULT),
-          wlfi.balanceOf(CONTRACTS.CHARM_VAULT),
-          usd1.balanceOf(CONTRACTS.CHARM_VAULT),
+          wlfi.balanceOf(CONTRACTS.STRATEGY),
+          usd1.balanceOf(CONTRACTS.STRATEGY),
         ]);
         
         const supply = Number(formatEther(totalSupply));
@@ -428,8 +428,8 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
       
       // Get strategy balances too for total calculation
       const [strategyWlfiBal, strategyUsd1Bal] = await Promise.all([
-        wlfi.balanceOf(CONTRACTS.CHARM_VAULT),
-        usd1.balanceOf(CONTRACTS.CHARM_VAULT),
+        wlfi.balanceOf(CONTRACTS.STRATEGY),
+        usd1.balanceOf(CONTRACTS.STRATEGY),
       ]);
       
       const strategyWlfi = Number(formatEther(strategyWlfiBal));
@@ -1018,13 +1018,13 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
                           </div>
                         </div>
 
-                        {/* Charm Vault */}
+                        {/* Charm Strategy */}
                         <div>
-                          <div className="text-xs text-gray-600 font-medium mb-2 uppercase tracking-wider">Charm Finance Vault</div>
+                          <div className="text-xs text-gray-600 font-medium mb-2 uppercase tracking-wider">Charm Strategy (CharmStrategyUSD1)</div>
                           <div className="flex items-center justify-between bg-white/50 border border-gray-300 rounded-lg p-3 hover:border-yellow-400 transition-colors">
-                            <code className="text-xs font-mono text-yellow-700 font-medium">{CONTRACTS.CHARM_VAULT}</code>
+                            <code className="text-xs font-mono text-yellow-700 font-medium">{CONTRACTS.STRATEGY}</code>
                             <a 
-                              href={`https://etherscan.io/address/${CONTRACTS.CHARM_VAULT}`}
+                              href={`https://etherscan.io/address/${CONTRACTS.STRATEGY}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-gray-600 hover:text-yellow-600 transition-colors"
