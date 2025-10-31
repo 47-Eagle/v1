@@ -18,42 +18,46 @@ function StrategyRow({ strategy, wlfiPrice }: { strategy: any; wlfiPrice?: strin
 
   return (
     <div className="bg-gradient-to-br from-white/50 to-white/30 backdrop-blur-sm shadow-neo-inset rounded-xl border border-gray-200/50 overflow-hidden transition-all">
-      {/* Header - Always Visible */}
+      {/* Header - Always Visible - Aligned Columns */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full px-6 py-4 flex items-center justify-between hover:bg-white/30 transition-all"
+        className="w-full px-6 py-4 hover:bg-white/30 transition-all"
       >
-        <div className="flex items-center gap-4">
-          <div className="px-3 py-1 bg-yellow-100 border border-yellow-400 rounded-lg">
+        <div className="grid grid-cols-[auto_auto_1fr_auto] gap-4 items-center">
+          {/* Column 1: Strategy Badge */}
+          <div className="px-3 py-1 bg-yellow-100 border border-yellow-400 rounded-lg w-[90px] text-center">
             <span className="text-xs font-semibold text-yellow-700">Strategy {strategy.id}</span>
           </div>
           
+          {/* Column 2: Status Badge */}
           {strategy.status === 'active' ? (
-            <div className="flex items-center gap-2 px-3 py-1 bg-green-100 rounded-full">
+            <div className="flex items-center gap-2 px-3 py-1 bg-green-100 rounded-full w-[110px] justify-center">
               <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
               <span className="text-xs text-green-700 font-medium">Active</span>
             </div>
           ) : (
-            <div className="flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-full">
+            <div className="flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-full w-[110px] justify-center">
               <div className="w-1.5 h-1.5 bg-gray-400 rounded-full"></div>
               <span className="text-xs text-gray-600 font-medium">Coming Soon</span>
             </div>
           )}
           
+          {/* Column 3: Name & Protocol */}
           <div className="text-left">
             <h4 className="text-gray-900 font-semibold text-base">{strategy.name}</h4>
             <p className="text-xs text-gray-500">{strategy.protocol}</p>
           </div>
+          
+          {/* Column 4: Expand Arrow */}
+          <svg 
+            className={`w-5 h-5 text-gray-600 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
         </div>
-        
-        <svg 
-          className={`w-5 h-5 text-gray-600 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
-          fill="none" 
-          stroke="currentColor" 
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
       </button>
 
       {/* Expanded Content */}
