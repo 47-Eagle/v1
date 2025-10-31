@@ -1,0 +1,417 @@
+name: Deploy Multi-Chain
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+      chains:
+        description: 'Chains to deploy (comma-separated: ethereum,bsc,arbitrum,base,avalanche or "all")'
+        required: true
+        default: 'all'
+      verify:
+        description: 'Verify contracts on Etherscan'
+        required: true
+        type: boolean
+        default: true
+
+env:
+  FOUNDRY_PROFILE: default
+
+jobs:
+  pre-deployment-checks:
+    name: Pre-Deployment Checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.1
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run pre-deployment checks
+        run: pnpm precheck
+        env:
+          ETHEREUM_RPC_URL: ${{ secrets.ETHEREUM_RPC_URL }}
+
+      - name: Validate deployment configuration
+        run: pnpm validate:system
+
+  deploy-ethereum:
+    name: Deploy to Ethereum (Hub)
+    runs-on: ubuntu-latest
+    needs: pre-deployment-checks
+    if: contains(github.event.inputs.chains, 'ethereum') || github.event.inputs.chains == 'all'
+    environment:
+      name: ${{ github.event.inputs.environment }}-ethereum
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.1
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Deploy to Ethereum
+        run: |
+          pnpm deploy:production:forge
+        env:
+          ETHEREUM_RPC_URL: ${{ secrets.ETHEREUM_RPC_URL }}
+          PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+          ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+
+      - name: Save deployment artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-ethereum
+          path: |
+            broadcast/
+            deployments/ethereum/
+          retention-days: 90
+
+      - name: Verify contracts
+        if: github.event.inputs.verify == 'true'
+        run: |
+          forge verify-contract --chain ethereum --watch
+        env:
+          ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+
+  deploy-bsc:
+    name: Deploy to BSC (Spoke)
+    runs-on: ubuntu-latest
+    needs: [pre-deployment-checks, deploy-ethereum]
+    if: contains(github.event.inputs.chains, 'bsc') || github.event.inputs.chains == 'all'
+    environment:
+      name: ${{ github.event.inputs.environment }}-bsc
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.1
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Deploy to BSC
+        run: |
+          npx hardhat lz:deploy --tags ovault --networks bsc
+        env:
+          PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+
+      - name: Configure BSC connections
+        run: pnpm configure:bsc
+        env:
+          PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+
+      - name: Save deployment artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-bsc
+          path: deployments/bsc/
+          retention-days: 90
+
+  deploy-arbitrum:
+    name: Deploy to Arbitrum (Spoke)
+    runs-on: ubuntu-latest
+    needs: [pre-deployment-checks, deploy-ethereum]
+    if: contains(github.event.inputs.chains, 'arbitrum') || github.event.inputs.chains == 'all'
+    environment:
+      name: ${{ github.event.inputs.environment }}-arbitrum
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.1
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Deploy to Arbitrum
+        run: |
+          npx hardhat lz:deploy --tags ovault --networks arbitrum
+        env:
+          PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+
+      - name: Configure Arbitrum connections
+        run: pnpm configure:arbitrum
+        env:
+          PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+
+      - name: Save deployment artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-arbitrum
+          path: deployments/arbitrum/
+          retention-days: 90
+
+  deploy-base:
+    name: Deploy to Base (Spoke)
+    runs-on: ubuntu-latest
+    needs: [pre-deployment-checks, deploy-ethereum]
+    if: contains(github.event.inputs.chains, 'base') || github.event.inputs.chains == 'all'
+    environment:
+      name: ${{ github.event.inputs.environment }}-base
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.1
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Deploy to Base
+        run: |
+          npx hardhat lz:deploy --tags ovault --networks base
+        env:
+          PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+
+      - name: Configure Base connections
+        run: pnpm configure:base
+        env:
+          PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+
+      - name: Save deployment artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-base
+          path: deployments/base/
+          retention-days: 90
+
+  deploy-avalanche:
+    name: Deploy to Avalanche (Spoke)
+    runs-on: ubuntu-latest
+    needs: [pre-deployment-checks, deploy-ethereum]
+    if: contains(github.event.inputs.chains, 'avalanche') || github.event.inputs.chains == 'all'
+    environment:
+      name: ${{ github.event.inputs.environment }}-avalanche
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.1
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Deploy to Avalanche
+        run: |
+          npx hardhat lz:deploy --tags ovault --networks avalanche
+        env:
+          PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+
+      - name: Configure Avalanche connections
+        run: pnpm configure:avalanche
+        env:
+          PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+
+      - name: Save deployment artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-avalanche
+          path: deployments/avalanche/
+          retention-days: 90
+
+  configure-cross-chain:
+    name: Configure Cross-Chain Connections
+    runs-on: ubuntu-latest
+    needs: [deploy-bsc, deploy-arbitrum, deploy-base, deploy-avalanche]
+    if: always() && !cancelled()
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.1
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Configure all chains
+        run: pnpm configure:all
+        env:
+          PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+          ETHEREUM_RPC_URL: ${{ secrets.ETHEREUM_RPC_URL }}
+
+      - name: Verify all peers
+        run: |
+          pnpm verify:bsc
+          pnpm verify:arbitrum
+          pnpm verify:base
+          pnpm verify:avalanche
+        env:
+          PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+
+  deploy-frontend:
+    name: Deploy Frontend to Vercel
+    runs-on: ubuntu-latest
+    needs: [deploy-ethereum]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.1
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Pull Vercel Environment
+        run: |
+          vercel pull --yes --environment=${{ github.event.inputs.environment }} --token=${{ secrets.VERCEL_TOKEN }}
+        working-directory: frontend
+
+      - name: Build Project
+        run: vercel build ${{ github.event.inputs.environment == 'production' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}
+        working-directory: frontend
+        env:
+          VITE_ETHEREUM_RPC_URL: ${{ secrets.ETHEREUM_RPC_URL }}
+
+      - name: Deploy to Vercel
+        run: |
+          vercel deploy ${{ github.event.inputs.environment == 'production' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}
+        working-directory: frontend
+
+  post-deployment-tests:
+    name: Post-Deployment Tests
+    runs-on: ubuntu-latest
+    needs: [configure-cross-chain, deploy-frontend]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.1
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run integration tests
+        run: |
+          npx ts-node scripts/deployment/post-deployment-tests.ts
+        env:
+          ETHEREUM_RPC_URL: ${{ secrets.ETHEREUM_RPC_URL }}
+          PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+
+      - name: Health check all chains
+        run: |
+          npx ts-node scripts/deployment/health-check.ts
+        env:
+          ETHEREUM_RPC_URL: ${{ secrets.ETHEREUM_RPC_URL }}
+
+  notify:
+    name: Deployment Notification
+    runs-on: ubuntu-latest
+    needs: [post-deployment-tests]
+    if: always()
+    steps:
+      - name: Send Slack notification
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "Eagle OVault Deployment ${{ job.status }}",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "Deployment to *${{ github.event.inputs.environment }}* ${{ job.status }}\nChains: ${{ github.event.inputs.chains }}\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+

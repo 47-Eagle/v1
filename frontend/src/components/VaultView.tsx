@@ -7,160 +7,10 @@ import { getActiveStrategies } from '../config/strategies';
 import { ErrorBoundary } from './ErrorBoundary';
 import AssetAllocationSunburst from './AssetAllocationSunburst';
 import { NeoTabs, NeoButton, NeoInput, NeoStatCard, NeoCard, NeoStatusIndicator } from './neumorphic';
-import { UniswapBadge, CharmBadge, LayerZeroBadge } from './tech-stack';
+import { ProductionStatusBadge } from './ProductionStatusBadge';
 
 // Lazy load 3D visualization
 const VaultVisualization = lazy(() => import('./VaultVisualization'));
-
-// Strategy Row Component with Dropdown
-function StrategyRow({ strategy, wlfiPrice }: { strategy: any; wlfiPrice?: string }) {
-  const [isExpanded, setIsExpanded] = useState(strategy.status === 'active');
-
-  return (
-    <div className="bg-gradient-to-br from-white/50 to-white/30 backdrop-blur-sm shadow-neo-inset rounded-xl border border-gray-200/50 overflow-hidden transition-all">
-      {/* Header - Always Visible - Aligned Columns */}
-      <button
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full px-6 py-4 hover:bg-white/30 transition-all"
-      >
-        <div className="grid grid-cols-[auto_auto_1fr_auto_auto] gap-4 items-center">
-          {/* Column 1: Strategy Badge */}
-          <div className="px-3 py-1 bg-yellow-100 border border-yellow-400 rounded-lg w-[90px] text-center">
-            <span className="text-xs font-semibold text-yellow-700">Strategy {strategy.id}</span>
-          </div>
-          
-          {/* Column 2: Status Badge */}
-          {strategy.status === 'active' ? (
-            <div className="flex items-center gap-2 px-3 py-1 bg-green-100 rounded-full w-[110px] justify-center">
-              <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-xs text-green-700 font-medium">Active</span>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-full w-[110px] justify-center">
-              <div className="w-1.5 h-1.5 bg-gray-400 rounded-full"></div>
-              <span className="text-xs text-gray-600 font-medium">Coming Soon</span>
-            </div>
-          )}
-          
-          {/* Column 3: Name & Protocol */}
-          <div className="text-left">
-            <h4 className="text-gray-900 font-semibold text-base">{strategy.name}</h4>
-            <p className="text-xs text-gray-500">{strategy.protocol}</p>
-          </div>
-          
-          {/* Column 4: Allocation Badge */}
-          {strategy.allocation && (
-            <div className="px-3 py-1 bg-gradient-to-r from-yellow-50 to-yellow-100 border border-yellow-400 rounded-lg min-w-[70px] text-center">
-              <span className="text-sm font-bold text-yellow-700">{strategy.allocation}</span>
-            </div>
-          )}
-          
-          {/* Column 5: Expand Arrow */}
-          <svg 
-            className={`w-5 h-5 text-gray-600 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </div>
-      </button>
-
-      {/* Expanded Content */}
-      {isExpanded && (
-        <div className="px-6 pb-6 pt-2 border-t border-gray-200/50 animate-fadeIn">
-          {/* 3D Visualization for Strategy 1 */}
-          {strategy.id === 1 && wlfiPrice && (
-            <div className="mb-6">
-              <ErrorBoundary fallback={
-                <div className="bg-orange-50 border border-orange-300 rounded-lg p-4 text-center">
-                  <p className="text-xs text-orange-700">3D visualization unavailable</p>
-                </div>
-              }>
-                <Suspense fallback={
-                  <div className="bg-white/30 rounded-lg p-6 flex items-center justify-center h-64">
-                    <div className="text-center">
-                      <svg className="animate-spin w-8 h-8 mx-auto mb-2 text-yellow-600" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      <p className="text-xs text-gray-600">Loading...</p>
-                    </div>
-                  </div>
-                }>
-                  <VaultVisualization currentPrice={Number(wlfiPrice)} />
-                </Suspense>
-              </ErrorBoundary>
-            </div>
-          )}
-          
-          <p className="text-gray-600 text-sm mb-4">{strategy.description}</p>
-          
-          {strategy.status === 'active' && (
-            <>
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                {strategy.pool && (
-                  <div>
-                    <div className="text-xs text-gray-500 mb-1">Pool</div>
-                    <div className="text-gray-900 font-medium">{strategy.pool}</div>
-                  </div>
-                )}
-                {strategy.feeTier && (
-                  <div>
-                    <div className="text-xs text-gray-500 mb-1">Fee Tier</div>
-                    <div className="text-gray-900 font-medium">{strategy.feeTier}</div>
-                  </div>
-                )}
-              </div>
-
-              {strategy.analytics && (
-                <a 
-                  href={strategy.analytics} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="text-yellow-600 hover:text-yellow-700 font-medium text-sm inline-flex items-center gap-2 transition-colors mb-4"
-                >
-                  View Analytics on Charm Finance
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
-                </a>
-              )}
-
-              {strategy.contract && (
-                <div className="bg-white/50 rounded-lg p-4 border border-gray-200/50 mt-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-600 font-medium">Strategy Contract</span>
-                    <a 
-                      href={`https://etherscan.io/address/${strategy.contract}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-yellow-600 hover:text-yellow-700 transition-colors"
-                    >
-                      <code className="text-xs font-mono">
-                        {strategy.contract.slice(0, 6)}...{strategy.contract.slice(-4)}
-                      </code>
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                      </svg>
-                    </a>
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-          
-          {strategy.status === 'coming-soon' && (
-            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 text-center">
-              <p className="text-sm text-gray-600">This strategy will be available in a future update.</p>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
 
 const VAULT_ABI = [
   'function totalAssets() view returns (uint256)',
@@ -201,7 +51,6 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
 
   const [refreshing, setRefreshing] = useState(false);
 
-  // PRODUCTION: All values reset to 0 - fresh deployment
   const [data, setData] = useState({
     totalAssets: '0',
     totalSupply: '0',
@@ -215,10 +64,10 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
     expectedWithdrawWLFI: '0',
     expectedWithdrawUSD1: '0',
     maxRedeemable: '0',
-    vaultLiquidWLFI: '0', // Production: Empty vault
-    vaultLiquidUSD1: '0', // Production: Empty vault
-    strategyWLFI: '0', // Production: No strategy deposits yet
-    strategyUSD1: '0', // Production: No strategy deposits yet
+    vaultLiquidWLFI: '0',
+    vaultLiquidUSD1: '0',
+    strategyWLFI: '0',
+    strategyUSD1: '0',
     liquidTotal: '0',
     strategyTotal: '0',
     currentFeeApr: '0',
@@ -290,8 +139,8 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
       const [vaultWlfiBal, vaultUsd1Bal, strategyWlfiBal, strategyUsd1Bal] = await Promise.all([
         wlfi.balanceOf(CONTRACTS.VAULT),
         usd1.balanceOf(CONTRACTS.VAULT),
-        wlfi.balanceOf(CONTRACTS.STRATEGY), // Strategy contract holds the tokens
-        usd1.balanceOf(CONTRACTS.STRATEGY), // Strategy contract holds the tokens
+        wlfi.balanceOf(CONTRACTS.CHARM_VAULT),
+        usd1.balanceOf(CONTRACTS.CHARM_VAULT),
       ]);
       
       vaultLiquidWLFI = formatEther(vaultWlfiBal);
@@ -487,8 +336,8 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
           vault.totalSupply(),
           wlfi.balanceOf(CONTRACTS.VAULT),
           usd1.balanceOf(CONTRACTS.VAULT),
-          wlfi.balanceOf(CONTRACTS.STRATEGY),
-          usd1.balanceOf(CONTRACTS.STRATEGY),
+          wlfi.balanceOf(CONTRACTS.CHARM_VAULT),
+          usd1.balanceOf(CONTRACTS.CHARM_VAULT),
         ]);
         
         const supply = Number(formatEther(totalSupply));
@@ -579,8 +428,8 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
       
       // Get strategy balances too for total calculation
       const [strategyWlfiBal, strategyUsd1Bal] = await Promise.all([
-        wlfi.balanceOf(CONTRACTS.STRATEGY),
-        usd1.balanceOf(CONTRACTS.STRATEGY),
+        wlfi.balanceOf(CONTRACTS.CHARM_VAULT),
+        usd1.balanceOf(CONTRACTS.CHARM_VAULT),
       ]);
       
       const strategyWlfi = Number(formatEther(strategyWlfiBal));
@@ -712,7 +561,7 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
   };
 
   return (
-    <div className="bg-neo-bg dark:bg-gray-900 min-h-screen pb-24 transition-colors">
+    <div className="bg-neo-bg min-h-screen pb-24">
       <div className="max-w-6xl mx-auto px-6 pt-6 pb-24">
         {/* Back Button */}
         {onNavigateUp ? (
@@ -746,20 +595,17 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
             className="w-16 h-16 rounded-2xl"
           />
           <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-3xl font-bold text-gray-900">Eagle Vault</h1>
-              <div className="flex items-center gap-2">
-                <img src={ICONS.WLFI} alt="WLFI" className="w-8 h-8 rounded-full border-2 border-white shadow-lg" />
-                <img src={ICONS.USD1} alt="USD1" className="w-8 h-8 rounded-full border-2 border-white shadow-lg" />
-              </div>
-            </div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-1">Eagle Vault</h1>
             <p className="text-sm text-gray-600 font-mono">{CONTRACTS.VAULT}</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3 relative z-10">
+            <div className="relative z-50">
+              <ProductionStatusBadge />
+            </div>
             <NeoButton
               onClick={handleSyncBalances}
               label="Sync Vault"
-              className="!px-4 !py-2 !text-sm !bg-yellow-400 !text-gray-900"
+              className="!px-4 !py-2 !text-sm !bg-yellow-400 !text-gray-900 relative"
             />
             <NeoButton
               onClick={handleRefresh}
@@ -775,7 +621,7 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
               }
-              className="!px-3 !py-2 !w-auto !rounded-full"
+              className="!px-3 !py-2 !w-auto !rounded-full relative"
             />
             <div className="flex items-center gap-2 px-4 py-2 bg-neo-bg shadow-neo-raised rounded-full">
               <img 
@@ -809,23 +655,13 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
         <div className="grid grid-cols-3 gap-4 mb-8">
           <NeoStatCard
             label="Total deposited"
-            value={(() => {
-              const totalWLFI = Number(data.vaultLiquidWLFI) + Number(data.strategyWLFI);
-              const totalUSD1 = Number(data.vaultLiquidUSD1) + Number(data.strategyUSD1);
-              const totalUSD = (totalWLFI * Number(data.wlfiPrice)) + (totalUSD1 * Number(data.usd1Price));
-              return `$${totalUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-            })()}
-            subtitle={(() => {
-              const totalWLFI = Number(data.vaultLiquidWLFI) + Number(data.strategyWLFI);
-              const totalUSD1 = Number(data.vaultLiquidUSD1) + Number(data.strategyUSD1);
-              return `${totalWLFI.toFixed(2)} WLFI + ${totalUSD1.toFixed(2)} USD1`;
-            })()}
+            value={Number(data.totalAssets).toLocaleString(undefined, { maximumFractionDigits: 2 })}
+            subtitle={`$${Number(data.totalAssets).toFixed(2)}`}
           />
           <NeoStatCard
-            label="Current APY"
-            value={data.weeklyApy !== '0' ? `${data.weeklyApy}%` : 'N/A'}
+            label="Historical APY"
+            value="22.22%"
             highlighted
-            subtitle={data.weeklyApy !== '0' ? 'From Charm Finance' : 'Loading...'}
           />
           <NeoStatCard
             label="Your position"
@@ -950,13 +786,14 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
 
           {/* Right - Info Tabs */}
           <div className="lg:col-span-2">
-            <NeoCard className="!p-0">
+            <NeoCard className="!p-0 overflow-hidden">
               {/* Tab Headers */}
-              <div className="px-6 pt-6 pb-3 border-b border-gray-200/50">
+              <div className="p-3">
                 <NeoTabs
                   tabs={[
-                    { id: 'about', label: 'Vault' },
+                    { id: 'about', label: 'About' },
                     { id: 'strategies', label: 'Strategies' },
+                    { id: 'info', label: 'Info' },
                   ]}
                   defaultTab={infoTab}
                   onChange={(tabId) => setInfoTab(tabId as 'about' | 'strategies' | 'info')}
@@ -964,162 +801,483 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
               </div>
 
               {/* Tab Content */}
-              <div className="p-8">
+              <div className="p-6">
                 {infoTab === 'about' && (
-                  <div className="space-y-8">
-                    {/* Vault Description */}
-                    <div className="text-center max-w-2xl mx-auto">
-                      <h3 className="text-gray-900 font-semibold text-lg mb-3">ERC-4626 Tokenized Vault</h3>
-                      <p className="text-gray-600 leading-relaxed">
-                        A standardized vault accepting{' '}
-                        <a href="https://worldlibertyfinancial.com/" target="_blank" rel="noopener noreferrer" className="text-yellow-600 hover:text-yellow-700 font-semibold">
+                  <div className="grid grid-cols-2 gap-8">
+                    <div>
+                      <h3 className="text-gray-900 font-bold mb-3 text-lg">Description</h3>
+                      <p className="text-sm text-gray-700 leading-relaxed mb-6">
+                        Deposit your{' '}
+                        <a href="https://worldlibertyfinancial.com/" target="_blank" rel="noopener noreferrer" className="text-yellow-600 hover:text-yellow-700 underline font-medium">
                           WLFI
-                        </a>
-                        {' '}and{' '}
-                        <a href="https://worldlibertyfinancial.com/usd1" target="_blank" rel="noopener noreferrer" className="text-yellow-600 hover:text-yellow-700 font-semibold">
+                        </a>{' '}
+                        and{' '}
+                        <a href="https://worldlibertyfinancial.com/usd1" target="_blank" rel="noopener noreferrer" className="text-yellow-600 hover:text-yellow-700 underline font-medium">
                           USD1
-                        </a>
-                        , issuing vEAGLE shares that represent proportional ownership and automatically compound yields.
+                        </a>{' '}
+                        into Eagle's auto-compounding vault and start earning yield immediately.
                       </p>
+
+                      <h3 className="text-gray-900 font-bold mb-4 text-lg">Fee Structure</h3>
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-start py-3 border-b border-gray-300">
+                          <div>
+                            <span className="text-gray-900 font-semibold block mb-1">Deposit Fee</span>
+                            <p className="text-xs text-gray-600">One-time fee on deposits</p>
+                          </div>
+                          <span className="text-gray-900 font-bold text-lg">1%</span>
                         </div>
                         
-                    {/* Bootstrapping Notice */}
-                    <div className="max-w-2xl mx-auto">
-                      <div className="bg-gradient-to-r from-blue-50 to-blue-100 border-2 border-blue-400 rounded-xl p-6 shadow-neo-inset">
-                        <div className="flex items-start gap-3">
-                          <div className="flex-shrink-0 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center mt-0.5">
-                            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
+                        <div className="flex justify-between items-start py-3 border-b border-gray-300">
+                          <div>
+                            <span className="text-gray-900 font-semibold block mb-1">Withdrawal Fee</span>
+                            <p className="text-xs text-gray-600">One-time fee on withdrawals</p>
                           </div>
-                          <div className="flex-1">
-                            <h4 className="text-blue-900 font-semibold mb-2">Bootstrapping Phase</h4>
-                            <p className="text-blue-800 text-sm leading-relaxed">
-                              We are currently in the bootstrapping phase and have temporarily disabled deposits and withdrawals. 
-                              We are carefully easing capital into strategies as a safety precaution to ensure optimal performance and security. 
-                              Thank you for your patience.
+                          <span className="text-gray-900 font-bold text-lg">2%</span>
+                        </div>
+                        
+                        <div className="flex justify-between items-start py-3 border-b-2 border-yellow-400 bg-yellow-50/50 -mx-2 px-2 rounded">
+                          <div>
+                            <span className="text-gray-900 font-semibold block mb-1">Performance Fee</span>
+                            <p className="text-xs text-gray-600 mb-2">Charged on profits earned only</p>
+                            <p className="text-xs text-gray-700">
+                              • 3.7% to Eagle Vault<br />
+                              • 1% to Charm Finance
                             </p>
                           </div>
+                          <span className="text-yellow-700 font-bold text-lg">4.7%</span>
                         </div>
                       </div>
                     </div>
 
-                    {/* Fee Structure */}
-                    <div className="max-w-2xl mx-auto">
-                      <h4 className="text-gray-900 font-semibold mb-4 text-center">Fee Structure</h4>
-                      <div className="grid grid-cols-3 gap-4">
-                        <div className="bg-gradient-to-br from-white/60 to-white/40 backdrop-blur-sm shadow-neo-inset rounded-xl p-5 border border-gray-200/50 hover:shadow-neo-hover transition-all">
-                          <div className="text-xs text-gray-600 font-medium mb-2">Deposit</div>
-                          <div className="text-2xl font-bold text-gray-900">1%</div>
+                    <div>
+                      <h3 className="text-gray-900 font-bold mb-4 text-lg">APY</h3>
+                      <div className="space-y-2 mb-6">
+                        <div className="flex justify-between items-center py-2 border-b border-gray-300">
+                          <span className="text-gray-700 font-medium text-sm">Weekly APY</span>
+                          <span className="text-gray-900 font-bold">32.27%</span>
                         </div>
-                        <div className="bg-gradient-to-br from-white/60 to-white/40 backdrop-blur-sm shadow-neo-inset rounded-xl p-5 border border-gray-200/50 hover:shadow-neo-hover transition-all">
-                          <div className="text-xs text-gray-600 font-medium mb-2">Withdrawal</div>
-                          <div className="text-2xl font-bold text-gray-900">2%</div>
+                        <div className="flex justify-between items-center py-2 border-b border-gray-300">
+                          <span className="text-gray-700 font-medium text-sm">Monthly APY</span>
+                          <span className="text-gray-900 font-bold">22.22%</span>
                         </div>
-                        <div className="bg-gradient-to-br from-yellow-50 to-yellow-100/80 shadow-neo-inset rounded-xl p-5 border-2 border-yellow-400/70 hover:shadow-neo-hover transition-all">
-                          <div className="text-xs text-gray-700 font-medium mb-2">Performance</div>
-                          <div className="text-2xl font-bold text-yellow-700">4.7%</div>
-                          <div className="text-xs text-gray-600 mt-2">On profits only</div>
+                        <div className="flex justify-between items-center py-2 border-b border-gray-300">
+                          <span className="text-gray-700 font-medium text-sm">Inception APY</span>
+                          <span className="text-gray-900 font-bold">117.91%</span>
                         </div>
+                        <div className="flex justify-between items-center py-3 border-2 border-yellow-400 bg-yellow-50 rounded-lg px-3 mt-2">
+                          <span className="text-gray-900 font-bold">Net APY</span>
+                          <span className="text-yellow-700 font-bold text-xl">22.22%</span>
                         </div>
                       </div>
 
-                    {/* Vault Assets */}
-                    <div className="max-w-xl mx-auto">
-                      <h4 className="text-gray-900 font-semibold mb-4 text-center">Accepted Assets</h4>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-gradient-to-br from-white/50 to-white/30 backdrop-blur-sm shadow-neo-inset rounded-xl p-6 border border-gray-200/50 text-center">
-                          <img src={ICONS.WLFI} alt="WLFI" className="w-16 h-16 rounded-full mx-auto mb-3 border-2 border-white shadow-lg" />
-                          <div className="text-gray-900 font-semibold text-lg">WLFI</div>
-                          <div className="text-sm text-yellow-600 font-medium">${data.wlfiPrice}</div>
-                          <div className="text-xs text-gray-500 mt-1">World Liberty Financial</div>
+                      <h3 className="text-gray-900 font-bold mb-4 text-lg">Cumulative Earnings</h3>
+                      <div className="bg-white/30 border border-gray-300 rounded-xl p-6 h-32">
+                        <svg className="w-full h-full" viewBox="0 0 100 30" preserveAspectRatio="none">
+                          <defs>
+                            <linearGradient id="line" x1="0%" y1="0%" x2="100%" y2="0%">
+                              <stop offset="0%" stopColor="#ca8a04" stopOpacity="0.8" />
+                              <stop offset="100%" stopColor="#eab308" stopOpacity="1" />
+                            </linearGradient>
+                          </defs>
+                          <polyline
+                            points="0,30 20,25 40,22 60,18 80,12 100,8"
+                            fill="none"
+                            stroke="url(#line)"
+                            strokeWidth="2"
+                          />
+                        </svg>
                       </div>
-                        <div className="bg-gradient-to-br from-white/50 to-white/30 backdrop-blur-sm shadow-neo-inset rounded-xl p-6 border border-gray-200/50 text-center">
-                          <img src={ICONS.USD1} alt="USD1" className="w-16 h-16 rounded-full mx-auto mb-3 border-2 border-white shadow-lg" />
-                          <div className="text-gray-900 font-semibold text-lg">USD1</div>
-                          <div className="text-sm text-yellow-600 font-medium">${data.usd1Price}</div>
-                          <div className="text-xs text-gray-500 mt-1">Stablecoin</div>
                     </div>
                   </div>
+                )}
+
+                {infoTab === 'strategies' && (
+                  <div className="space-y-6">
+                    {/* 3D Interactive Visualization */}
+                    <div>
+                      <h3 className="text-gray-900 font-bold text-lg mb-4">Interactive 3D Liquidity Visualization</h3>
+                      <ErrorBoundary fallback={
+                        <div className="bg-orange-50 border-2 border-orange-300 shadow-neo-pressed rounded-xl p-6">
+                          <p className="text-sm text-orange-700 font-medium">3D visualization unavailable. Your browser may not support WebGL.</p>
+                        </div>
+                      }>
+                        <Suspense fallback={
+                          <div className="bg-white/50 shadow-neo-pressed rounded-xl p-8 flex items-center justify-center h-96">
+                            <div className="text-center">
+                              <svg className="animate-spin w-12 h-12 mx-auto mb-4 text-yellow-600" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              <p className="text-sm text-gray-700 font-medium">Loading 3D visualization...</p>
+                            </div>
+                          </div>
+                        }>
+                          <VaultVisualization currentPrice={Number(data.wlfiPrice)} />
+                        </Suspense>
+                      </ErrorBoundary>
                     </div>
 
-                    {/* Vault Contract */}
-                    <div className="max-w-2xl mx-auto">
-                      <h4 className="text-gray-900 font-semibold mb-4 text-center">Vault Contract</h4>
-                      <div className="bg-gradient-to-br from-white/50 to-white/30 backdrop-blur-sm shadow-neo-inset rounded-xl p-6 border border-gray-200/50">
+                    {/* Active Strategy Details */}
+                    {getActiveStrategies().map((strategy) => (
+                      <div key={strategy.id} className="bg-white/30 border border-gray-300/50 rounded-xl p-6">
+                        <h3 className="text-gray-900 font-bold text-lg mb-4">{strategy.name}</h3>
+                        
+                        <div className="space-y-2 mb-6">
+                          <div className="flex justify-between items-center py-2 border-b border-gray-300">
+                            <span className="text-gray-700 font-medium text-sm">Protocol</span>
+                            <span className="text-gray-900 font-bold">{strategy.protocol}</span>
+                          </div>
+                          <div className="flex justify-between items-center py-2 border-b border-gray-300">
+                            <span className="text-gray-700 font-medium text-sm">Type</span>
+                            <span className="text-gray-900 font-bold capitalize">{strategy.type.replace('-', ' ')}</span>
+                          </div>
+                          {strategy.details?.pool && (
+                            <div className="flex justify-between items-center py-2 border-b border-gray-300">
+                              <span className="text-gray-700 font-medium text-sm">Pool</span>
+                              <span className="text-gray-900 font-bold">{strategy.details.pool}</span>
+                            </div>
+                          )}
+                          {strategy.details?.feeTier && (
+                            <div className="flex justify-between items-center py-2 border-b border-gray-300">
+                              <span className="text-gray-700 font-medium text-sm">Fee Tier</span>
+                              <span className="text-gray-900 font-bold">{strategy.details.feeTier}</span>
+                            </div>
+                          )}
+                          <div className="flex justify-between items-center py-2 border-b border-gray-300">
+                            <span className="text-gray-700 font-medium text-sm">Allocation</span>
+                            <span className="text-gray-900 font-bold">{strategy.allocation}%</span>
+                          </div>
+                          <div className="flex justify-between items-center py-2 bg-emerald-50 rounded-lg px-3 border-l-4 border-emerald-500">
+                            <span className="text-gray-900 font-semibold text-sm">Status</span>
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                              <span className="text-emerald-700 font-bold">Active</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="pt-4 border-t-2 border-gray-300">
+                          <h4 className="text-gray-900 font-bold mb-2 text-sm">Description</h4>
+                          <p className="text-sm text-gray-700 leading-relaxed mb-4">{strategy.description}</p>
+                          
+                          {strategy.links && strategy.links.analytics && (
+                            <a href={strategy.links.analytics} target="_blank" rel="noopener noreferrer" 
+                               className="inline-flex items-center text-sm text-yellow-700 hover:text-yellow-800 font-medium">
+                              View Analytics →
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {infoTab === 'info' && (
+                  <div className="space-y-6">
+                    {/* Smart Contracts */}
+                    <div>
+                      <h3 className="text-gray-900 font-bold text-lg mb-4 flex items-center gap-2">
+                        <svg className="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                        </svg>
+                        Smart Contracts
+                      </h3>
+                      <div className="bg-white/30 rounded-xl p-6 border border-gray-300/50 space-y-3">
+                        {/* Eagle Vault */}
+                        <div>
+                          <div className="text-xs text-gray-600 font-medium mb-2 uppercase tracking-wider">Eagle Vault Contract (ERC-4626)</div>
+                          <div className="flex items-center justify-between bg-white/50 border border-gray-300 rounded-lg p-3 hover:border-yellow-400 transition-colors">
+                            <code className="text-xs font-mono text-yellow-700 font-medium">{CONTRACTS.VAULT}</code>
                             <a 
                               href={`https://etherscan.io/address/${CONTRACTS.VAULT}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                          className="flex justify-between items-center group"
-                        >
-                          <span className="text-gray-700 text-sm">ERC-4626 Vault</span>
-                          <div className="flex items-center gap-2 text-yellow-600 hover:text-yellow-700 transition-colors">
-                            <code className="text-xs font-mono">
-                              {CONTRACTS.VAULT.slice(0, 6)}...{CONTRACTS.VAULT.slice(-4)}
-                            </code>
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              className="text-gray-600 hover:text-yellow-600 transition-colors"
+                              title="View on Etherscan"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                               </svg>
-                          </div>
                             </a>
                           </div>
                         </div>
-                          </div>
-                )}
 
-                {infoTab === 'strategies' && (
-                  <div className="space-y-8">
-                    {/* All 5 Strategies as Expandable Rows */}
-                    <div className="space-y-3">
-                      {[
-                        {
-                          id: 1,
-                          name: 'Charm USD1/WLFI Alpha Vault',
-                          protocol: 'Charm Finance',
-                          pool: 'USD1/WLFI',
-                          feeTier: '0.3%',
-                          allocation: '100%',
-                          status: 'active',
-                          description: 'Actively managed concentrated liquidity position on Uniswap V3, optimized for the USD1/WLFI 0.3% fee tier pool.',
-                          analytics: 'https://alpha.charm.fi/vault/1/0x47b2f57fb48177c02e9e219ad4f4e42d5f4f1a0c',
-                          contract: CONTRACTS.STRATEGY
-                        },
-                        {
-                          id: 2,
-                          name: 'Strategy 2',
-                          protocol: 'TBD',
-                          description: 'Additional yield strategy coming soon. Protocol and implementation details to be announced.',
-                          status: 'coming-soon',
-                          allocation: '0%'
-                        },
-                        {
-                          id: 3,
-                          name: 'Strategy 3',
-                          protocol: 'TBD',
-                          description: 'Additional yield strategy coming soon. Protocol and implementation details to be announced.',
-                          status: 'coming-soon',
-                          allocation: '0%'
-                        },
-                        {
-                          id: 4,
-                          name: 'Strategy 4',
-                          protocol: 'TBD',
-                          description: 'Additional yield strategy coming soon. Protocol and implementation details to be announced.',
-                          status: 'coming-soon',
-                          allocation: '0%'
-                        },
-                        {
-                          id: 5,
-                          name: 'Strategy 5',
-                          protocol: 'TBD',
-                          description: 'Additional yield strategy coming soon. Protocol and implementation details to be announced.',
-                          status: 'coming-soon',
-                          allocation: '0%'
-                        }
-                      ].map((strategy) => (
-                        <StrategyRow key={strategy.id} strategy={strategy} wlfiPrice={data.wlfiPrice} />
-                      ))}
+                        {/* Strategy Contract */}
+                        <div>
+                          <div className="text-xs text-gray-600 font-medium mb-2 uppercase tracking-wider">Strategy Contract</div>
+                          <div className="flex items-center justify-between bg-white/50 border border-gray-300 rounded-lg p-3 hover:border-yellow-400 transition-colors">
+                            <code className="text-xs font-mono text-yellow-700 font-medium">{CONTRACTS.STRATEGY}</code>
+                            <a 
+                              href={`https://etherscan.io/address/${CONTRACTS.STRATEGY}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-gray-600 hover:text-yellow-600 transition-colors"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                              </svg>
+                            </a>
+                          </div>
+                        </div>
+
+                        {/* Charm Vault */}
+                        <div>
+                          <div className="text-xs text-gray-600 font-medium mb-2 uppercase tracking-wider">Charm Finance Vault</div>
+                          <div className="flex items-center justify-between bg-white/50 border border-gray-300 rounded-lg p-3 hover:border-yellow-400 transition-colors">
+                            <code className="text-xs font-mono text-yellow-700 font-medium">{CONTRACTS.CHARM_VAULT}</code>
+                            <a 
+                              href={`https://etherscan.io/address/${CONTRACTS.CHARM_VAULT}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-gray-600 hover:text-yellow-600 transition-colors"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                              </svg>
+                            </a>
+                          </div>
+                        </div>
+
+                        {/* Wrapper */}
+                        <div>
+                          <div className="text-xs text-gray-600 font-medium mb-2 uppercase tracking-wider">Vault Wrapper Contract</div>
+                          <div className="flex items-center justify-between bg-white/50 border border-gray-300 rounded-lg p-3 hover:border-yellow-400 transition-colors">
+                            <code className="text-xs font-mono text-yellow-700 font-medium">{CONTRACTS.WRAPPER}</code>
+                            <a 
+                              href={`https://etherscan.io/address/${CONTRACTS.WRAPPER}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-gray-600 hover:text-yellow-600 transition-colors"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                              </svg>
+                            </a>
+                          </div>
+                        </div>
+
+                        {/* OFT */}
+                        <div>
+                          <div className="text-xs text-gray-600 font-medium mb-2 uppercase tracking-wider">LayerZero OFT Contract</div>
+                          <div className="flex items-center justify-between bg-white/50 border border-gray-300 rounded-lg p-3 hover:border-yellow-400 transition-colors">
+                            <code className="text-xs font-mono text-yellow-700 font-medium">{CONTRACTS.OFT}</code>
+                            <a 
+                              href={`https://etherscan.io/address/${CONTRACTS.OFT}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-gray-600 hover:text-yellow-600 transition-colors"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                              </svg>
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Token Contracts */}
+                    <div>
+                      <h3 className="text-gray-900 font-bold text-lg mb-4 flex items-center gap-2">
+                        <svg className="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Token Contracts
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* WLFI */}
+                        <div className="bg-white/30 border border-gray-300/50 rounded-xl p-5 hover:border-yellow-400 transition-colors">
+                          <div className="flex items-center gap-3 mb-4">
+                            <img src={ICONS.WLFI} alt="WLFI" className="w-10 h-10 rounded-full" />
+                            <div>
+                              <div className="text-sm font-bold text-gray-900">WLFI</div>
+                              <div className="text-xs text-gray-600">World Liberty Financial</div>
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-center">
+                              <span className="text-gray-700 font-medium text-xs">Price</span>
+                              <span className="text-gray-900 font-bold font-mono text-sm">${data.wlfiPrice}</span>
+                            </div>
+                            <div className="flex justify-between items-center pt-2 border-t border-gray-300">
+                              <span className="text-gray-700 font-medium text-xs">Contract</span>
+                              <a 
+                                href={`https://etherscan.io/token/${CONTRACTS.WLFI}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-yellow-700 hover:text-yellow-800 font-mono text-xs font-medium"
+                              >
+                                {CONTRACTS.WLFI.slice(0, 6)}...{CONTRACTS.WLFI.slice(-4)} →
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* USD1 */}
+                        <div className="bg-white/30 border border-gray-300/50 rounded-xl p-5 hover:border-yellow-400 transition-colors">
+                          <div className="flex items-center gap-3 mb-4">
+                            <img src={ICONS.USD1} alt="USD1" className="w-10 h-10 rounded-full" />
+                            <div>
+                              <div className="text-sm font-bold text-gray-900">USD1</div>
+                              <div className="text-xs text-gray-600">World Liberty Stablecoin</div>
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-center">
+                              <span className="text-gray-700 font-medium text-xs">Price</span>
+                              <span className="text-gray-900 font-bold font-mono text-sm">${data.usd1Price}</span>
+                            </div>
+                            <div className="flex justify-between items-center pt-2 border-t border-gray-300">
+                              <span className="text-gray-700 font-medium text-xs">Contract</span>
+                              <a 
+                                href={`https://etherscan.io/token/${CONTRACTS.USD1}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-yellow-700 hover:text-yellow-800 font-mono text-xs font-medium"
+                              >
+                                {CONTRACTS.USD1.slice(0, 6)}...{CONTRACTS.USD1.slice(-4)} →
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* WETH */}
+                        <div className="bg-white/30 border border-gray-300/50 rounded-xl p-5 hover:border-yellow-400 transition-colors">
+                          <div className="flex items-center gap-3 mb-4">
+                            <img src={ICONS.ETHEREUM} alt="WETH" className="w-10 h-10 rounded-full" />
+                            <div>
+                              <div className="text-sm font-bold text-gray-900">WETH</div>
+                              <div className="text-xs text-gray-600">Wrapped Ether</div>
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-center pt-2 border-t border-gray-300">
+                              <span className="text-gray-700 font-medium text-xs">Contract</span>
+                              <a 
+                                href={`https://etherscan.io/token/${CONTRACTS.WETH}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-yellow-700 hover:text-yellow-800 font-mono text-xs font-medium"
+                              >
+                                {CONTRACTS.WETH.slice(0, 6)}...{CONTRACTS.WETH.slice(-4)} →
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Technical Details */}
+                    <div>
+                      <h3 className="text-gray-900 font-bold text-lg mb-4">Technical Details</h3>
+                      <div className="bg-white/30 border border-gray-300/50 rounded-xl p-6">
+                        <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+                          <div className="flex justify-between items-center py-2 border-b border-gray-300">
+                            <span className="text-gray-700 font-medium text-sm">Vault Standard</span>
+                            <span className="text-gray-900 font-bold text-sm">ERC-4626</span>
+                          </div>
+                          <div className="flex justify-between items-center py-2 border-b border-gray-300">
+                            <span className="text-gray-700 font-medium text-sm">Network</span>
+                            <span className="text-gray-900 font-bold text-sm">Ethereum Mainnet</span>
+                          </div>
+                          <div className="flex justify-between items-center py-2 border-b border-gray-300">
+                            <span className="text-gray-700 font-medium text-sm">Share Token</span>
+                            <span className="text-gray-900 font-bold text-sm">vEAGLE</span>
+                          </div>
+                          <div className="flex justify-between items-center py-2 border-b border-gray-300">
+                            <span className="text-gray-700 font-medium text-sm">Chain ID</span>
+                            <span className="text-gray-900 font-bold font-mono text-sm">1</span>
+                          </div>
+                          <div className="flex justify-between items-center py-2 border-b border-gray-300">
+                            <span className="text-gray-700 font-medium text-sm">Total Supply</span>
+                            <span className="text-gray-900 font-bold font-mono text-sm">{Number(data.totalSupply).toFixed(2)}</span>
+                          </div>
+                          <div className="flex justify-between items-center py-2 border-b border-gray-300">
+                            <span className="text-gray-700 font-medium text-sm">Version</span>
+                            <span className="text-gray-900 font-bold text-sm">1.0</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Resources */}
+                    <div>
+                      <h3 className="text-gray-900 font-bold text-lg mb-4">Resources</h3>
+                      <div className="grid grid-cols-2 gap-4">
+                        <a 
+                          href="https://docs.47eagle.com" 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="bg-white/50 shadow-neo-raised hover:shadow-neo-raised-lift rounded-xl p-5 transition-all group"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 bg-blue-100 rounded-lg shadow-neo-pressed">
+                              <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                              </svg>
+                            </div>
+                            <div>
+                              <div className="text-sm font-bold text-gray-900 group-hover:text-yellow-700 transition-colors">Documentation</div>
+                              <div className="text-xs text-gray-600">Learn about Eagle</div>
+                            </div>
+                          </div>
+                        </a>
+                        <a 
+                          href="https://t.me/Eagle_community_47" 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="bg-white/50 shadow-neo-raised hover:shadow-neo-raised-lift rounded-xl p-5 transition-all group"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 bg-blue-100 rounded-lg shadow-neo-pressed">
+                              <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
+                              </svg>
+                            </div>
+                            <div>
+                              <div className="text-sm font-bold text-gray-900 group-hover:text-yellow-700 transition-colors">Community</div>
+                              <div className="text-xs text-gray-600">Join Telegram</div>
+                            </div>
+                          </div>
+                        </a>
+                        <a 
+                          href="https://x.com/teameagle47" 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="bg-white/50 shadow-neo-raised hover:shadow-neo-raised-lift rounded-xl p-5 transition-all group"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 bg-blue-100 rounded-lg shadow-neo-pressed">
+                              <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                              </svg>
+                            </div>
+                            <div>
+                              <div className="text-sm font-bold text-gray-900 group-hover:text-yellow-700 transition-colors">Twitter</div>
+                              <div className="text-xs text-gray-600">Follow updates</div>
+                            </div>
+                          </div>
+                        </a>
+                        <a 
+                          href={`https://alpha.charm.fi/vault/${CONTRACTS.CHARM_VAULT}`}
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="bg-white/50 shadow-neo-raised hover:shadow-neo-raised-lift rounded-xl p-5 transition-all group"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 bg-purple-100 rounded-lg shadow-neo-pressed">
+                              <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                              </svg>
+                            </div>
+                            <div>
+                              <div className="text-sm font-bold text-gray-900 group-hover:text-yellow-700 transition-colors">Charm Analytics</div>
+                              <div className="text-xs text-gray-600">View on Charm.fi</div>
+                            </div>
+                          </div>
+                        </a>
+                      </div>
                     </div>
                   </div>
                 )}

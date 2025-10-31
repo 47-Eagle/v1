@@ -1,0 +1,298 @@
+# Prometheus Alert Rules for Eagle OVault
+groups:
+  - name: eagle_ovault_critical
+    interval: 30s
+    rules:
+      # Chain Health Alerts
+      - alert: ChainDown
+        expr: eagle_ovault_chain_healthy == 0
+        for: 5m
+        labels:
+          severity: critical
+          component: chain
+        annotations:
+          summary: "Chain {{ $labels.chain }} is down"
+          description: "Chain {{ $labels.chain }} has been unhealthy for more than 5 minutes"
+          runbook: "https://docs.eagle-ovault.com/runbook/chain-down"
+
+      - alert: MultipleChainsFailing
+        expr: count(eagle_ovault_chain_healthy == 0) > 1
+        for: 2m
+        labels:
+          severity: critical
+          component: infrastructure
+        annotations:
+          summary: "Multiple chains are failing"
+          description: "{{ $value }} chains are currently unhealthy"
+          runbook: "https://docs.eagle-ovault.com/runbook/multiple-chains-down"
+
+      # RPC Endpoint Alerts
+      - alert: RPCEndpointDown
+        expr: up{job=~"eagle-ovault-.*"} == 0
+        for: 3m
+        labels:
+          severity: critical
+          component: rpc
+        annotations:
+          summary: "RPC endpoint {{ $labels.instance }} is down"
+          description: "RPC endpoint for {{ $labels.chain }} has been down for 3 minutes"
+
+      - alert: RPCHighLatency
+        expr: |
+          histogram_quantile(0.95, 
+            sum by (chain, le) (rate(eagle_ovault_rpc_duration_seconds_bucket[5m]))
+          ) > 5
+        for: 10m
+        labels:
+          severity: warning
+          component: rpc
+        annotations:
+          summary: "High RPC latency on {{ $labels.chain }}"
+          description: "P95 RPC latency is {{ $value }}s on {{ $labels.chain }}"
+
+      # Contract Balance Alerts
+      - alert: ContractBalanceLow
+        expr: eagle_ovault_contract_balance_eth < 0.1
+        for: 5m
+        labels:
+          severity: warning
+          component: contract
+        annotations:
+          summary: "Low contract balance on {{ $labels.chain }}"
+          description: "Contract {{ $labels.contract }} on {{ $labels.chain }} has only {{ $value }} ETH remaining"
+
+      - alert: ContractBalanceCritical
+        expr: eagle_ovault_contract_balance_eth < 0.01
+        for: 1m
+        labels:
+          severity: critical
+          component: contract
+        annotations:
+          summary: "Critical contract balance on {{ $labels.chain }}"
+          description: "Contract {{ $labels.contract }} on {{ $labels.chain }} has only {{ $value }} ETH remaining"
+
+      # TVL Alerts
+      - alert: TVLDropSignificant
+        expr: |
+          (eagle_ovault_tvl_usd - eagle_ovault_tvl_usd offset 1h) / 
+          eagle_ovault_tvl_usd offset 1h < -0.2
+        for: 5m
+        labels:
+          severity: critical
+          component: tvl
+        annotations:
+          summary: "Significant TVL drop on {{ $labels.chain }}"
+          description: "TVL dropped by {{ $value | humanizePercentage }} in the last hour on {{ $labels.chain }}"
+
+      - alert: TVLAnomaly
+        expr: |
+          abs(eagle_ovault_tvl_usd - avg_over_time(eagle_ovault_tvl_usd[24h])) / 
+          stddev_over_time(eagle_ovault_tvl_usd[24h]) > 3
+        for: 10m
+        labels:
+          severity: warning
+          component: tvl
+        annotations:
+          summary: "TVL anomaly detected on {{ $labels.chain }}"
+          description: "TVL on {{ $labels.chain }} is 3 standard deviations from 24h average"
+
+      # Failed Transaction Alerts
+      - alert: HighFailureRate
+        expr: |
+          sum by (chain) (rate(eagle_ovault_failed_txs[5m])) / 
+          sum by (chain) (rate(eagle_ovault_total_txs[5m])) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          component: transactions
+        annotations:
+          summary: "High transaction failure rate on {{ $labels.chain }}"
+          description: "{{ $value | humanizePercentage }} of transactions are failing on {{ $labels.chain }}"
+
+      - alert: CriticalFailureRate
+        expr: |
+          sum by (chain) (rate(eagle_ovault_failed_txs[5m])) / 
+          sum by (chain) (rate(eagle_ovault_total_txs[5m])) > 0.5
+        for: 2m
+        labels:
+          severity: critical
+          component: transactions
+        annotations:
+          summary: "Critical transaction failure rate on {{ $labels.chain }}"
+          description: "{{ $value | humanizePercentage }} of transactions are failing on {{ $labels.chain }}"
+
+      # LayerZero Bridge Alerts
+      - alert: LayerZeroMessageQueueBuildup
+        expr: eagle_ovault_lz_pending_messages > 100
+        for: 15m
+        labels:
+          severity: warning
+          component: bridge
+        annotations:
+          summary: "LayerZero message queue building up"
+          description: "{{ $value }} messages pending in LayerZero queue"
+
+      - alert: LayerZeroMessageQueueCritical
+        expr: eagle_ovault_lz_pending_messages > 500
+        for: 5m
+        labels:
+          severity: critical
+          component: bridge
+        annotations:
+          summary: "LayerZero message queue critically high"
+          description: "{{ $value }} messages pending in LayerZero queue - possible bridge issue"
+
+      - alert: CrossChainTransferFailed
+        expr: increase(eagle_ovault_cross_chain_transfer_failures[5m]) > 5
+        for: 2m
+        labels:
+          severity: critical
+          component: bridge
+        annotations:
+          summary: "Multiple cross-chain transfer failures"
+          description: "{{ $value }} cross-chain transfers failed in the last 5 minutes"
+
+      # Strategy Performance Alerts
+      - alert: StrategyAPYLow
+        expr: eagle_ovault_strategy_apy_percent < 1
+        for: 1h
+        labels:
+          severity: warning
+          component: strategy
+        annotations:
+          summary: "Strategy APY below threshold"
+          description: "Current APY is {{ $value }}%, which is below expected performance"
+
+      - alert: StrategyRebalanceFailed
+        expr: increase(eagle_ovault_rebalance_failures[30m]) > 2
+        for: 5m
+        labels:
+          severity: critical
+          component: strategy
+        annotations:
+          summary: "Multiple strategy rebalance failures"
+          description: "{{ $value }} rebalance attempts failed in the last 30 minutes"
+
+      # Gas Price Alerts
+      - alert: GasPriceExtreme
+        expr: eagle_ovault_avg_gas_price_gwei > 200
+        for: 10m
+        labels:
+          severity: warning
+          component: gas
+        annotations:
+          summary: "Extreme gas prices on {{ $labels.chain }}"
+          description: "Average gas price is {{ $value }} gwei on {{ $labels.chain }}"
+
+      # Security Alerts
+      - alert: UnauthorizedAccess
+        expr: increase(eagle_ovault_unauthorized_access_attempts[5m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+          component: security
+        annotations:
+          summary: "Unauthorized access attempt detected"
+          description: "{{ $value }} unauthorized access attempts in the last 5 minutes on {{ $labels.chain }}"
+
+      - alert: UnusualWithdrawalPattern
+        expr: |
+          sum by (chain) (rate(eagle_ovault_withdrawals_total[5m])) > 
+          3 * avg_over_time(sum by (chain) (rate(eagle_ovault_withdrawals_total[5m]))[24h:5m])
+        for: 5m
+        labels:
+          severity: warning
+          component: security
+        annotations:
+          summary: "Unusual withdrawal pattern detected on {{ $labels.chain }}"
+          description: "Withdrawal rate is 3x higher than normal on {{ $labels.chain }}"
+
+      # Frontend Alerts
+      - alert: FrontendDown
+        expr: up{app="frontend"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: frontend
+        annotations:
+          summary: "Frontend application is down"
+          description: "Frontend has been unreachable for 2 minutes"
+
+      - alert: FrontendHighErrorRate
+        expr: |
+          sum(rate(http_requests_total{app="frontend",status=~"5.."}[5m])) /
+          sum(rate(http_requests_total{app="frontend"}[5m])) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          component: frontend
+        annotations:
+          summary: "High error rate on frontend"
+          description: "Frontend error rate is {{ $value | humanizePercentage }}"
+
+  - name: eagle_ovault_performance
+    interval: 1m
+    rules:
+      # Performance Degradation
+      - alert: SlowTransactions
+        expr: |
+          histogram_quantile(0.95, 
+            sum by (chain, le) (rate(eagle_ovault_tx_duration_seconds_bucket[5m]))
+          ) > 30
+        for: 10m
+        labels:
+          severity: warning
+          component: performance
+        annotations:
+          summary: "Slow transactions on {{ $labels.chain }}"
+          description: "P95 transaction time is {{ $value }}s on {{ $labels.chain }}"
+
+      - alert: HighMemoryUsage
+        expr: |
+          (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / 
+          node_memory_MemTotal_bytes > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          component: infrastructure
+        annotations:
+          summary: "High memory usage on {{ $labels.instance }}"
+          description: "Memory usage is {{ $value | humanizePercentage }}"
+
+      - alert: HighCPUUsage
+        expr: |
+          100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 10m
+        labels:
+          severity: warning
+          component: infrastructure
+        annotations:
+          summary: "High CPU usage on {{ $labels.instance }}"
+          description: "CPU usage is {{ $value }}%"
+
+  - name: eagle_ovault_business
+    interval: 5m
+    rules:
+      # Business Metrics
+      - alert: NoDepositsRecent
+        expr: increase(eagle_ovault_deposits_total[1h]) == 0
+        for: 2h
+        labels:
+          severity: info
+          component: business
+        annotations:
+          summary: "No deposits in the last hour on {{ $labels.chain }}"
+          description: "Consider investigating user activity on {{ $labels.chain }}"
+
+      - alert: DailyVolumeDropped
+        expr: |
+          sum(increase(eagle_ovault_tx_volume_usd[24h])) < 
+          0.5 * avg_over_time(sum(increase(eagle_ovault_tx_volume_usd[24h]))[7d:24h])
+        for: 1h
+        labels:
+          severity: info
+          component: business
+        annotations:
+          summary: "Daily transaction volume dropped significantly"
+          description: "24h volume is 50% below 7-day average"
+

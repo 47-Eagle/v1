@@ -1,0 +1,166 @@
+# Prometheus Configuration for Eagle OVault
+global:
+  scrape_interval: 30s
+  evaluation_interval: 30s
+  external_labels:
+    cluster: 'eagle-ovault'
+    environment: 'production'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - 'alertmanager:9093'
+
+# Load alert rules
+rule_files:
+  - 'alert-rules.yml'
+
+# Scrape configurations
+scrape_configs:
+  # Ethereum Hub Metrics
+  - job_name: 'eagle-ovault-ethereum'
+    static_configs:
+      - targets: ['ethereum-exporter:9090']
+        labels:
+          chain: 'ethereum'
+          role: 'hub'
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+
+  # BSC Spoke Metrics
+  - job_name: 'eagle-ovault-bsc'
+    static_configs:
+      - targets: ['bsc-exporter:9091']
+        labels:
+          chain: 'bsc'
+          role: 'spoke'
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+
+  # Arbitrum Spoke Metrics
+  - job_name: 'eagle-ovault-arbitrum'
+    static_configs:
+      - targets: ['arbitrum-exporter:9092']
+        labels:
+          chain: 'arbitrum'
+          role: 'spoke'
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+
+  # Base Spoke Metrics
+  - job_name: 'eagle-ovault-base'
+    static_configs:
+      - targets: ['base-exporter:9093']
+        labels:
+          chain: 'base'
+          role: 'spoke'
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+
+  # Avalanche Spoke Metrics
+  - job_name: 'eagle-ovault-avalanche'
+    static_configs:
+      - targets: ['avalanche-exporter:9094']
+        labels:
+          chain: 'avalanche'
+          role: 'spoke'
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+
+  # LayerZero Bridge Metrics
+  - job_name: 'layerzero-bridge'
+    static_configs:
+      - targets: ['lz-bridge-monitor:9095']
+        labels:
+          service: 'layerzero'
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  # Frontend Application Metrics
+  - job_name: 'eagle-ovault-frontend'
+    static_configs:
+      - targets: ['frontend-metrics:9096']
+        labels:
+          app: 'frontend'
+    metrics_path: '/metrics'
+    scrape_interval: 60s
+
+  # Node Exporter (System Metrics)
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 30s
+
+  # Blackbox Exporter (Endpoint Health Checks)
+  - job_name: 'blackbox-http'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+          - https://eagle-ovault.com
+          - https://api.eagle-ovault.com/health
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+
+  # RPC Endpoint Monitoring
+  - job_name: 'rpc-endpoints'
+    metrics_path: /probe
+    params:
+      module: [http_post_2xx]
+    static_configs:
+      - targets:
+          - https://eth-mainnet.g.alchemy.com/v2/YOUR_KEY
+          - https://bsc-rpc.publicnode.com
+          - https://arbitrum-rpc.publicnode.com
+          - https://base-rpc.publicnode.com
+          - https://api.avax.network/ext/bc/C/rpc
+        labels:
+          type: 'rpc'
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+
+  # Contract Event Monitoring
+  - job_name: 'contract-events'
+    static_configs:
+      - targets: ['event-indexer:9097']
+        labels:
+          service: 'event-indexer'
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+
+  # Gas Price Oracle
+  - job_name: 'gas-oracle'
+    static_configs:
+      - targets: ['gas-oracle:9098']
+        labels:
+          service: 'gas-oracle'
+    metrics_path: '/metrics'
+    scrape_interval: 60s
+
+# Remote write for long-term storage (optional)
+# remote_write:
+#   - url: "https://prometheus-remote-write-endpoint.com/api/v1/write"
+#     basic_auth:
+#       username: "user"
+#       password: "password"
+
+# Storage configuration
+storage:
+  tsdb:
+    retention:
+      time: 30d
+      size: 50GB
+

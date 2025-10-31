@@ -1,0 +1,413 @@
+{
+  "dashboard": {
+    "title": "Eagle OVault Multi-Chain Monitoring",
+    "tags": ["eagle", "ovault", "defi", "multi-chain"],
+    "timezone": "browser",
+    "schemaVersion": 38,
+    "version": 1,
+    "refresh": "30s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Total Value Locked (TVL)",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(eagle_ovault_tvl_usd)",
+            "legendFormat": "Total TVL"
+          }
+        ],
+        "gridPos": {
+          "h": 6,
+          "w": 6,
+          "x": 0,
+          "y": 0
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "orientation": "auto",
+          "reduceOptions": {
+            "values": false,
+            "calcs": ["lastNotNull"]
+          }
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "currencyUSD",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "green" },
+                { "value": 1000000, "color": "yellow" },
+                { "value": 10000000, "color": "red" }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "TVL by Chain",
+        "type": "piechart",
+        "targets": [
+          {
+            "expr": "eagle_ovault_tvl_usd",
+            "legendFormat": "{{ chain }}"
+          }
+        ],
+        "gridPos": {
+          "h": 6,
+          "w": 6,
+          "x": 6,
+          "y": 0
+        }
+      },
+      {
+        "id": 3,
+        "title": "Active Users (24h)",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(increase(eagle_ovault_unique_users[24h]))",
+            "legendFormat": "Active Users"
+          }
+        ],
+        "gridPos": {
+          "h": 6,
+          "w": 6,
+          "x": 12,
+          "y": 0
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "color": { "mode": "thresholds" }
+          }
+        }
+      },
+      {
+        "id": 4,
+        "title": "Transaction Volume (24h)",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(increase(eagle_ovault_tx_volume_usd[24h]))",
+            "legendFormat": "Volume"
+          }
+        ],
+        "gridPos": {
+          "h": 6,
+          "w": 6,
+          "x": 18,
+          "y": 0
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "currencyUSD"
+          }
+        }
+      },
+      {
+        "id": 5,
+        "title": "Cross-Chain Transfers",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "sum by (source_chain, dest_chain) (rate(eagle_ovault_cross_chain_transfers[5m]))",
+            "legendFormat": "{{ source_chain }} → {{ dest_chain }}"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 6
+        },
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "smooth",
+              "showPoints": "never",
+              "fillOpacity": 10
+            }
+          }
+        }
+      },
+      {
+        "id": 6,
+        "title": "Gas Costs by Chain",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "avg by (chain) (eagle_ovault_avg_gas_price_gwei)",
+            "legendFormat": "{{ chain }}"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 6
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "none",
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "smooth"
+            }
+          }
+        }
+      },
+      {
+        "id": 7,
+        "title": "Deposit/Withdrawal Activity",
+        "type": "bargauge",
+        "targets": [
+          {
+            "expr": "sum by (chain) (rate(eagle_ovault_deposits_total[1h]))",
+            "legendFormat": "{{ chain }} Deposits"
+          },
+          {
+            "expr": "sum by (chain) (rate(eagle_ovault_withdrawals_total[1h]))",
+            "legendFormat": "{{ chain }} Withdrawals"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 14
+        }
+      },
+      {
+        "id": 8,
+        "title": "Failed Transactions",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "sum by (chain) (rate(eagle_ovault_failed_txs[5m]))",
+            "legendFormat": "{{ chain }}"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 14
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": { "mode": "palette-classic", "fixedColor": "red" },
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "smooth",
+              "fillOpacity": 20
+            }
+          }
+        }
+      },
+      {
+        "id": 9,
+        "title": "Contract Balance Health",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "eagle_ovault_contract_balance_eth",
+            "format": "table",
+            "instant": true
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 8,
+          "x": 0,
+          "y": 22
+        },
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {
+              "excludeByName": {},
+              "indexByName": {
+                "chain": 0,
+                "contract": 1,
+                "Value": 2
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "title": "LayerZero Message Queue",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(eagle_ovault_lz_pending_messages)",
+            "legendFormat": "Pending Messages"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 8,
+          "x": 8,
+          "y": 22
+        },
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "green" },
+                { "value": 10, "color": "yellow" },
+                { "value": 50, "color": "red" }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 11,
+        "title": "RPC Response Time",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, sum by (chain, le) (rate(eagle_ovault_rpc_duration_seconds_bucket[5m])))",
+            "legendFormat": "{{ chain }} p95"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 8,
+          "x": 16,
+          "y": 22
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s",
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "smooth"
+            }
+          }
+        }
+      },
+      {
+        "id": 12,
+        "title": "Strategy APY",
+        "type": "gauge",
+        "targets": [
+          {
+            "expr": "eagle_ovault_strategy_apy_percent",
+            "legendFormat": "Current APY"
+          }
+        ],
+        "gridPos": {
+          "h": 6,
+          "w": 6,
+          "x": 0,
+          "y": 30
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 0,
+            "max": 100,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "red" },
+                { "value": 5, "color": "yellow" },
+                { "value": 10, "color": "green" }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 13,
+        "title": "Rebalance Events",
+        "type": "logs",
+        "targets": [
+          {
+            "expr": "{job=\"eagle-ovault\"} |= \"rebalance\"",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {
+          "h": 6,
+          "w": 18,
+          "x": 6,
+          "y": 30
+        }
+      },
+      {
+        "id": 14,
+        "title": "Chain Health Status",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "eagle_ovault_chain_healthy",
+            "legendFormat": "{{ chain }}"
+          }
+        ],
+        "gridPos": {
+          "h": 4,
+          "w": 24,
+          "x": 0,
+          "y": 36
+        },
+        "options": {
+          "orientation": "horizontal",
+          "colorMode": "background"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [
+              {
+                "type": "value",
+                "options": {
+                  "0": { "text": "DOWN", "color": "red" },
+                  "1": { "text": "HEALTHY", "color": "green" }
+                }
+              }
+            ],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "red" },
+                { "value": 1, "color": "green" }
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "templating": {
+      "list": [
+        {
+          "name": "chain",
+          "type": "query",
+          "query": "label_values(eagle_ovault_tvl_usd, chain)",
+          "multi": true,
+          "includeAll": true
+        }
+      ]
+    },
+    "annotations": {
+      "list": [
+        {
+          "name": "Deployments",
+          "datasource": "Prometheus",
+          "expr": "eagle_ovault_deployment_event",
+          "tagKeys": "chain,version",
+          "textFormat": "Deployment: {{ chain }}"
+        }
+      ]
+    }
+  }
+}
+
