@@ -1052,23 +1052,6 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
 
                 {infoTab === 'strategies' && (
                   <div className="space-y-8">
-                    {/* Strategy Overview */}
-                    <div className="text-center">
-                      <div className="inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-full border-2 border-yellow-400 mb-4">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                          <span className="text-gray-900 font-semibold">Active Strategies</span>
-                        </div>
-                        <div className="w-px h-4 bg-yellow-400"></div>
-                        <span className="text-2xl font-bold text-yellow-700">1</span>
-                        <span className="text-gray-600">of</span>
-                        <span className="text-xl font-semibold text-gray-700">5</span>
-                      </div>
-                      <p className="text-gray-600 text-sm max-w-xl mx-auto">
-                        Currently deploying capital to 1 active strategy. 4 additional strategies available for future allocation.
-                      </p>
-                    </div>
-
                     {/* All 5 Strategies as Expandable Rows */}
                     <div className="space-y-3">
                       {[
