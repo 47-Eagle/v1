@@ -6,6 +6,7 @@ import ModernHeader from './components/ModernHeader';
 import EagleEcosystemWithRoutes from './components/EagleEcosystemWithRoutes';
 import { Showcase } from './pages/Showcase';
 import { ICONS } from './config/icons';
+import { ThemeProvider } from './context/ThemeContext';
 
 interface Toast {
   id: number;
@@ -69,7 +70,7 @@ function AppContent() {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-neo-bg">
+    <div className="h-screen flex flex-col bg-neo-bg dark:bg-gray-900 transition-colors">
       {/* Fixed Header */}
       <div className="relative z-20 flex-shrink-0">
         <ModernHeader />
@@ -85,7 +86,7 @@ function AppContent() {
       </div>
 
       {/* Fixed Footer */}
-      <footer className="relative z-20 flex-shrink-0 border-t border-gray-300 bg-neo-bg/95 backdrop-blur-xl shadow-neo-pressed">
+      <footer className="relative z-20 flex-shrink-0 border-t border-gray-300 dark:border-gray-700 bg-neo-bg/95 dark:bg-gray-900/95 backdrop-blur-xl shadow-neo-pressed transition-colors">
         <div className="container mx-auto px-6 py-4">
           <div className="flex flex-col md:flex-row justify-between items-center gap-3">
             <div className="flex items-center gap-3">
@@ -94,7 +95,7 @@ function AppContent() {
                 alt="Eagle" 
                 className="w-6 h-6"
               />
-              <span className="text-xs text-gray-600 font-medium">
+              <span className="text-xs text-gray-600 dark:text-gray-400 font-medium">
                 © 2025 47 Eagle. All rights reserved.
               </span>
             </div>
@@ -104,7 +105,7 @@ function AppContent() {
                 href="https://docs.47eagle.com" 
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-gray-600 hover:text-yellow-600 transition-colors font-medium"
+                className="text-xs text-gray-600 dark:text-gray-400 hover:text-yellow-600 dark:hover:text-yellow-400 transition-colors font-medium"
               >
                 Docs
               </a>
@@ -112,7 +113,7 @@ function AppContent() {
                 href="https://x.com/teameagle47" 
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-gray-600 hover:text-yellow-600 transition-colors font-medium"
+                className="text-xs text-gray-600 dark:text-gray-400 hover:text-yellow-600 dark:hover:text-yellow-400 transition-colors font-medium"
               >
                 Twitter
               </a>
@@ -120,7 +121,7 @@ function AppContent() {
                 href="https://t.me/Eagle_community_47" 
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-gray-600 hover:text-yellow-600 transition-colors font-medium"
+                className="text-xs text-gray-600 dark:text-gray-400 hover:text-yellow-600 dark:hover:text-yellow-400 transition-colors font-medium"
               >
                 Telegram
               </a>
@@ -166,16 +167,18 @@ function AppContent() {
 
 export default function App() {
   return (
-    <BrowserRouter
-      future={{
-        v7_startTransition: true,
-        v7_relativeSplatPath: true,
-      }}
-    >
-      <Routes>
-        <Route path="/showcase" element={<Showcase />} />
-        <Route path="/*" element={<AppContent />} />
-      </Routes>
-    </BrowserRouter>
+    <ThemeProvider>
+      <BrowserRouter
+        future={{
+          v7_startTransition: true,
+          v7_relativeSplatPath: true,
+        }}
+      >
+        <Routes>
+          <Route path="/showcase" element={<Showcase />} />
+          <Route path="/*" element={<AppContent />} />
+        </Routes>
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }

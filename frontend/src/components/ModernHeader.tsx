@@ -7,6 +7,7 @@ import { useEthersProvider } from '../hooks/useEthersProvider';
 import { CONTRACTS } from '../config/contracts';
 import { ICONS } from '../config/icons';
 import { NeoStatusIndicator } from './neumorphic';
+import { useTheme } from '../context/ThemeContext';
 
 const VAULT_ABI = ['function getWLFIPrice() view returns (uint256)', 'function getUSD1Price() view returns (uint256)'];
 
@@ -15,6 +16,7 @@ export default function ModernHeader() {
   const [usd1Price, setUsd1Price] = useState<string>('--');
   const [priceChanged, setPriceChanged] = useState<'wlfi' | 'usd1' | null>(null);
   const provider = useEthersProvider();
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     const fetchPrices = async () => {
@@ -63,7 +65,7 @@ export default function ModernHeader() {
   }, [provider]);
 
   return (
-    <header className="sticky top-0 z-50 bg-neo-bg/95 backdrop-blur-xl border-b border-gray-300 shadow-neo-pressed">
+    <header className="sticky top-0 z-50 bg-neo-bg/95 dark:bg-gray-900/95 backdrop-blur-xl border-b border-gray-300 dark:border-gray-700 shadow-neo-pressed transition-colors">
       <div className="container mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
           {/* Logo & Title */}
@@ -74,8 +76,8 @@ export default function ModernHeader() {
               className="w-10 h-10"
             />
             <div>
-              <h1 className="text-xl font-semibold text-gray-900">47 Eagle</h1>
-              <p className="text-xs text-gray-600">Omnichain WLFI Yield Strategies</p>
+              <h1 className="text-xl font-semibold text-gray-900 dark:text-white">47 Eagle</h1>
+              <p className="text-xs text-gray-600 dark:text-gray-400">Omnichain WLFI Yield Strategies</p>
             </div>
           </div>
 
@@ -143,6 +145,26 @@ export default function ModernHeader() {
               <span className="text-sm text-gray-800 font-semibold">Ethereum</span>
             </motion.div>
           </div>
+
+          {/* Dark Mode Toggle */}
+          <motion.button
+            onClick={toggleTheme}
+            className="flex items-center justify-center w-10 h-10 rounded-full bg-neo-bg shadow-neo-raised hover:shadow-neo-raised-hover transition-all duration-300"
+            whileHover={{ scale: 1.05, y: -1 }}
+            whileTap={{ scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 400, damping: 17 }}
+            title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+          >
+            {theme === 'light' ? (
+              <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+              </svg>
+            ) : (
+              <svg className="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+            )}
+          </motion.button>
 
           {/* Connect Button */}
           <ConnectButton 
