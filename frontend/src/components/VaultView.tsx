@@ -1069,30 +1069,30 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
                         },
                         {
                           id: 2,
-                          name: 'Aave Lending Strategy',
-                          protocol: 'Aave V3',
-                          description: 'Supply assets to Aave V3 lending pools to earn interest on idle capital.',
+                          name: 'Strategy 2',
+                          protocol: 'TBD',
+                          description: 'Additional yield strategy coming soon. Protocol and implementation details to be announced.',
                           status: 'coming-soon'
                         },
                         {
                           id: 3,
-                          name: 'Curve Liquidity Strategy',
-                          protocol: 'Curve Finance',
-                          description: 'Provide liquidity to Curve stablecoin pools for trading fees and CRV rewards.',
+                          name: 'Strategy 3',
+                          protocol: 'TBD',
+                          description: 'Additional yield strategy coming soon. Protocol and implementation details to be announced.',
                           status: 'coming-soon'
                         },
                         {
                           id: 4,
-                          name: 'Compound V3 Strategy',
-                          protocol: 'Compound',
-                          description: 'Lend assets on Compound V3 to earn supply APY on deposited funds.',
+                          name: 'Strategy 4',
+                          protocol: 'TBD',
+                          description: 'Additional yield strategy coming soon. Protocol and implementation details to be announced.',
                           status: 'coming-soon'
                         },
                         {
                           id: 5,
-                          name: 'Yearn Vault Strategy',
-                          protocol: 'Yearn Finance',
-                          description: 'Deposit into Yearn vaults for automated yield optimization across DeFi protocols.',
+                          name: 'Strategy 5',
+                          protocol: 'TBD',
+                          description: 'Additional yield strategy coming soon. Protocol and implementation details to be announced.',
                           status: 'coming-soon'
                         }
                       ].map((strategy) => (
