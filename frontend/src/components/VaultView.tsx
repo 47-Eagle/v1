@@ -7,6 +7,7 @@ import { getActiveStrategies } from '../config/strategies';
 import { ErrorBoundary } from './ErrorBoundary';
 import AssetAllocationSunburst from './AssetAllocationSunburst';
 import { NeoTabs, NeoButton, NeoInput, NeoStatCard, NeoCard, NeoStatusIndicator } from './neumorphic';
+import { UniswapBadge, CharmBadge, LayerZeroBadge } from './partners';
 
 // Lazy load 3D visualization
 const VaultVisualization = lazy(() => import('./VaultVisualization'));
@@ -1287,64 +1288,12 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
         <div className="mt-8 mb-4">
           <NeoCard>
             <div className="px-6 py-4">
-              <div className="flex items-center justify-center gap-3 text-sm text-gray-600 flex-wrap">
-                {/* Powered by Uniswap */}
-                <a 
-                  href="https://uniswap.org" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 hover:text-gray-900 transition-colors group"
-                >
-                  <span className="font-medium">Powered by</span>
-                  <div className="w-5 h-5 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <img 
-                      src="https://teal-working-dormouse-113.mypinata.cloud/ipfs/bafkreig3ynkhtw76tekx6lhp7po3xbfy54lg3pvcvvi3mlyhghmzavmlu4"
-                      alt="Uniswap"
-                      className="w-full h-full object-contain"
-                    />
-                  </div>
-                  <span className="font-semibold">Uniswap</span>
-                </a>
-
+              <div className="flex items-center justify-center gap-3 text-sm flex-wrap">
+                <UniswapBadge />
                 <span className="text-gray-400">•</span>
-
-                {/* Managed via Charm */}
-                <a 
-                  href="https://charm.fi" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 hover:text-gray-900 transition-colors group"
-                >
-                  <span className="font-medium">Managed via</span>
-                  <div className="w-5 h-5 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <img 
-                      src="https://teal-working-dormouse-113.mypinata.cloud/ipfs/bafkreid3difftzksqy3xlummzzobhk674ece35d7drmgo3ftt7wrix6dwu"
-                      alt="Charm Finance"
-                      className="w-full h-full object-contain"
-                    />
-                  </div>
-                  <span className="font-semibold">Charm</span>
-                </a>
-
+                <CharmBadge />
                 <span className="text-gray-400">•</span>
-
-                {/* Omnichain via LayerZero */}
-                <a 
-                  href="https://layerzero.network" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 hover:text-gray-900 transition-colors group"
-                >
-                  <span className="font-medium">Omnichain via</span>
-                  <div className="w-5 h-5 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <img 
-                      src="https://teal-working-dormouse-113.mypinata.cloud/ipfs/bafkreihml3nahd2duwdjg2ltoeixax2xdj2ldp5unnrjwntyicar74nwra"
-                      alt="LayerZero"
-                      className="w-full h-full object-contain"
-                    />
-                  </div>
-                  <span className="font-semibold">LayerZero</span>
-                </a>
+                <LayerZeroBadge />
               </div>
             </div>
           </NeoCard>
