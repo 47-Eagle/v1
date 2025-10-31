@@ -95,7 +95,7 @@ function AppContent() {
                 className="w-6 h-6"
               />
               <span className="text-xs text-gray-600 font-medium">
-                © 2025 Eagle Vault. All rights reserved.
+                © 2025 47 Eagle. All rights reserved.
               </span>
             </div>
 

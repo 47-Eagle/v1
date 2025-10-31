@@ -981,6 +981,27 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
                         </a>
                         , issuing vEAGLE shares that represent proportional ownership and automatically compound yields.
                       </p>
+                        </div>
+                        
+                    {/* Bootstrapping Notice */}
+                    <div className="max-w-2xl mx-auto">
+                      <div className="bg-gradient-to-r from-blue-50 to-blue-100 border-2 border-blue-400 rounded-xl p-6 shadow-neo-inset">
+                        <div className="flex items-start gap-3">
+                          <div className="flex-shrink-0 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center mt-0.5">
+                            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="text-blue-900 font-semibold mb-2">Bootstrapping Phase</h4>
+                            <p className="text-blue-800 text-sm leading-relaxed">
+                              We are currently in the bootstrapping phase and have temporarily disabled deposits and withdrawals. 
+                              We are carefully easing capital into strategies as a safety precaution to ensure optimal performance and security. 
+                              Thank you for your patience.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
 
                     {/* Fee Structure */}
@@ -1000,8 +1021,8 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
                           <div className="text-2xl font-bold text-yellow-700">4.7%</div>
                           <div className="text-xs text-gray-600 mt-2">On profits only</div>
                         </div>
+                        </div>
                       </div>
-                    </div>
 
                     {/* Vault Assets */}
                     <div className="max-w-xl mx-auto">
@@ -1012,24 +1033,24 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
                           <div className="text-gray-900 font-semibold text-lg">WLFI</div>
                           <div className="text-sm text-yellow-600 font-medium">${data.wlfiPrice}</div>
                           <div className="text-xs text-gray-500 mt-1">World Liberty Financial</div>
-                        </div>
+                      </div>
                         <div className="bg-gradient-to-br from-white/50 to-white/30 backdrop-blur-sm shadow-neo-inset rounded-xl p-6 border border-gray-200/50 text-center">
                           <img src={ICONS.USD1} alt="USD1" className="w-16 h-16 rounded-full mx-auto mb-3 border-2 border-white shadow-lg" />
                           <div className="text-gray-900 font-semibold text-lg">USD1</div>
                           <div className="text-sm text-yellow-600 font-medium">${data.usd1Price}</div>
                           <div className="text-xs text-gray-500 mt-1">Stablecoin</div>
-                        </div>
-                      </div>
+                    </div>
+                  </div>
                     </div>
 
                     {/* Vault Contract */}
                     <div className="max-w-2xl mx-auto">
                       <h4 className="text-gray-900 font-semibold mb-4 text-center">Vault Contract</h4>
                       <div className="bg-gradient-to-br from-white/50 to-white/30 backdrop-blur-sm shadow-neo-inset rounded-xl p-6 border border-gray-200/50">
-                        <a 
-                          href={`https://etherscan.io/address/${CONTRACTS.VAULT}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                            <a 
+                              href={`https://etherscan.io/address/${CONTRACTS.VAULT}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
                           className="flex justify-between items-center group"
                         >
                           <span className="text-gray-700 text-sm">ERC-4626 Vault</span>
@@ -1038,13 +1059,13 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
                               {CONTRACTS.VAULT.slice(0, 6)}...{CONTRACTS.VAULT.slice(-4)}
                             </code>
                             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                            </svg>
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                              </svg>
                           </div>
-                        </a>
-                      </div>
-                    </div>
-                  </div>
+                            </a>
+                          </div>
+                        </div>
+                          </div>
                 )}
 
                 {infoTab === 'strategies' && (
