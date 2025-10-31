@@ -1283,61 +1283,67 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
           </div>
         </div>
 
-        {/* Powered By Section */}
+        {/* Powered By - Sleek One-Line */}
         <div className="mt-8 mb-4">
           <NeoCard>
-            <div className="p-6">
-              <h3 className="text-gray-700 text-sm font-semibold mb-6 text-center uppercase tracking-wider">Powered By</h3>
-              <div className="flex items-center justify-center gap-8 flex-wrap">
-                {/* Uniswap */}
+            <div className="px-6 py-4">
+              <div className="flex items-center justify-center gap-3 text-sm text-gray-600 flex-wrap">
+                {/* Powered by Uniswap */}
                 <a 
                   href="https://uniswap.org" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="flex flex-col items-center gap-2 hover:opacity-80 transition-opacity group"
+                  className="flex items-center gap-2 hover:text-gray-900 transition-colors group"
                 >
-                  <div className="w-16 h-16 rounded-xl bg-white/50 shadow-neo-inset flex items-center justify-center group-hover:shadow-neo-hover transition-all p-2">
+                  <span className="font-medium">Powered by</span>
+                  <div className="w-5 h-5 flex items-center justify-center group-hover:scale-110 transition-transform">
                     <img 
                       src="https://teal-working-dormouse-113.mypinata.cloud/ipfs/bafkreig3ynkhtw76tekx6lhp7po3xbfy54lg3pvcvvi3mlyhghmzavmlu4"
                       alt="Uniswap"
                       className="w-full h-full object-contain"
                     />
                   </div>
-                  <span className="text-xs text-gray-700 font-medium">Uniswap V3</span>
+                  <span className="font-semibold">Uniswap</span>
                 </a>
 
-                {/* Charm Finance */}
+                <span className="text-gray-400">•</span>
+
+                {/* Managed via Charm */}
                 <a 
                   href="https://charm.fi" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="flex flex-col items-center gap-2 hover:opacity-80 transition-opacity group"
+                  className="flex items-center gap-2 hover:text-gray-900 transition-colors group"
                 >
-                  <div className="w-16 h-16 rounded-xl bg-white/50 shadow-neo-inset flex items-center justify-center group-hover:shadow-neo-hover transition-all p-2">
+                  <span className="font-medium">Managed via</span>
+                  <div className="w-5 h-5 flex items-center justify-center group-hover:scale-110 transition-transform">
                     <img 
                       src="https://teal-working-dormouse-113.mypinata.cloud/ipfs/bafkreid3difftzksqy3xlummzzobhk674ece35d7drmgo3ftt7wrix6dwu"
                       alt="Charm Finance"
                       className="w-full h-full object-contain"
                     />
                   </div>
-                  <span className="text-xs text-gray-700 font-medium">Charm Finance</span>
+                  <span className="font-semibold">Charm</span>
                 </a>
 
-                {/* LayerZero */}
+                <span className="text-gray-400">•</span>
+
+                {/* Omnichain via LayerZero */}
                 <a 
                   href="https://layerzero.network" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="flex flex-col items-center gap-2 hover:opacity-80 transition-opacity group"
+                  className="flex items-center gap-2 hover:text-gray-900 transition-colors group"
                 >
-                  <div className="w-16 h-16 rounded-xl bg-white/50 shadow-neo-inset flex items-center justify-center group-hover:shadow-neo-hover transition-all p-2">
+                  <span className="font-medium">Omnichain via</span>
+                  <div className="w-5 h-5 flex items-center justify-center group-hover:scale-110 transition-transform">
                     <img 
                       src="https://teal-working-dormouse-113.mypinata.cloud/ipfs/bafkreihml3nahd2duwdjg2ltoeixax2xdj2ldp5unnrjwntyicar74nwra"
                       alt="LayerZero"
                       className="w-full h-full object-contain"
                     />
                   </div>
-                  <span className="text-xs text-gray-700 font-medium">LayerZero</span>
+                  <span className="font-semibold">LayerZero</span>
                 </a>
               </div>
             </div>
