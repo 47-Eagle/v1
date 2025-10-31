@@ -650,7 +650,7 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
         />
 
         {/* Stats */}
-        <div className="grid grid-cols-2 gap-4 mb-8">
+        <div className="grid grid-cols-3 gap-4 mb-8">
           <NeoStatCard
             label="Total deposited"
             value={(() => {
@@ -664,6 +664,12 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
               const totalUSD1 = Number(data.vaultLiquidUSD1) + Number(data.strategyUSD1);
               return `${totalWLFI.toFixed(2)} WLFI + ${totalUSD1.toFixed(2)} USD1`;
             })()}
+          />
+          <NeoStatCard
+            label="Current APY"
+            value={data.weeklyApy !== '0' ? `${data.weeklyApy}%` : 'N/A'}
+            highlighted
+            subtitle={data.weeklyApy !== '0' ? 'From Charm Finance' : 'Loading...'}
           />
           <NeoStatCard
             label="Your position"
@@ -805,53 +811,80 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
               {/* Tab Content */}
               <div className="p-6">
                 {infoTab === 'about' && (
-                  <div className="grid grid-cols-2 gap-8">
-                    <div>
-                      <h3 className="text-gray-900 font-bold mb-3 text-lg">Description</h3>
-                      <p className="text-sm text-gray-700 leading-relaxed mb-6">
+                  <div className="space-y-8">
+                    {/* Hero Description */}
+                    <div className="text-center max-w-2xl mx-auto">
+                      <p className="text-gray-700 leading-relaxed text-base">
                         Deposit your{' '}
-                        <a href="https://worldlibertyfinancial.com/" target="_blank" rel="noopener noreferrer" className="text-yellow-600 hover:text-yellow-700 underline font-medium">
+                        <a 
+                          href="https://worldlibertyfinancial.com/" 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="text-yellow-600 hover:text-yellow-700 font-semibold transition-colors"
+                        >
                           WLFI
-                        </a>{' '}
-                        and{' '}
-                        <a href="https://worldlibertyfinancial.com/usd1" target="_blank" rel="noopener noreferrer" className="text-yellow-600 hover:text-yellow-700 underline font-medium">
+                        </a>
+                        {' '}and{' '}
+                        <a 
+                          href="https://worldlibertyfinancial.com/usd1" 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="text-yellow-600 hover:text-yellow-700 font-semibold transition-colors"
+                        >
                           USD1
-                        </a>{' '}
-                        into Eagle's auto-compounding vault and start earning yield immediately.
+                        </a>
+                        {' '}into Eagle's auto-compounding vault and start earning yield immediately.
                       </p>
+                    </div>
 
-                      <h3 className="text-gray-900 font-bold mb-4 text-lg">Fee Structure</h3>
-                      <div className="space-y-3">
-                        <div className="flex justify-between items-start py-3 border-b border-gray-300">
-                          <div>
-                            <span className="text-gray-900 font-semibold block mb-1">Deposit Fee</span>
-                            <p className="text-xs text-gray-600">One-time fee on deposits</p>
+                    {/* Fee Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {/* Deposit Fee */}
+                      <div className="bg-white/50 shadow-neo-inset rounded-2xl p-6 hover:shadow-neo-hover transition-all duration-300 border border-gray-200/50">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="w-10 h-10 rounded-xl bg-blue-100 shadow-neo-inset flex items-center justify-center">
+                            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                            </svg>
                           </div>
-                          <span className="text-gray-900 font-bold text-lg">1%</span>
+                          <span className="text-2xl font-bold text-gray-900">1%</span>
                         </div>
-                        
-                        <div className="flex justify-between items-start py-3 border-b border-gray-300">
-                          <div>
-                            <span className="text-gray-900 font-semibold block mb-1">Withdrawal Fee</span>
-                            <p className="text-xs text-gray-600">One-time fee on withdrawals</p>
+                        <h4 className="text-gray-900 font-semibold mb-1">Deposit Fee</h4>
+                        <p className="text-xs text-gray-600">One-time fee on deposits</p>
+                      </div>
+
+                      {/* Withdrawal Fee */}
+                      <div className="bg-white/50 shadow-neo-inset rounded-2xl p-6 hover:shadow-neo-hover transition-all duration-300 border border-gray-200/50">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="w-10 h-10 rounded-xl bg-purple-100 shadow-neo-inset flex items-center justify-center">
+                            <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                            </svg>
                           </div>
-                          <span className="text-gray-900 font-bold text-lg">2%</span>
+                          <span className="text-2xl font-bold text-gray-900">2%</span>
                         </div>
-                        
-                        <div className="flex justify-between items-start py-3 border-b-2 border-yellow-400 bg-yellow-50/50 -mx-2 px-2 rounded">
-                          <div>
-                            <span className="text-gray-900 font-semibold block mb-1">Performance Fee</span>
-                            <p className="text-xs text-gray-600 mb-2">Charged on profits earned only</p>
-                            <p className="text-xs text-gray-700">
-                              • 3.7% to Eagle Vault<br />
-                              • 1% to Charm Finance
-                            </p>
+                        <h4 className="text-gray-900 font-semibold mb-1">Withdrawal Fee</h4>
+                        <p className="text-xs text-gray-600">One-time fee on withdrawals</p>
+                      </div>
+
+                      {/* Performance Fee */}
+                      <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 shadow-neo-raised rounded-2xl p-6 hover:shadow-neo-hover transition-all duration-300 border-2 border-yellow-400">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="w-10 h-10 rounded-xl bg-yellow-200 shadow-neo-inset flex items-center justify-center">
+                            <svg className="w-5 h-5 text-yellow-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                            </svg>
                           </div>
-                          <span className="text-yellow-700 font-bold text-lg">4.7%</span>
+                          <span className="text-2xl font-bold text-yellow-700">4.7%</span>
+                        </div>
+                        <h4 className="text-gray-900 font-semibold mb-1">Performance Fee</h4>
+                        <p className="text-xs text-gray-600 mb-2">On profits only</p>
+                        <div className="flex items-center gap-2 text-xs text-gray-700">
+                          <span className="bg-white/60 px-2 py-1 rounded-lg">3.7% Eagle</span>
+                          <span className="bg-white/60 px-2 py-1 rounded-lg">1% Charm</span>
                         </div>
                       </div>
                     </div>
-
                   </div>
                 )}
 
