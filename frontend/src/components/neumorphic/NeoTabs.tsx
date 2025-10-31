@@ -21,7 +21,7 @@ export const NeoTabs = ({ tabs, defaultTab, onChange }: NeoTabsProps) => {
   };
 
   return (
-    <div className="flex gap-2 bg-neo-bg p-1 rounded-full shadow-neo-raised">
+    <div className="flex gap-2 bg-neo-bg dark:bg-gray-800 p-1 rounded-full shadow-neo-raised dark:shadow-[8px_8px_16px_rgba(0,0,0,0.3),-8px_-8px_16px_rgba(255,255,255,0.05)]">
       {tabs.map((tab) => {
         const isActive = activeTab === tab.id;
         return (
@@ -34,8 +34,8 @@ export const NeoTabs = ({ tabs, defaultTab, onChange }: NeoTabsProps) => {
               px-6 py-2 rounded-full font-medium transition-all duration-300
               relative flex-1
               ${isActive 
-                ? 'text-gray-900' 
-                : 'text-gray-600 hover:text-gray-800'
+                ? 'text-gray-900 dark:text-white' 
+                : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
               }
               focus:outline-none focus:ring-3 focus:ring-green-300 focus:ring-opacity-50
             `}
@@ -43,7 +43,7 @@ export const NeoTabs = ({ tabs, defaultTab, onChange }: NeoTabsProps) => {
             {isActive && (
               <motion.div
                 layoutId="activeTab"
-                className="absolute inset-0 rounded-full bg-white shadow-neo-raised -z-0"
+                className="absolute inset-0 rounded-full bg-white dark:bg-gray-700 shadow-neo-raised dark:shadow-[inset_8px_8px_16px_rgba(0,0,0,0.3),inset_-8px_-8px_16px_rgba(255,255,255,0.05)] -z-0"
                 transition={{ type: 'spring', stiffness: 500, damping: 30 }}
               />
             )}

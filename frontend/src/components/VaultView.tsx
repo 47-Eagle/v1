@@ -712,7 +712,7 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
   };
 
   return (
-    <div className="bg-neo-bg min-h-screen pb-24">
+    <div className="bg-neo-bg dark:bg-gray-900 min-h-screen pb-24 transition-colors">
       <div className="max-w-6xl mx-auto px-6 pt-6 pb-24">
         {/* Back Button */}
         {onNavigateUp ? (
