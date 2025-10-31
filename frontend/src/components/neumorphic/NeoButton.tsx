@@ -29,14 +29,16 @@ export const NeoButton = ({
       transition={{ type: "spring", stiffness: 400, damping: 17 }}
       className={`
         px-6 py-3 rounded-full flex items-center justify-center gap-2 font-semibold
-        bg-neo-bg dark:bg-gray-900 text-gray-800 dark:text-gray-100 transition-all duration-300
+        bg-neo-bg-light dark:bg-neo-bg-dark 
+        text-gray-900 dark:text-gray-100
+        transition-all duration-300
         ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
         ${active 
-          ? 'shadow-neo-pressed dark:shadow-[inset_8px_8px_16px_rgba(0,0,0,0.8),inset_-8px_-8px_16px_rgba(255,255,255,0.03)]' 
-          : 'shadow-neo-raised dark:shadow-[8px_8px_16px_rgba(0,0,0,0.8),-8px_-8px_16px_rgba(255,255,255,0.03)] hover:shadow-neo-raised-lift dark:hover:shadow-[10px_10px_20px_rgba(0,0,0,0.9),-10px_-10px_20px_rgba(255,255,255,0.04)]'
+          ? 'shadow-neo-pressed dark:shadow-neo-pressed-dark' 
+          : 'shadow-neo-raised hover:shadow-neo-raised-lift dark:shadow-neo-raised-dark dark:hover:shadow-neo-raised-lift-dark'
         }
-        ${glowing ? 'shadow-neo-glow ring-2 ring-yellow-400 ring-opacity-60 animate-pulse' : ''}
-        focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-50
+        ${glowing ? 'shadow-neo-glow dark:shadow-neo-glow-dark ring-2 ring-yellow-400 dark:ring-yellow-500 ring-opacity-60 animate-pulse' : ''}
+        focus:outline-none focus:ring-2 focus:ring-eagle-gold focus:ring-opacity-50
         ${className}
       `}
     >

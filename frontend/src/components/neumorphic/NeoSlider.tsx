@@ -46,8 +46,8 @@ export const NeoSlider = ({
     <div className="w-full">
       {label && (
         <div className="flex justify-between items-center mb-2">
-          <span className="text-gray-700 font-medium">{label}</span>
-          <span className="text-gray-600 text-sm">{Math.round(value)}%</span>
+          <span className="text-gray-700 dark:text-gray-300 font-medium">{label}</span>
+          <span className="text-gray-600 dark:text-gray-400 text-sm">{Math.round(value)}%</span>
         </div>
       )}
       <div
@@ -55,13 +55,15 @@ export const NeoSlider = ({
         onClick={handleTrackClick}
         className="
           relative h-3 w-full rounded-full
-          bg-neo-bg shadow-neo-raised
+          bg-neo-bg-light dark:bg-neo-bg-dark 
+          shadow-neo-raised dark:shadow-neo-raised-dark
           cursor-pointer
+          transition-all duration-300
         "
       >
         {/* Filled track */}
         <motion.div
-          className="absolute left-0 top-0 h-full rounded-full bg-gradient-to-r from-blue-400 to-blue-500 shadow-inner"
+          className="absolute left-0 top-0 h-full rounded-full bg-gradient-to-r from-blue-400 to-blue-500 dark:from-blue-600 dark:to-blue-700 shadow-inner"
           style={{ width: `${percentage}%` }}
           transition={{ type: 'spring', stiffness: 300, damping: 30 }}
         />
@@ -82,7 +84,8 @@ export const NeoSlider = ({
           whileHover={{ scale: 1.1 }}
           className="
             absolute top-1/2 left-0 w-6 h-6 rounded-full
-            bg-white shadow-neo-raised-lift
+            bg-white dark:bg-gray-300 
+            shadow-neo-raised-lift dark:shadow-neo-raised-lift-dark
             cursor-grab active:cursor-grabbing
             -translate-y-1/2
             -translate-x-1/2

@@ -54,23 +54,23 @@ export const NeoMenuIcons = ({
               relative
               ${isActive
                 ? ''
-                : 'bg-neo-bg shadow-neo-raised hover:shadow-neo-raised-hover'
+                : 'bg-neo-bg-light dark:bg-neo-bg-dark shadow-neo-raised dark:shadow-neo-raised-dark hover:shadow-neo-raised-hover dark:hover:shadow-neo-raised-lift-dark'
               }
-              focus:outline-none focus:ring-3 focus:ring-green-300 focus:ring-opacity-50
+              focus:outline-none focus:ring-3 focus:ring-eagle-gold focus:ring-opacity-50
             `}
             aria-label={item.label || item.id}
           >
             {isActive && (
               <motion.div
                 layoutId="activeMenuIcon"
-                className="absolute inset-0 rounded-2xl bg-white shadow-neo-raised-lift -z-0"
+                className="absolute inset-0 rounded-2xl bg-white dark:bg-gray-700 shadow-neo-raised-lift dark:shadow-neo-raised-lift-dark -z-0"
                 transition={{ type: 'spring', stiffness: 500, damping: 30 }}
               />
             )}
             <Icon
               className={`
                 w-5 h-5 transition-colors duration-300 relative z-10
-                ${isActive ? 'text-gray-900' : 'text-gray-600'}
+                ${isActive ? 'text-gray-900 dark:text-gray-100' : 'text-gray-600 dark:text-gray-400'}
               `}
             />
           </motion.button>

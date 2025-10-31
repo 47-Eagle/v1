@@ -29,7 +29,7 @@ export const NeoInput = ({
           {maxLabel && onMaxClick && (
             <button
               onClick={onMaxClick}
-              className="text-xs text-gray-600 dark:text-gray-400 hover:text-yellow-600 dark:hover:text-yellow-400 font-medium transition-colors"
+              className="text-xs text-gray-600 dark:text-gray-400 hover:text-eagle-gold dark:hover:text-eagle-gold-light font-medium transition-colors"
             >
               {maxLabel}
             </button>
@@ -47,12 +47,13 @@ export const NeoInput = ({
           placeholder={placeholder}
           className="
             w-full px-4 py-3 rounded-2xl
-            bg-neo-bg dark:bg-gray-900 
-            shadow-neo-pressed dark:shadow-[inset_8px_8px_16px_rgba(0,0,0,0.8),inset_-8px_-8px_16px_rgba(255,255,255,0.03)]
-            focus:shadow-neo-raised dark:focus:shadow-[8px_8px_16px_rgba(0,0,0,0.8),-8px_-8px_16px_rgba(255,255,255,0.03)]
-            text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-600
+            bg-neo-bg-light dark:bg-neo-bg-dark 
+            shadow-neo-pressed dark:shadow-neo-pressed-dark
+            focus:shadow-neo-raised dark:focus:shadow-neo-raised-dark
+            text-gray-900 dark:text-gray-100 
+            placeholder-gray-500 dark:placeholder-gray-500
             text-lg font-medium
-            focus:outline-none
+            focus:outline-none focus:ring-2 focus:ring-eagle-gold focus:ring-opacity-50
             transition-all duration-300
             border-none
           "

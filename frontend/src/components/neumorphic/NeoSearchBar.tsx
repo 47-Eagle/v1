@@ -33,10 +33,12 @@ export const NeoSearchBar = ({
           placeholder={placeholder}
           className="
             w-full px-4 py-3 pr-12 rounded-full
-            bg-neo-bg shadow-neo-raised
-            focus:outline-none focus:shadow-neo-raised-hover
-            focus:ring-3 focus:ring-green-300 focus:ring-opacity-50
-            text-gray-800 placeholder-gray-500
+            bg-neo-bg-light dark:bg-neo-bg-dark 
+            shadow-neo-raised dark:shadow-neo-raised-dark
+            focus:outline-none focus:shadow-neo-raised-hover dark:focus:shadow-neo-raised-lift-dark
+            focus:ring-3 focus:ring-eagle-gold focus:ring-opacity-50
+            text-gray-800 dark:text-gray-200 
+            placeholder-gray-500 dark:placeholder-gray-500
             transition-all duration-300
           "
         />
@@ -47,15 +49,16 @@ export const NeoSearchBar = ({
         whileTap={{ scale: 0.95 }}
         className="
           w-12 h-12 rounded-full
-          bg-neo-bg shadow-neo-raised
-          hover:shadow-neo-raised-hover
+          bg-neo-bg-light dark:bg-neo-bg-dark 
+          shadow-neo-raised dark:shadow-neo-raised-dark
+          hover:shadow-neo-raised-hover dark:hover:shadow-neo-raised-lift-dark
           flex items-center justify-center
-          focus:outline-none focus:ring-3 focus:ring-green-300 focus:ring-opacity-50
+          focus:outline-none focus:ring-3 focus:ring-eagle-gold focus:ring-opacity-50
           transition-all duration-300
         "
         aria-label="Search"
       >
-        <Search className="w-5 h-5 text-gray-700" />
+        <Search className="w-5 h-5 text-gray-700 dark:text-gray-300" />
       </motion.button>
     </form>
   );

@@ -15,9 +15,9 @@ export const NeoCard = ({ children, className = '', hoverable = false }: NeoCard
       transition={{ duration: 0.3 }}
       whileHover={hoverable ? { scale: 1.01, y: -2 } : {}}
       className={`
-        bg-neo-bg dark:bg-gray-950 rounded-2xl p-6
-        shadow-neo-raised dark:shadow-[8px_8px_16px_rgba(0,0,0,0.8),-8px_-8px_16px_rgba(255,255,255,0.03)]
-        ${hoverable ? 'hover:shadow-neo-raised-lift dark:hover:shadow-[10px_10px_20px_rgba(0,0,0,0.9),-10px_-10px_20px_rgba(255,255,255,0.04)] cursor-pointer' : ''}
+        bg-neo-bg-light dark:bg-neo-bg-dark rounded-2xl p-6
+        shadow-neo-raised dark:shadow-neo-raised-dark
+        ${hoverable ? 'hover:shadow-neo-raised-lift dark:hover:shadow-neo-raised-lift-dark cursor-pointer' : ''}
         transition-all duration-300
         ${className}
       `}
