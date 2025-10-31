@@ -1282,6 +1282,70 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
             </NeoCard>
           </div>
         </div>
+
+        {/* Powered By Section */}
+        <div className="mt-8 mb-4">
+          <NeoCard>
+            <div className="p-6">
+              <h3 className="text-gray-700 text-sm font-semibold mb-6 text-center uppercase tracking-wider">Powered By</h3>
+              <div className="flex items-center justify-center gap-8 flex-wrap">
+                {/* Uniswap */}
+                <a 
+                  href="https://uniswap.org" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex flex-col items-center gap-2 hover:opacity-80 transition-opacity group"
+                >
+                  <div className="w-12 h-12 rounded-xl bg-white/50 shadow-neo-inset flex items-center justify-center group-hover:shadow-neo-hover transition-all">
+                    <svg className="w-8 h-8" viewBox="0 0 48 48" fill="none">
+                      <path d="M23.921 11.084c-.736 0-1.341.605-1.341 1.341v9.098c0 .736.605 1.341 1.341 1.341h9.098c.736 0 1.341-.605 1.341-1.341v-9.098c0-.736-.605-1.341-1.341-1.341h-9.098z" fill="#FF007A"/>
+                      <path d="M16.584 25.477c-.736 0-1.341.605-1.341 1.341v9.098c0 .736.605 1.341 1.341 1.341h9.098c.736 0 1.341-.605 1.341-1.341v-9.098c0-.736-.605-1.341-1.341-1.341h-9.098z" fill="#FF007A"/>
+                    </svg>
+                  </div>
+                  <span className="text-xs text-gray-700 font-medium">Uniswap V3</span>
+                </a>
+
+                {/* Charm Finance */}
+                <a 
+                  href="https://charm.fi" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex flex-col items-center gap-2 hover:opacity-80 transition-opacity group"
+                >
+                  <div className="w-12 h-12 rounded-xl bg-white/50 shadow-neo-inset flex items-center justify-center group-hover:shadow-neo-hover transition-all">
+                    <svg className="w-8 h-8" viewBox="0 0 48 48" fill="none">
+                      <circle cx="24" cy="24" r="10" fill="#6366f1" opacity="0.2"/>
+                      <path d="M24 14l7 10-7 10-7-10z" fill="#6366f1"/>
+                      <circle cx="24" cy="14" r="2" fill="#818cf8"/>
+                      <circle cx="24" cy="34" r="2" fill="#818cf8"/>
+                    </svg>
+                  </div>
+                  <span className="text-xs text-gray-700 font-medium">Charm Finance</span>
+                </a>
+
+                {/* LayerZero */}
+                <a 
+                  href="https://layerzero.network" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex flex-col items-center gap-2 hover:opacity-80 transition-opacity group"
+                >
+                  <div className="w-12 h-12 rounded-xl bg-white/50 shadow-neo-inset flex items-center justify-center group-hover:shadow-neo-hover transition-all">
+                    <svg className="w-8 h-8" viewBox="0 0 48 48" fill="none">
+                      <rect x="12" y="18" width="24" height="12" rx="2" fill="#111111"/>
+                      <circle cx="18" cy="24" r="2" fill="#ffffff"/>
+                      <circle cx="24" cy="24" r="2" fill="#ffffff"/>
+                      <circle cx="30" cy="24" r="2" fill="#ffffff"/>
+                      <path d="M16 14h16v4H16z" fill="#111111" opacity="0.5"/>
+                      <path d="M16 30h16v4H16z" fill="#111111" opacity="0.5"/>
+                    </svg>
+                  </div>
+                  <span className="text-xs text-gray-700 font-medium">LayerZero</span>
+                </a>
+              </div>
+            </div>
+          </NeoCard>
+        </div>
       </div>
     </div>
   );
