@@ -7,7 +7,7 @@ import { getActiveStrategies } from '../config/strategies';
 import { ErrorBoundary } from './ErrorBoundary';
 import AssetAllocationSunburst from './AssetAllocationSunburst';
 import { NeoTabs, NeoButton, NeoInput, NeoStatCard, NeoCard, NeoStatusIndicator } from './neumorphic';
-import { UniswapBadge, CharmBadge, LayerZeroBadge } from './partners';
+import { UniswapBadge, CharmBadge, LayerZeroBadge } from './tech-stack';
 
 // Lazy load 3D visualization
 const VaultVisualization = lazy(() => import('./VaultVisualization'));
@@ -1284,7 +1284,7 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
           </div>
         </div>
 
-        {/* Powered By - Sleek One-Line */}
+        {/* Tech Stack - Powered By */}
         <div className="mt-8 mb-4">
           <NeoCard>
             <div className="px-6 py-4">
