@@ -650,7 +650,7 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
         />
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-2 gap-4 mb-8">
           <NeoStatCard
             label="Total deposited"
             value={(() => {
@@ -664,11 +664,6 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
               const totalUSD1 = Number(data.vaultLiquidUSD1) + Number(data.strategyUSD1);
               return `${totalWLFI.toFixed(2)} WLFI + ${totalUSD1.toFixed(2)} USD1`;
             })()}
-          />
-          <NeoStatCard
-            label="Historical APY"
-            value="22.22%"
-            highlighted
           />
           <NeoStatCard
             label="Your position"
@@ -857,45 +852,6 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
                       </div>
                     </div>
 
-                    <div>
-                      <h3 className="text-gray-900 font-bold mb-4 text-lg">APY</h3>
-                      <div className="space-y-2 mb-6">
-                        <div className="flex justify-between items-center py-2 border-b border-gray-300">
-                          <span className="text-gray-700 font-medium text-sm">Weekly APY</span>
-                          <span className="text-gray-900 font-bold">32.27%</span>
-                        </div>
-                        <div className="flex justify-between items-center py-2 border-b border-gray-300">
-                          <span className="text-gray-700 font-medium text-sm">Monthly APY</span>
-                          <span className="text-gray-900 font-bold">22.22%</span>
-                        </div>
-                        <div className="flex justify-between items-center py-2 border-b border-gray-300">
-                          <span className="text-gray-700 font-medium text-sm">Inception APY</span>
-                          <span className="text-gray-900 font-bold">117.91%</span>
-                        </div>
-                        <div className="flex justify-between items-center py-3 border-2 border-yellow-400 bg-yellow-50 rounded-lg px-3 mt-2">
-                          <span className="text-gray-900 font-bold">Net APY</span>
-                          <span className="text-yellow-700 font-bold text-xl">22.22%</span>
-                        </div>
-                      </div>
-
-                      <h3 className="text-gray-900 font-bold mb-4 text-lg">Cumulative Earnings</h3>
-                      <div className="bg-white/30 border border-gray-300 rounded-xl p-6 h-32">
-                        <svg className="w-full h-full" viewBox="0 0 100 30" preserveAspectRatio="none">
-                          <defs>
-                            <linearGradient id="line" x1="0%" y1="0%" x2="100%" y2="0%">
-                              <stop offset="0%" stopColor="#ca8a04" stopOpacity="0.8" />
-                              <stop offset="100%" stopColor="#eab308" stopOpacity="1" />
-                            </linearGradient>
-                          </defs>
-                          <polyline
-                            points="0,30 20,25 40,22 60,18 80,12 100,8"
-                            fill="none"
-                            stroke="url(#line)"
-                            strokeWidth="2"
-                          />
-                        </svg>
-                      </div>
-                    </div>
                   </div>
                 )}
 

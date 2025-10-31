@@ -15,7 +15,7 @@ export function LayerZeroBadge() {
           </span>
           <div className="w-4 h-4 flex items-center justify-center group-hover:scale-110 transition-transform">
             <img 
-              src="https://teal-working-dormouse-113.mypinata.cloud/ipfs/bafkreihml3nahd2duwdjg2ltoeixax2xdj2ldp5unnrjwntyicar74nwra"
+              src="https://teal-working-dormouse-113.mypinata.cloud/ipfs/bafkreidhdvzrssoorwk2lbuasgz2ux2aak4azibxavevanrmmywl7mthve"
               alt="LayerZero"
               className="w-full h-full object-contain"
             />
