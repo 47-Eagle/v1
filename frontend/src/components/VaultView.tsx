@@ -66,20 +66,19 @@ function StrategyRow({ strategy, wlfiPrice }: { strategy: any; wlfiPrice?: strin
           {/* 3D Visualization for Strategy 1 */}
           {strategy.id === 1 && wlfiPrice && (
             <div className="mb-6">
-              <h4 className="text-gray-900 font-semibold text-sm mb-3">Interactive 3D Liquidity Visualization</h4>
               <ErrorBoundary fallback={
-                <div className="bg-orange-50 border-2 border-orange-300 shadow-neo-pressed rounded-xl p-6">
-                  <p className="text-sm text-orange-700 font-medium">3D visualization unavailable. Your browser may not support WebGL.</p>
+                <div className="bg-orange-50 border border-orange-300 rounded-lg p-4 text-center">
+                  <p className="text-xs text-orange-700">3D visualization unavailable</p>
                 </div>
               }>
                 <Suspense fallback={
-                  <div className="bg-white/50 shadow-neo-pressed rounded-xl p-8 flex items-center justify-center h-96">
+                  <div className="bg-white/30 rounded-lg p-6 flex items-center justify-center h-64">
                     <div className="text-center">
-                      <svg className="animate-spin w-12 h-12 mx-auto mb-4 text-yellow-600" fill="none" viewBox="0 0 24 24">
+                      <svg className="animate-spin w-8 h-8 mx-auto mb-2 text-yellow-600" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
-                      <p className="text-sm text-gray-700 font-medium">Loading 3D visualization...</p>
+                      <p className="text-xs text-gray-600">Loading visualization...</p>
                     </div>
                   </div>
                 }>
@@ -129,24 +128,34 @@ function StrategyRow({ strategy, wlfiPrice }: { strategy: any; wlfiPrice?: strin
               )}
 
               {strategy.contract && (
-                <div className="bg-white/50 rounded-lg p-4 border border-gray-200/50 mt-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-600 font-medium">Strategy Contract</span>
-                    <a 
-                      href={`https://etherscan.io/address/${strategy.contract}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-yellow-600 hover:text-yellow-700 transition-colors"
-                    >
-                      <code className="text-xs font-mono">
-                        {strategy.contract.slice(0, 6)}...{strategy.contract.slice(-4)}
-                      </code>
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                      </svg>
-                    </a>
+                <>
+                  <div className="bg-white/50 rounded-lg p-4 border border-gray-200/50 mt-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-600 font-medium">Strategy Contract</span>
+                      <a 
+                        href={`https://etherscan.io/address/${strategy.contract}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-yellow-600 hover:text-yellow-700 transition-colors"
+                      >
+                        <code className="text-xs font-mono">
+                          {strategy.contract.slice(0, 6)}...{strategy.contract.slice(-4)}
+                        </code>
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                      </a>
+                    </div>
                   </div>
-                </div>
+                  
+                  {/* Tech Stack - Only for Strategy 1 */}
+                  {strategy.id === 1 && (
+                    <div className="flex items-center justify-center gap-4 flex-wrap mt-6 pt-4 border-t border-gray-200/50">
+                      <UniswapBadge />
+                      <CharmBadge />
+                    </div>
+                  )}
+                </>
               )}
             </>
           )}
@@ -1043,13 +1052,6 @@ export default function VaultView({ provider, account, onToast, onNavigateUp }: 
                           </div>
                         </a>
                       </div>
-                    </div>
-
-                    {/* Tech Stack */}
-                    <div className="flex items-center justify-center gap-4 flex-wrap pt-4 border-t border-gray-200/50">
-                      <UniswapBadge />
-                      <CharmBadge />
-                      <LayerZeroBadge />
                     </div>
                   </div>
                 )}
