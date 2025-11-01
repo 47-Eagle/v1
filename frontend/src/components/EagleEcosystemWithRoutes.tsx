@@ -36,7 +36,7 @@ export default function EagleEcosystemWithRoutes({ provider, account, onToast }:
     'lp': { y: 0, x: 0 },         // Top floor at 0vh
     'home': { y: 100, x: 0 },     // Main floor at 100vh  
     'vault': { y: 200, x: 0 },    // Vault at 200vh (basement)
-    'wrapper': { y: 100, x: 60 }  // Wrapper parallel to home, to the right
+    'wrapper': { y: 95, x: 100 }  // Wrapper elevated above home, far right
   };
 
   const navigateToFloor = (floor: Floor) => {
@@ -135,8 +135,8 @@ export default function EagleEcosystemWithRoutes({ provider, account, onToast }:
           </motion.div>
         </div>
 
-        {/* Wrapper - Parallel to Home (to the right) */}
-        <div className="h-screen overflow-hidden relative bg-[#0a0a0a]" id="wrapper-floor" style={{ position: 'absolute', top: '100vh', left: '60vw', width: '100vw' }}>
+        {/* Wrapper - Elevated above Home (far right) */}
+        <div className="h-screen overflow-hidden relative bg-gradient-to-b from-[#0a0a0a] via-[#0f0f1a] to-[#0a0a0a]" id="wrapper-floor" style={{ position: 'absolute', top: '95vh', left: '100vw', width: '100vw' }}>
           <motion.div
             animate={{
               opacity: isTransitioning && currentFloor !== 'wrapper' ? 0.5 : 1,

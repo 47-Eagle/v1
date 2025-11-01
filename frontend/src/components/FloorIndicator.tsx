@@ -60,30 +60,30 @@ export default function FloorIndicator({ current, onChange, isTransitioning }: P
       {/* Neumorphic container */}
       <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 backdrop-blur-xl rounded-3xl p-4 border border-gray-200/50 dark:border-gray-600/50 shadow-neo-raised dark:shadow-neo-raised-dark relative">
         <div className="space-y-4 relative">
-          {/* Diagonal connection lines - only show when wrapper is visible */}
+          {/* Elevated connection lines - only show when wrapper is visible */}
           {showWrapper && (
-            <svg className="absolute inset-0 pointer-events-none" style={{ width: '200px', height: '100%', left: '0', top: '0', zIndex: 0 }}>
-              {/* Line from Vault (bottom) to Wrapper (middle-right) */}
+            <svg className="absolute inset-0 pointer-events-none" style={{ width: '250px', height: '100%', left: '0', top: '0', zIndex: 0 }}>
+              {/* Line from Vault (bottom) to Wrapper (elevated right) */}
               <line 
                 x1="50%" 
                 y1="90%" 
-                x2="150%" 
-                y2="50%" 
+                x2="180%" 
+                y2="45%" 
                 stroke="url(#gradient-wrapper)" 
                 strokeWidth="3" 
                 strokeDasharray="6 6"
-                className="opacity-60"
+                className="opacity-70"
               />
-              {/* Line from Wrapper (middle-right) to LP (top) */}
+              {/* Line from Wrapper (elevated right) to LP (top) */}
               <line 
-                x1="150%" 
-                y1="50%" 
+                x1="180%" 
+                y1="45%" 
                 x2="50%" 
                 y2="10%" 
                 stroke="url(#gradient-wrapper)" 
                 strokeWidth="3" 
                 strokeDasharray="6 6"
-                className="opacity-60"
+                className="opacity-70"
               />
               <defs>
                 <linearGradient id="gradient-wrapper" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -100,7 +100,7 @@ export default function FloorIndicator({ current, onChange, isTransitioning }: P
             const isWrapper = floor.id === 'wrapper';
             
             return (
-              <div key={floor.id} className={`relative ${isWrapper ? 'absolute left-[140%] top-1/2 -translate-y-1/2' : ''}`} style={isWrapper ? { zIndex: 10 } : {}}>
+              <div key={floor.id} className={`relative ${isWrapper ? 'absolute left-[180%] top-[45%] -translate-y-1/2' : ''}`} style={isWrapper ? { zIndex: 10 } : {}}>
                 <button
                   onClick={() => onChange(floor.id)}
                   disabled={isTransitioning}
