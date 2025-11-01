@@ -62,32 +62,33 @@ export default function FloorIndicator({ current, onChange, isTransitioning }: P
         <div className="space-y-4 relative">
           {/* Diagonal connection lines - only show when wrapper is visible */}
           {showWrapper && (
-            <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 0 }}>
+            <svg className="absolute inset-0 pointer-events-none" style={{ width: '200px', height: '100%', left: '0', top: '0', zIndex: 0 }}>
               {/* Line from Vault (bottom) to Wrapper (middle-right) */}
               <line 
                 x1="50%" 
-                y1="85%" 
-                x2="120%" 
+                y1="90%" 
+                x2="150%" 
                 y2="50%" 
                 stroke="url(#gradient-wrapper)" 
-                strokeWidth="2" 
-                strokeDasharray="4 4"
-                className="opacity-50"
+                strokeWidth="3" 
+                strokeDasharray="6 6"
+                className="opacity-60"
               />
               {/* Line from Wrapper (middle-right) to LP (top) */}
               <line 
-                x1="120%" 
+                x1="150%" 
                 y1="50%" 
                 x2="50%" 
-                y2="15%" 
+                y2="10%" 
                 stroke="url(#gradient-wrapper)" 
-                strokeWidth="2" 
-                strokeDasharray="4 4"
-                className="opacity-50"
+                strokeWidth="3" 
+                strokeDasharray="6 6"
+                className="opacity-60"
               />
               <defs>
-                <linearGradient id="gradient-wrapper" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#a855f7" />
+                <linearGradient id="gradient-wrapper" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#8b5cf6" />
+                  <stop offset="50%" stopColor="#a855f7" />
                   <stop offset="100%" stopColor="#3b82f6" />
                 </linearGradient>
               </defs>
@@ -99,12 +100,12 @@ export default function FloorIndicator({ current, onChange, isTransitioning }: P
             const isWrapper = floor.id === 'wrapper';
             
             return (
-              <div key={floor.id} className={`relative ${isWrapper ? 'absolute left-[120%] top-1/2 -translate-y-1/2' : ''}`} style={isWrapper ? { zIndex: 10 } : {}}>
+              <div key={floor.id} className={`relative ${isWrapper ? 'absolute left-[140%] top-1/2 -translate-y-1/2' : ''}`} style={isWrapper ? { zIndex: 10 } : {}}>
                 <button
                   onClick={() => onChange(floor.id)}
                   disabled={isTransitioning}
                   className={`
-                    relative w-16 h-16 rounded-2xl
+                    relative ${isWrapper ? 'w-12 h-12' : 'w-16 h-16'} rounded-2xl
                     transition-all duration-300 group
                     border backdrop-blur-sm
                     ${isActive 
@@ -135,6 +136,7 @@ export default function FloorIndicator({ current, onChange, isTransitioning }: P
                     absolute inset-0 flex items-center justify-center
                     ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-gray-200'}
                     transition-colors
+                    ${isWrapper ? 'scale-90' : ''}
                   `}>
                     {floor.icon}
                   </div>
