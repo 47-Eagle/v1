@@ -315,17 +315,30 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
       let strategyWLFI = '0';
       let strategyUSD1 = '0';
 
-      const [vaultWlfiBal, vaultUsd1Bal, strategyWlfiBal, strategyUsd1Bal] = await Promise.all([
+      // Get vault balances
+      const [vaultWlfiBal, vaultUsd1Bal] = await Promise.all([
         wlfi.balanceOf(CONTRACTS.VAULT),
         usd1.balanceOf(CONTRACTS.VAULT),
-        wlfi.balanceOf(CONTRACTS.STRATEGY), // Strategy contract holds the tokens
-        usd1.balanceOf(CONTRACTS.STRATEGY), // Strategy contract holds the tokens
       ]);
       
       vaultLiquidWLFI = formatEther(vaultWlfiBal);
       vaultLiquidUSD1 = formatEther(vaultUsd1Bal);
-      strategyWLFI = formatEther(strategyWlfiBal);
-      strategyUSD1 = formatEther(strategyUsd1Bal);
+      
+      // Get strategy balances from getTotalAmounts() which accounts for Charm LP position
+      try {
+        const strategy = new Contract(
+          CONTRACTS.STRATEGY,
+          ['function getTotalAmounts() external view returns (uint256 wlfiAmount, uint256 usd1Amount)'],
+          provider
+        );
+        const [strategyWlfiBal, strategyUsd1Bal] = await strategy.getTotalAmounts();
+        strategyWLFI = formatEther(strategyWlfiBal);
+        strategyUSD1 = formatEther(strategyUsd1Bal);
+      } catch (error) {
+        console.error('Error fetching strategy balances:', error);
+        strategyWLFI = '0';
+        strategyUSD1 = '0';
+      }
 
       const liquidTotal = (Number(vaultLiquidWLFI) + Number(vaultLiquidUSD1)).toFixed(2);
       const strategyTotal = (Number(strategyWLFI) + Number(strategyUSD1)).toFixed(2);
@@ -511,13 +524,25 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
         const wlfi = new Contract(CONTRACTS.WLFI, ERC20_ABI, provider);
         const usd1 = new Contract(CONTRACTS.USD1, ERC20_ABI, provider);
         
-        const [totalSupply, vaultWlfiBal, vaultUsd1Bal, strategyWlfiBal, strategyUsd1Bal] = await Promise.all([
+        const [totalSupply, vaultWlfiBal, vaultUsd1Bal] = await Promise.all([
           vault.totalSupply(),
           wlfi.balanceOf(CONTRACTS.VAULT),
           usd1.balanceOf(CONTRACTS.VAULT),
-          wlfi.balanceOf(CONTRACTS.STRATEGY),
-          usd1.balanceOf(CONTRACTS.STRATEGY),
         ]);
+        
+        // Get strategy balances from getTotalAmounts()
+        let strategyWlfiBal = 0n;
+        let strategyUsd1Bal = 0n;
+        try {
+          const strategy = new Contract(
+            CONTRACTS.STRATEGY,
+            ['function getTotalAmounts() external view returns (uint256 wlfiAmount, uint256 usd1Amount)'],
+            provider
+          );
+          [strategyWlfiBal, strategyUsd1Bal] = await strategy.getTotalAmounts();
+        } catch (error) {
+          console.error('Error fetching strategy balances for withdrawal calc:', error);
+        }
         
         const supply = Number(formatEther(totalSupply));
         const totalWlfi = Number(formatEther(vaultWlfiBal)) + Number(formatEther(strategyWlfiBal));
@@ -605,11 +630,19 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
       const supply = Number(formatEther(totalSupply));
       // const assets = Number(formatEther(totalAssets)); // For potential future use
       
-      // Get strategy balances too for total calculation
-      const [strategyWlfiBal, strategyUsd1Bal] = await Promise.all([
-        wlfi.balanceOf(CONTRACTS.STRATEGY),
-        usd1.balanceOf(CONTRACTS.STRATEGY),
-      ]);
+      // Get strategy balances from getTotalAmounts()
+      let strategyWlfiBal = 0n;
+      let strategyUsd1Bal = 0n;
+      try {
+        const strategy = new Contract(
+          CONTRACTS.STRATEGY,
+          ['function getTotalAmounts() external view returns (uint256 wlfiAmount, uint256 usd1Amount)'],
+          provider
+        );
+        [strategyWlfiBal, strategyUsd1Bal] = await strategy.getTotalAmounts();
+      } catch (error) {
+        console.error('Error fetching strategy balances for withdraw:', error);
+      }
       
       const strategyWlfi = Number(formatEther(strategyWlfiBal));
       const strategyUsd1 = Number(formatEther(strategyUsd1Bal));
