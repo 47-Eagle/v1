@@ -51,16 +51,55 @@ const floors: Array<{ id: Floor; label: string; icon: JSX.Element; color: string
 ];
 
 export default function FloorIndicator({ current, onChange, isTransitioning }: Props) {
+  // Show wrapper only when on vault or wrapper page
+  const showWrapper = current === 'vault' || current === 'wrapper';
+  const visibleFloors = showWrapper ? floors : floors.filter(f => f.id !== 'wrapper');
+  
   return (
     <div className="fixed right-8 top-1/2 -translate-y-1/2 z-50">
       {/* Neumorphic container */}
-      <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 backdrop-blur-xl rounded-3xl p-4 border border-gray-200/50 dark:border-gray-600/50 shadow-neo-raised dark:shadow-neo-raised-dark">
-        <div className="space-y-4">
-          {floors.map((floor, index) => {
+      <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 backdrop-blur-xl rounded-3xl p-4 border border-gray-200/50 dark:border-gray-600/50 shadow-neo-raised dark:shadow-neo-raised-dark relative">
+        <div className="space-y-4 relative">
+          {/* Diagonal connection lines - only show when wrapper is visible */}
+          {showWrapper && (
+            <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 0 }}>
+              {/* Line from Vault (bottom) to Wrapper (middle-right) */}
+              <line 
+                x1="50%" 
+                y1="85%" 
+                x2="120%" 
+                y2="50%" 
+                stroke="url(#gradient-wrapper)" 
+                strokeWidth="2" 
+                strokeDasharray="4 4"
+                className="opacity-50"
+              />
+              {/* Line from Wrapper (middle-right) to LP (top) */}
+              <line 
+                x1="120%" 
+                y1="50%" 
+                x2="50%" 
+                y2="15%" 
+                stroke="url(#gradient-wrapper)" 
+                strokeWidth="2" 
+                strokeDasharray="4 4"
+                className="opacity-50"
+              />
+              <defs>
+                <linearGradient id="gradient-wrapper" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#a855f7" />
+                  <stop offset="100%" stopColor="#3b82f6" />
+                </linearGradient>
+              </defs>
+            </svg>
+          )}
+
+          {visibleFloors.map((floor, index) => {
             const isActive = current === floor.id;
+            const isWrapper = floor.id === 'wrapper';
             
             return (
-              <div key={floor.id} className="relative">
+              <div key={floor.id} className={`relative ${isWrapper ? 'absolute left-[120%] top-1/2 -translate-y-1/2' : ''}`} style={isWrapper ? { zIndex: 10 } : {}}>
                 <button
                   onClick={() => onChange(floor.id)}
                   disabled={isTransitioning}
@@ -116,8 +155,8 @@ export default function FloorIndicator({ current, onChange, isTransitioning }: P
                   </div>
                 </button>
 
-                {/* Connection line between floors */}
-                {index < floors.length - 1 && (
+                {/* Connection line between floors - skip for wrapper */}
+                {!isWrapper && index < visibleFloors.filter(f => f.id !== 'wrapper').length - 1 && (
                   <div className="absolute left-1/2 -translate-x-1/2 w-px h-4 bg-gradient-to-b from-gray-300 to-gray-400 dark:from-gray-600 dark:to-gray-700" />
                 )}
               </div>
