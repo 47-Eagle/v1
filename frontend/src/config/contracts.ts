@@ -14,6 +14,13 @@ export const CONTRACTS = {
   CHARM_VAULT: '0x22828Dbf15f5FBa2394Ba7Cf8fA9A96BdB444B71', // Charm USD1/WLFI Vault
   UNISWAP_V3_POOL: '0x4637Ea6eCf7E16C99E67E941ab4d7d52eAc7c73d', // Uniswap V3 1% Fee Tier USD1/WLFI Pool
   
+  // Uniswap V4 (EAGLE/ETH Pool - Coming Soon)
+  // TODO: Add after V4 deployment
+  // UNISWAP_V4_POOL_MANAGER: '0x...', // Mainnet V4 PoolManager
+  // EAGLE_ETH_POOL_KEY: '0x...', // Pool identifier hash
+  // EAGLE_ETH_HOOK: '0x...', // Custom hook contract
+  // V4_POSITION_MANAGER: '0x...', // V4 position manager for LPs
+  
   // Token addresses (REAL tokens!)
   WLFI: '0xdA5e1988097297dCdc1f90D4dFE7909e847CBeF6',      // World Liberty Financial
   USD1: '0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d',      // USD1 Stablecoin

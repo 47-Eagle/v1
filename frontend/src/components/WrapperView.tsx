@@ -249,7 +249,7 @@ export default function WrapperView({ provider, account, onToast, onNavigateDown
   };
 
   return (
-    <div className="bg-neo-bg dark:bg-black min-h-screen pb-24 transition-colors">
+    <div className="bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50 dark:from-gray-900 dark:via-black dark:to-gray-900 min-h-screen pb-24 transition-colors">
       <div className="max-w-6xl mx-auto px-6 pt-6 pb-24">
         {/* Navigation Buttons */}
         <div className="flex items-center gap-4 mb-6">

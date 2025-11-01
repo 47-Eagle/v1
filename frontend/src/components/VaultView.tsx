@@ -21,22 +21,22 @@ function StrategyRow({ strategy, wlfiPrice }: { strategy: any; wlfiPrice?: strin
     <div className={`
       group relative rounded-2xl overflow-hidden transition-all duration-300
       ${strategy.status === 'active' 
-        ? 'bg-gradient-to-br from-zinc-800 via-zinc-900 to-black border border-yellow-500/30 shadow-[0_4px_20px_rgba(234,179,8,0.15),inset_0_1px_0_rgba(255,255,255,0.1)] hover:border-yellow-500/40 hover:shadow-[0_8px_30px_rgba(234,179,8,0.25),inset_0_1px_0_rgba(255,255,255,0.15)]' 
-        : 'bg-gradient-to-br from-zinc-800 via-zinc-900 to-black border border-zinc-700/50 shadow-[0_2px_10px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.05)] hover:border-zinc-600'
+        ? 'bg-gradient-to-br from-white to-gray-50 dark:from-zinc-800 dark:via-zinc-900 dark:to-black border border-yellow-400/40 dark:border-yellow-500/30 shadow-neo-raised dark:shadow-[0_4px_20px_rgba(234,179,8,0.15),inset_0_1px_0_rgba(255,255,255,0.1)] hover:border-yellow-500/60 dark:hover:border-yellow-500/40 hover:shadow-neo-raised-lift dark:hover:shadow-[0_8px_30px_rgba(234,179,8,0.25),inset_0_1px_0_rgba(255,255,255,0.15)]' 
+        : 'bg-gradient-to-br from-gray-100 to-gray-200 dark:from-zinc-800 dark:via-zinc-900 dark:to-black border border-gray-300/50 dark:border-zinc-700/50 shadow-neo-raised dark:shadow-[0_2px_10px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.05)] hover:border-gray-400/70 dark:hover:border-zinc-600'
       }
     `}>
       {/* Header - Always Visible */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full px-8 py-5 transition-all duration-300 hover:bg-white/5"
+        className="w-full px-8 py-5 transition-all duration-300 hover:bg-gray-100/50 dark:hover:bg-white/5"
       >
         <div className="flex items-center gap-6">
           {/* Strategy Number - Metallic Badge */}
           <div className={`
             px-4 py-1.5 rounded-lg text-xs font-bold tracking-wider
             ${strategy.status === 'active'
-              ? 'bg-gradient-to-br from-yellow-600 via-yellow-500 to-amber-600 text-white shadow-[0_2px_8px_rgba(234,179,8,0.4),inset_0_1px_0_rgba(255,255,255,0.3)]'
-              : 'bg-gradient-to-br from-zinc-700 via-zinc-800 to-zinc-900 text-zinc-400 border border-zinc-600/30 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]'
+              ? 'bg-gradient-to-br from-yellow-500 via-yellow-400 to-yellow-600 dark:from-yellow-600 dark:via-yellow-500 dark:to-amber-600 text-gray-900 dark:text-white shadow-neo-raised dark:shadow-[0_2px_8px_rgba(234,179,8,0.4),inset_0_1px_0_rgba(255,255,255,0.3)]'
+              : 'bg-gradient-to-br from-gray-300 to-gray-400 dark:from-zinc-700 dark:via-zinc-800 dark:to-zinc-900 text-gray-700 dark:text-zinc-400 border border-gray-400/50 dark:border-zinc-600/30 shadow-neo-inset dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]'
             }
           `}>
             #{strategy.id}
@@ -60,30 +60,30 @@ function StrategyRow({ strategy, wlfiPrice }: { strategy: any; wlfiPrice?: strin
           
           {/* Strategy Name & Protocol - More Space */}
           <div className="flex-1 text-left">
-            <h4 className="text-white font-semibold text-lg mb-0.5 group-hover:text-yellow-400 transition-colors">
+            <h4 className="text-gray-900 dark:text-white font-semibold text-lg mb-0.5 group-hover:text-yellow-600 dark:group-hover:text-yellow-400 transition-colors">
               {strategy.name}
             </h4>
-            <p className="text-sm text-gray-400">{strategy.protocol}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">{strategy.protocol}</p>
           </div>
           
           {/* Allocation - Elegant Percentage */}
           {strategy.allocation && (
             <div className="text-right mr-4">
-              <div className="text-2xl font-bold text-yellow-400">{strategy.allocation}</div>
-              <div className="text-xs text-gray-500 uppercase tracking-wider">Allocated</div>
+              <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{strategy.allocation}</div>
+              <div className="text-xs text-gray-600 dark:text-gray-500 uppercase tracking-wider">Allocated</div>
             </div>
           )}
           
           {/* Expand Arrow - Metallic Button */}
           <div className={`
             w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-300
-            bg-gradient-to-br from-zinc-700 via-zinc-800 to-zinc-900 
-            border border-zinc-600/30 shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_2px_4px_rgba(0,0,0,0.3)]
-            group-hover:border-zinc-500/50 group-hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_2px_8px_rgba(0,0,0,0.4)]
+            bg-gradient-to-br from-gray-200 to-gray-300 dark:from-zinc-700 dark:via-zinc-800 dark:to-zinc-900 
+            border border-gray-300/50 dark:border-zinc-600/30 shadow-neo-inset dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_2px_4px_rgba(0,0,0,0.3)]
+            group-hover:border-gray-400/70 dark:group-hover:border-zinc-500/50 group-hover:shadow-neo-pressed dark:group-hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_2px_8px_rgba(0,0,0,0.4)]
             ${isExpanded ? 'rotate-180' : ''}
           `}>
             <svg 
-              className="w-5 h-5 text-zinc-400 group-hover:text-yellow-400 transition-colors"
+              className="w-5 h-5 text-gray-600 dark:text-zinc-400 group-hover:text-yellow-600 dark:group-hover:text-yellow-400 transition-colors"
               fill="none" 
               stroke="currentColor" 
               viewBox="0 0 24 24"
@@ -96,7 +96,7 @@ function StrategyRow({ strategy, wlfiPrice }: { strategy: any; wlfiPrice?: strin
 
       {/* Expanded Content */}
       {isExpanded && (
-        <div className="px-8 pb-6 pt-4 border-t border-zinc-700/50 bg-gradient-to-b from-black/40 to-black/60 animate-fadeIn">
+        <div className="px-8 pb-6 pt-4 border-t border-gray-300/50 dark:border-zinc-700/50 bg-gradient-to-b from-gray-50/60 to-gray-100/80 dark:from-black/40 dark:to-black/60 animate-fadeIn">
           {/* 3D Visualization for Strategy 1 */}
           {strategy.id === 1 && wlfiPrice && (
             <div className="mb-6">
@@ -165,10 +165,10 @@ function StrategyRow({ strategy, wlfiPrice }: { strategy: any; wlfiPrice?: strin
                       rel="noopener noreferrer"
                       className="flex items-center gap-2 text-yellow-600 dark:text-yellow-400 hover:text-yellow-700 dark:hover:text-yellow-300 transition-colors"
                     >
-                      <code className="text-xs font-mono">
-                        {strategy.contract.slice(0, 6)}...{strategy.contract.slice(-4)}
+                      <code className="text-xs font-mono break-all">
+                        {strategy.contract}
                       </code>
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                       </svg>
                     </a>
@@ -704,7 +704,7 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
   };
 
   return (
-    <div className="bg-neo-bg dark:bg-black min-h-screen pb-24 transition-colors">
+    <div className="bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50 dark:from-gray-900 dark:via-black dark:to-gray-900 min-h-screen pb-24 transition-colors">
       <div className="max-w-6xl mx-auto px-6 pt-6 pb-24">
         {/* Navigation Buttons */}
         <div className="flex items-center gap-4 mb-6">
@@ -1066,10 +1066,10 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
                         >
                           <span className={`${DS.text.label} font-bold`}>ERC-4626 Vault</span>
                           <div className={`flex items-center gap-2 ${DS.text.highlight} hover:text-yellow-700 dark:hover:text-yellow-300 ${DS.transitions.fast}`}>
-                            <code className="text-sm font-mono font-semibold">
-                              {CONTRACTS.VAULT.slice(0, 6)}...{CONTRACTS.VAULT.slice(-4)}
+                            <code className="text-xs font-mono font-semibold break-all">
+                              {CONTRACTS.VAULT}
                             </code>
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                               </svg>
                           </div>

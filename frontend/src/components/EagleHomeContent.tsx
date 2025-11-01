@@ -88,7 +88,13 @@ export default function EagleHomeContent({ onNavigateUp, onNavigateDown, provide
             {/* Gradient accent */}
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-400 to-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             
-            <div className="flex items-start justify-between mb-4">
+            {/* Status Badge - Top Right */}
+            <div className="absolute top-4 right-4 inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-orange-100 to-yellow-100 dark:from-orange-900/30 dark:to-yellow-900/30 border-2 border-orange-400 dark:border-orange-500 rounded-full shadow-sm">
+              <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
+              <span className="text-xs font-semibold text-orange-700 dark:text-orange-300">Coming Soon</span>
+            </div>
+            
+            <div className="flex items-start justify-between mb-4 pr-32">
               <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">EAGLE/ETH LP</h3>
               <motion.div
                 animate={{ y: [0, -4, 0] }}
@@ -97,11 +103,7 @@ export default function EagleHomeContent({ onNavigateUp, onNavigateDown, provide
                 <ArrowUp className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" />
               </motion.div>
             </div>
-            <p className="text-sm text-gray-700 dark:text-gray-300 mb-5 font-medium">Provide liquidity, earn fees</p>
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-100 to-yellow-100 dark:from-orange-900/30 dark:to-yellow-900/30 border-2 border-orange-400 dark:border-orange-500 rounded-full">
-              <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
-              <span className="text-sm font-semibold text-orange-700 dark:text-orange-300">Coming Soon</span>
-            </div>
+            <p className="text-sm text-gray-700 dark:text-gray-300 font-medium">Provide liquidity, earn fees</p>
           </motion.div>
 
           {/* Vault Card */}
@@ -115,7 +117,13 @@ export default function EagleHomeContent({ onNavigateUp, onNavigateDown, provide
             {/* Gradient accent */}
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-yellow-400 to-orange-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             
-            <div className="flex items-start justify-between mb-4">
+            {/* Status Badge - Top Right */}
+            <div className="absolute top-4 right-4 inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 border-2 border-green-400 dark:border-green-500 rounded-full shadow-sm">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-xs font-semibold text-green-700 dark:text-green-300">Active</span>
+            </div>
+            
+            <div className="flex items-start justify-between mb-4 pr-32">
               <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 group-hover:text-yellow-600 dark:group-hover:text-yellow-400 transition-colors">Vault Engine</h3>
               <motion.div
                 animate={{ y: [0, 4, 0] }}
@@ -124,11 +132,7 @@ export default function EagleHomeContent({ onNavigateUp, onNavigateDown, provide
                 <ArrowDown className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-yellow-600 dark:group-hover:text-yellow-400 transition-colors" />
               </motion.div>
             </div>
-            <p className="text-sm text-gray-700 dark:text-gray-300 mb-5 font-medium">Deposit & earn yield</p>
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 border-2 border-green-400 dark:border-green-500 rounded-full">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-sm font-semibold text-green-700 dark:text-green-300">Active</span>
-            </div>
+            <p className="text-sm text-gray-700 dark:text-gray-300 font-medium">Deposit & earn yield</p>
           </motion.div>
         </motion.div>
 
