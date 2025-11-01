@@ -24,20 +24,23 @@ export const NeoInput = ({
   return (
     <div className={className}>
       {(label || maxLabel) && (
-        <div className="flex justify-between mb-2">
-          {label && <label className="text-sm text-gray-700 dark:text-gray-300 font-medium">{label}</label>}
+        <div className="flex justify-between mb-3">
+          {label && <label className="text-sm text-gray-700 dark:text-gray-300 font-semibold tracking-wide">{label}</label>}
           {maxLabel && onMaxClick && (
-            <button
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               onClick={onMaxClick}
-              className="text-xs text-gray-600 dark:text-gray-400 hover:text-eagle-gold dark:hover:text-eagle-gold-light font-medium transition-colors"
+              className="text-xs text-gray-600 dark:text-gray-400 hover:text-eagle-gold dark:hover:text-eagle-gold-light font-semibold transition-all duration-300 px-2 py-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
             >
               {maxLabel}
-            </button>
+            </motion.button>
           )}
         </div>
       )}
       <motion.div
         whileFocus={{ scale: 1.01 }}
+        transition={{ type: "spring", stiffness: 400, damping: 20 }}
         className="relative"
       >
         <input
@@ -46,16 +49,17 @@ export const NeoInput = ({
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           className="
-            w-full px-4 py-3 rounded-2xl
-            bg-neo-bg-light dark:bg-neo-bg-dark 
-            shadow-neo-pressed dark:shadow-neo-pressed-dark
-            focus:shadow-neo-raised dark:focus:shadow-neo-raised-dark
+            w-full px-5 py-4 rounded-2xl
+            bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850
+            shadow-neo-inset dark:shadow-neo-inset-dark
+            focus:shadow-neo-pressed dark:focus:shadow-neo-pressed-dark
+            border border-gray-200/50 dark:border-gray-600/50
+            focus:border-gray-300/70 dark:focus:border-gray-500/60
             text-gray-900 dark:text-gray-100 
-            placeholder-gray-500 dark:placeholder-gray-500
-            text-lg font-medium
-            focus:outline-none focus:ring-2 focus:ring-eagle-gold focus:ring-opacity-50
-            transition-all duration-300
-            border-none
+            placeholder-gray-400 dark:placeholder-gray-500
+            text-lg font-semibold
+            focus:outline-none focus:ring-2 focus:ring-eagle-gold dark:focus:ring-eagle-gold-light focus:ring-opacity-40
+            transition-all duration-400 ease-out
           "
         />
       </motion.div>

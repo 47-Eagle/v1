@@ -24,26 +24,27 @@ export const NeoButton = ({
     <motion.button
       onClick={onClick}
       disabled={disabled}
-      whileHover={disabled ? {} : { scale: 1.02, y: -1 }}
-      whileTap={disabled ? {} : { scale: 0.98 }}
-      transition={{ type: "spring", stiffness: 400, damping: 17 }}
+      whileHover={disabled ? {} : { scale: 1.03, y: -2 }}
+      whileTap={disabled ? {} : { scale: 0.97 }}
+      transition={{ type: "spring", stiffness: 500, damping: 20 }}
       className={`
-        px-6 py-3 rounded-full flex items-center justify-center gap-2 font-semibold
-        bg-neo-bg-light dark:bg-neo-bg-dark 
+        px-8 py-3.5 rounded-full flex items-center justify-center gap-3 font-semibold
+        bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850
         text-gray-900 dark:text-gray-100
-        transition-all duration-300
-        ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
+        border border-gray-200/50 dark:border-gray-600/50
+        transition-all duration-400 ease-out
+        ${disabled ? 'opacity-40 cursor-not-allowed grayscale' : ''}
         ${active 
-          ? 'shadow-neo-pressed dark:shadow-neo-pressed-dark' 
-          : 'shadow-neo-raised hover:shadow-neo-raised-lift dark:shadow-neo-raised-dark dark:hover:shadow-neo-raised-lift-dark'
+          ? 'shadow-neo-pressed dark:shadow-neo-pressed-dark border-gray-300/70 dark:border-gray-500/60' 
+          : 'shadow-neo-raised hover:shadow-neo-hover dark:shadow-neo-raised-dark dark:hover:shadow-neo-hover-dark hover:border-gray-300/70 dark:hover:border-gray-500/60'
         }
-        ${glowing ? 'shadow-neo-glow dark:shadow-neo-glow-dark ring-2 ring-yellow-400 dark:ring-yellow-500 ring-opacity-60 animate-pulse' : ''}
-        focus:outline-none focus:ring-2 focus:ring-eagle-gold focus:ring-opacity-50
+        ${glowing ? 'shadow-neo-glow dark:shadow-neo-glow-dark ring-2 ring-yellow-400 dark:ring-yellow-500 ring-opacity-70 animate-pulse' : ''}
+        focus:outline-none focus:ring-2 focus:ring-eagle-gold dark:focus:ring-eagle-gold-light focus:ring-opacity-60
         ${className}
       `}
     >
-      {icon}
-      <span>{label}</span>
+      {icon && <span className="transition-transform duration-300 group-hover:scale-110">{icon}</span>}
+      <span className="tracking-wide">{label}</span>
     </motion.button>
   );
 };

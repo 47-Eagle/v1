@@ -21,40 +21,25 @@ export const NeoTabs = ({ tabs, defaultTab, onChange }: NeoTabsProps) => {
   };
 
   return (
-    <div className="flex gap-2 bg-neo-bg-light dark:bg-neo-bg-dark p-1 rounded-full shadow-neo-raised dark:shadow-neo-raised-dark transition-all duration-300">
+    <div className="flex gap-2 bg-gray-100 dark:bg-gray-800 p-1 rounded-full shadow-neo-raised dark:shadow-neo-raised-dark border border-gray-200/50 dark:border-gray-600/50 transition-all duration-300">
       {tabs.map((tab) => {
         const isActive = activeTab === tab.id;
         return (
-          <motion.button
+          <button
             key={tab.id}
             onClick={() => handleTabClick(tab.id)}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
             className={`
               px-6 py-2 rounded-full font-medium transition-all duration-300
-              relative flex-1 overflow-hidden
+              relative flex-1 z-10
               ${isActive 
-                ? 'text-gray-900 dark:text-gray-100' 
+                ? 'text-gray-900 dark:text-white bg-white dark:bg-gray-700 shadow-neo-raised dark:shadow-neo-inset-dark border border-gray-200/50 dark:border-gray-600/50' 
                 : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
               }
-              focus:outline-none focus:ring-3 focus:ring-eagle-gold focus:ring-opacity-50
+              focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-50
             `}
           >
-            {isActive && (
-              <motion.div
-                layoutId="activeTab"
-                className="absolute inset-0 rounded-full bg-white dark:bg-gray-700 shadow-neo-raised dark:shadow-neo-raised-dark"
-                style={{ zIndex: 0 }}
-                transition={{ 
-                  type: 'spring', 
-                  stiffness: 500, 
-                  damping: 30,
-                  duration: 0.3
-                }}
-              />
-            )}
-            <span className="relative z-10">{tab.label}</span>
-          </motion.button>
+            {tab.label}
+          </button>
         );
       })}
     </div>

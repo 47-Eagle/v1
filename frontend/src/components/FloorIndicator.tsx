@@ -19,16 +19,6 @@ const floors: Array<{ id: Floor; label: string; icon: JSX.Element; color: string
     color: 'from-blue-500 to-purple-500' 
   },
   { 
-    id: 'wrapper', 
-    label: 'Wrapper Bridge', 
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-      </svg>
-    ),
-    color: 'from-purple-500 to-blue-500' 
-  },
-  { 
     id: 'home', 
     label: 'Home', 
     icon: (
@@ -51,61 +41,21 @@ const floors: Array<{ id: Floor; label: string; icon: JSX.Element; color: string
 ];
 
 export default function FloorIndicator({ current, onChange, isTransitioning }: Props) {
-  // Show wrapper only when on vault or wrapper page
-  const showWrapper = current === 'vault' || current === 'wrapper';
-  const visibleFloors = showWrapper ? floors : floors.filter(f => f.id !== 'wrapper');
-  
   return (
     <div className="fixed right-8 top-1/2 -translate-y-1/2 z-50">
       {/* Neumorphic container */}
-      <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 backdrop-blur-xl rounded-3xl p-4 border border-gray-200/50 dark:border-gray-600/50 shadow-neo-raised dark:shadow-neo-raised-dark relative">
-        <div className="space-y-4 relative">
-          {/* Elevated connection lines - only show when wrapper is visible */}
-          {showWrapper && (
-            <svg className="absolute inset-0 pointer-events-none" style={{ width: '250px', height: '100%', left: '0', top: '0', zIndex: 0 }}>
-              {/* Line from Vault (bottom) to Wrapper (elevated right) */}
-              <line 
-                x1="50%" 
-                y1="90%" 
-                x2="180%" 
-                y2="45%" 
-                stroke="url(#gradient-wrapper)" 
-                strokeWidth="3" 
-                strokeDasharray="6 6"
-                className="opacity-70"
-              />
-              {/* Line from Wrapper (elevated right) to LP (top) */}
-              <line 
-                x1="180%" 
-                y1="45%" 
-                x2="50%" 
-                y2="10%" 
-                stroke="url(#gradient-wrapper)" 
-                strokeWidth="3" 
-                strokeDasharray="6 6"
-                className="opacity-70"
-              />
-              <defs>
-                <linearGradient id="gradient-wrapper" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#8b5cf6" />
-                  <stop offset="50%" stopColor="#a855f7" />
-                  <stop offset="100%" stopColor="#3b82f6" />
-                </linearGradient>
-              </defs>
-            </svg>
-          )}
-
-          {visibleFloors.map((floor, index) => {
+      <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 backdrop-blur-xl rounded-3xl p-4 border border-gray-200/50 dark:border-gray-600/50 shadow-neo-raised dark:shadow-neo-raised-dark">
+        <div className="space-y-4">
+          {floors.map((floor, index) => {
             const isActive = current === floor.id;
-            const isWrapper = floor.id === 'wrapper';
             
             return (
-              <div key={floor.id} className={`relative ${isWrapper ? 'absolute left-[180%] top-[45%] -translate-y-1/2' : ''}`} style={isWrapper ? { zIndex: 10 } : {}}>
+              <div key={floor.id} className="relative">
                 <button
                   onClick={() => onChange(floor.id)}
                   disabled={isTransitioning}
                   className={`
-                    relative ${isWrapper ? 'w-12 h-12' : 'w-16 h-16'} rounded-2xl
+                    relative w-16 h-16 rounded-2xl
                     transition-all duration-300 group
                     border backdrop-blur-sm
                     ${isActive 
@@ -136,7 +86,6 @@ export default function FloorIndicator({ current, onChange, isTransitioning }: P
                     absolute inset-0 flex items-center justify-center
                     ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-gray-200'}
                     transition-colors
-                    ${isWrapper ? 'scale-90' : ''}
                   `}>
                     {floor.icon}
                   </div>
@@ -157,8 +106,8 @@ export default function FloorIndicator({ current, onChange, isTransitioning }: P
                   </div>
                 </button>
 
-                {/* Connection line between floors - skip for wrapper */}
-                {!isWrapper && index < visibleFloors.filter(f => f.id !== 'wrapper').length - 1 && (
+                {/* Connection line between floors */}
+                {index < floors.length - 1 && (
                   <div className="absolute left-1/2 -translate-x-1/2 w-px h-4 bg-gradient-to-b from-gray-300 to-gray-400 dark:from-gray-600 dark:to-gray-700" />
                 )}
               </div>

@@ -213,21 +213,8 @@ export default function VaultVisualization({ currentPrice = WLFI_PRICE_USD }: Va
         <div className="p-4 border-b border-white/5 bg-black/20">
           <div className="flex items-center justify-between">
             <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <h4 className="text-sm font-semibold text-white">3D Capital Allocation</h4>
-                <div className="group relative">
-                  <svg className="w-4 h-4 text-gray-500 hover:text-yellow-500 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <div className="absolute left-0 top-6 w-64 p-3 bg-black border border-yellow-500/30 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-10">
-                    <p className="text-xs text-gray-300 leading-relaxed">
-                      This shows <strong className="text-white">total capital allocation</strong> across positions. 
-                      For <strong className="text-yellow-500">active liquidity</strong> at current price, check Charm Finance analytics.
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <p className="text-xs text-gray-300">Total weight distribution across all price ranges</p>
+              <h4 className="text-sm font-semibold text-white mb-1">3D Capital Allocation</h4>
+              <p className="text-xs text-gray-400">Liquidity distribution across price ranges</p>
             </div>
             <div className="flex items-center gap-2">
               <UniswapBadge />
@@ -419,31 +406,22 @@ export default function VaultVisualization({ currentPrice = WLFI_PRICE_USD }: Va
                 <div className="w-3 h-3 rounded" style={{ backgroundColor: pos.color }}></div>
                 <div>
                   <div className="text-white font-medium">{pos.name}</div>
-                  <div className="text-gray-300">{pos.weight.toFixed(1)}% of capital</div>
+                  <div className="text-gray-400">{pos.weight.toFixed(1)}% of capital</div>
                 </div>
               </div>
             ))}
           </div>
-          <div className="pt-3 border-t border-white/5 space-y-2">
-            <div className="text-xs text-gray-300">
-              <strong className="text-gray-200">Controls:</strong> Rotate: Left-click • Zoom: Scroll • Pan: Right-click
-            </div>
-            <div className="text-xs text-gray-300">
-              <strong className="text-emerald-400">Visualization:</strong> Each thin bar = 200 ticks of liquidity. 
-              Color shows distance from current price (green = near, purple = far).
-            </div>
-            {revertData && (
-              <div className="text-xs">
+          {revertData && (
+            <div className="pt-3 border-t border-white/5">
+              <div className="text-xs text-gray-400">
                 <span className="text-blue-400 font-semibold">Pool Analytics (7-day):</span>{' '}
-                <span className="text-gray-300">
-                  TVL ${revertData.latest?.tvl_usd.toFixed(2) || '0'} • 
-                  Avg APR {revertData.avgAPR?.toFixed(1) || '0'}% • 
-                  Max APR {revertData.maxAPR?.toFixed(1) || '0'}% • 
-                  Avg Vol ${revertData.avgVolume?.toFixed(0) || '0'}/day
-                </span>
+                TVL ${revertData.latest?.tvl_usd.toFixed(2) || '0'} • 
+                Avg APR {revertData.avgAPR?.toFixed(1) || '0'}% • 
+                Max APR {revertData.maxAPR?.toFixed(1) || '0'}% • 
+                Avg Vol ${revertData.avgVolume?.toFixed(0) || '0'}/day
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

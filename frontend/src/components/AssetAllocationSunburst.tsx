@@ -241,7 +241,7 @@ export default function AssetAllocationSunburst({
   }, [vaultWLFI, vaultUSD1, strategyWLFI, strategyUSD1, grandTotal, selectedPath, animationKey]);
 
   return (
-    <div className="relative bg-neo-bg-light dark:bg-neo-bg-dark shadow-neo-raised dark:shadow-neo-raised-dark rounded-2xl p-8 mb-8 overflow-hidden border border-gray-300/30 dark:border-gray-700/30 transition-colors duration-300">
+    <div className="relative bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 shadow-neo-raised dark:shadow-neo-raised-dark rounded-3xl p-8 mb-8 overflow-hidden border border-gray-300/50 dark:border-gray-600/40 transition-colors duration-300">
       {/* Subtle animated background gradient */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-yellow-500/5 to-transparent rounded-full blur-3xl animate-pulse"></div>
       
@@ -286,7 +286,7 @@ export default function AssetAllocationSunburst({
             className={`cursor-pointer p-4 rounded-xl transition-all duration-300 ${
               selectedPath?.includes('Vault') 
                 ? 'bg-yellow-100 dark:bg-yellow-900/30 shadow-neo-inset dark:shadow-neo-inset-dark border-2 border-yellow-400 dark:border-yellow-600' 
-                : 'bg-neo-bg-light dark:bg-neo-bg-dark shadow-neo-raised dark:shadow-neo-raised-dark border border-gray-300/50 dark:border-gray-700/50 hover:shadow-neo-hover dark:hover:shadow-neo-raised-lift-dark'
+                : 'bg-white dark:bg-gray-800 shadow-neo-raised dark:shadow-neo-raised-dark border border-gray-300/50 dark:border-gray-600/50 hover:shadow-neo-hover dark:hover:shadow-neo-hover-dark'
             }`}
             onClick={() => setSelectedPath(selectedPath?.includes('Vault') ? null : 'Vault Reserves')}
           >
@@ -316,7 +316,7 @@ export default function AssetAllocationSunburst({
             className={`cursor-pointer p-4 rounded-xl transition-all duration-300 ${
               selectedPath?.includes('Strategy') 
                 ? 'bg-indigo-100 dark:bg-indigo-900/30 shadow-neo-inset dark:shadow-neo-inset-dark border-2 border-indigo-400 dark:border-indigo-600' 
-                : 'bg-neo-bg-light dark:bg-neo-bg-dark shadow-neo-raised dark:shadow-neo-raised-dark border border-gray-300/50 dark:border-gray-700/50 hover:shadow-neo-hover dark:hover:shadow-neo-raised-lift-dark'
+                : 'bg-white dark:bg-gray-800 shadow-neo-raised dark:shadow-neo-raised-dark border border-gray-300/50 dark:border-gray-600/50 hover:shadow-neo-hover dark:hover:shadow-neo-hover-dark'
             }`}
             onClick={() => setSelectedPath(selectedPath?.includes('Strategy') ? null : 'Charm Strategy')}
           >
@@ -342,8 +342,8 @@ export default function AssetAllocationSunburst({
             </div>
           </div>
 
-          <div className="pt-4 border-t border-gray-300 dark:border-gray-700 mt-4">
-            <div className="bg-neo-bg-light dark:bg-neo-bg-dark shadow-neo-inset dark:shadow-neo-inset-dark rounded-xl p-4">
+          <div className="pt-4 border-t border-gray-300/50 dark:border-gray-600/40 mt-4">
+            <div className="bg-white dark:bg-gray-800 shadow-neo-inset dark:shadow-neo-inset-dark rounded-xl p-4 border border-gray-200/50 dark:border-gray-600/50">
               <div className="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-1 font-semibold">Total Assets</div>
               <div className="text-3xl font-bold text-yellow-600 dark:text-yellow-400">
                 {grandTotal.toFixed(2)}

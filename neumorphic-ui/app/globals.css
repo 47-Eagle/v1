@@ -1,0 +1,68 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-light: #e8ebef;
+  --bg-dark: #1c1c1e;
+  --shadow-light: 8px 8px 16px #c1c4c8, -8px -8px 16px #ffffff;
+  --shadow-dark: 8px 8px 16px #141414, -8px -8px 16px #2a2a2a;
+  --shadow-light-sm: 4px 4px 8px #c1c4c8, -4px -4px 8px #ffffff;
+  --shadow-dark-sm: 4px 4px 8px #141414, -4px -4px 8px #2a2a2a;
+  --shadow-inset-light: inset 4px 4px 8px #c1c4c8, inset -4px -4px 8px #ffffff;
+  --shadow-inset-dark: inset 4px 4px 8px #141414, inset -4px -4px 8px #2a2a2a;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+body {
+  @apply bg-background-light dark:bg-background-dark transition-colors duration-300;
+  color: theme('colors.gray.800');
+}
+
+body.dark {
+  color: theme('colors.gray.100');
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .neo-shadow {
+    @apply shadow-neo-light dark:shadow-neo-dark;
+  }
+  
+  .neo-shadow-sm {
+    @apply shadow-neo-light-sm dark:shadow-neo-dark-sm;
+  }
+  
+  .neo-inset {
+    @apply shadow-neo-inset-light dark:shadow-neo-inset-dark;
+  }
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Remove default focus outline and add custom one */
+*:focus {
+  outline: none;
+}
+
+*:focus-visible {
+  @apply ring-2 ring-blue-500 ring-offset-2 ring-offset-background-light dark:ring-offset-background-dark;
+}
+

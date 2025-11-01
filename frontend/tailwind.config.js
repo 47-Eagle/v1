@@ -42,19 +42,23 @@ export default {
         xs: '2px',
       },
       boxShadow: {
-        // Light mode shadows
-        'neo-raised': '8px 8px 16px #c1c4c8, -8px -8px 16px #ffffff',
-        'neo-raised-hover': '6px 6px 12px #c1c4c8, -6px -6px 12px #ffffff',
-        'neo-raised-lift': '10px 10px 20px #c1c4c8, -10px -10px 20px #ffffff',
-        'neo-pressed': 'inset 8px 8px 16px #c1c4c8, inset -8px -8px 16px #ffffff',
-        'neo-glow': '0 0 20px rgba(250, 204, 21, 0.3), 8px 8px 16px #c1c4c8, -8px -8px 16px #ffffff',
+        // Light mode shadows - Elegant neumorphic
+        'neo-raised': '12px 12px 24px rgba(163, 177, 198, 0.6), -12px -12px 24px rgba(255, 255, 255, 0.9)',
+        'neo-raised-hover': '8px 8px 16px rgba(163, 177, 198, 0.5), -8px -8px 16px rgba(255, 255, 255, 0.8)',
+        'neo-raised-lift': '16px 16px 32px rgba(163, 177, 198, 0.7), -16px -16px 32px rgba(255, 255, 255, 1)',
+        'neo-pressed': 'inset 8px 8px 16px rgba(163, 177, 198, 0.4), inset -8px -8px 16px rgba(255, 255, 255, 0.7)',
+        'neo-inset': 'inset 4px 4px 8px rgba(163, 177, 198, 0.3), inset -4px -4px 8px rgba(255, 255, 255, 0.6)',
+        'neo-glow': '0 0 30px rgba(250, 204, 21, 0.4), 0 0 60px rgba(250, 204, 21, 0.2), 12px 12px 24px rgba(163, 177, 198, 0.6), -12px -12px 24px rgba(255, 255, 255, 0.9)',
+        'neo-hover': '10px 10px 20px rgba(163, 177, 198, 0.55), -10px -10px 20px rgba(255, 255, 255, 0.85)',
         
-        // Dark mode shadows
-        'neo-raised-dark': '8px 8px 16px #141414, -8px -8px 16px #2a2a2a',
-        'neo-raised-hover-dark': '6px 6px 12px #141414, -6px -6px 12px #2a2a2a',
-        'neo-raised-lift-dark': '10px 10px 20px #141414, -10px -10px 20px #2a2a2a',
-        'neo-pressed-dark': 'inset 8px 8px 16px #141414, inset -8px -8px 16px #2a2a2a',
-        'neo-glow-dark': '0 0 20px rgba(250, 204, 21, 0.2), 8px 8px 16px #141414, -8px -8px 16px #2a2a2a',
+        // Dark mode shadows - Premium elegant neumorphic
+        'neo-raised-dark': '12px 12px 24px rgba(0, 0, 0, 0.7), -12px -12px 24px rgba(50, 50, 50, 0.15)',
+        'neo-raised-hover-dark': '8px 8px 16px rgba(0, 0, 0, 0.6), -8px -8px 16px rgba(50, 50, 50, 0.12)',
+        'neo-raised-lift-dark': '16px 16px 32px rgba(0, 0, 0, 0.8), -16px -16px 32px rgba(60, 60, 60, 0.18)',
+        'neo-pressed-dark': 'inset 8px 8px 16px rgba(0, 0, 0, 0.8), inset -8px -8px 16px rgba(40, 40, 40, 0.15)',
+        'neo-inset-dark': 'inset 4px 4px 8px rgba(0, 0, 0, 0.6), inset -4px -4px 8px rgba(40, 40, 40, 0.12)',
+        'neo-glow-dark': '0 0 30px rgba(250, 204, 21, 0.3), 0 0 60px rgba(250, 204, 21, 0.15), 12px 12px 24px rgba(0, 0, 0, 0.7), -12px -12px 24px rgba(50, 50, 50, 0.15)',
+        'neo-hover-dark': '10px 10px 20px rgba(0, 0, 0, 0.65), -10px -10px 20px rgba(50, 50, 50, 0.13)',
       },
       ringWidth: {
         '3': '3px',
