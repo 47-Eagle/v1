@@ -763,17 +763,6 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
             </Link>
           )}
           
-          {onNavigateToWrapper && (
-            <button
-              onClick={onNavigateToWrapper}
-              className="px-6 py-3 rounded-full flex items-center gap-2 font-semibold bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-            >
-              <svg className="w-5 h-5 rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-              </svg>
-              <span>Wrap Shares</span>
-            </button>
-          )}
         </div>
 
         {/* Header */}
@@ -876,7 +865,22 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Left - Deposit/Withdraw */}
           <div className="lg:col-span-1">
-            <NeoCard className="!p-0 overflow-hidden">
+            <NeoCard className="!p-0 overflow-hidden relative">
+              {/* Disabled Overlay */}
+              <div className="absolute inset-0 bg-gray-200/60 dark:bg-gray-900/60 backdrop-blur-sm z-10 flex items-center justify-center">
+                <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-2xl max-w-xs text-center border-2 border-blue-500 dark:border-blue-600">
+                  <div className="w-12 h-12 bg-blue-500 dark:bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                  </div>
+                  <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Bootstrapping Phase</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Deposits & withdrawals are temporarily disabled while we carefully deploy capital to strategies.
+                  </p>
+                </div>
+              </div>
+              
               {/* Tabs */}
               <div className="p-2">
                 <NeoTabs
@@ -984,6 +988,22 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
                 )}
               </div>
             </NeoCard>
+            
+            {/* Wrap Shares Button */}
+            {onNavigateToWrapper && (
+              <button
+                onClick={onNavigateToWrapper}
+                className="w-full mt-4 px-6 py-4 rounded-xl flex items-center justify-center gap-3 font-semibold bg-gradient-to-r from-purple-500 via-purple-600 to-blue-500 hover:from-purple-600 hover:via-purple-700 hover:to-blue-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                </svg>
+                <span>Wrap Shares to EAGLE</span>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            )}
           </div>
 
           {/* Right - Info Tabs */}
