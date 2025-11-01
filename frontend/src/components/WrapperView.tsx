@@ -253,17 +253,6 @@ export default function WrapperView({ provider, account, onToast, onNavigateDown
       <div className="max-w-6xl mx-auto px-6 pt-6 pb-24">
         {/* Navigation Buttons */}
         <div className="flex items-center gap-4 mb-6">
-          {onNavigateDown && (
-            <NeoButton 
-              onClick={onNavigateDown}
-              label="Back to Vault"
-              icon={
-                <svg className="w-4 h-4 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                </svg>
-              }
-            />
-          )}
           {onNavigateUp && (
             <NeoButton 
               onClick={onNavigateUp}
@@ -317,12 +306,12 @@ export default function WrapperView({ provider, account, onToast, onNavigateDown
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           <NeoStatCard
             label="Total Locked"
-            value={parseFloat(totalLocked).toFixed(2)}
+            value={parseFloat(totalLocked).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             subtext="Vault shares"
           />
           <NeoStatCard
             label="Total OFT Minted"
-            value={parseFloat(totalOftSupply).toFixed(2)}
+            value={parseFloat(totalOftSupply).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             subtext="OFT tokens"
           />
           <NeoStatCard
@@ -363,7 +352,7 @@ export default function WrapperView({ provider, account, onToast, onNavigateDown
                       placeholder="0.0"
                       type="text"
                       label="Amount to Wrap"
-                      maxLabel={`MAX (${parseFloat(vaultShareBalance).toFixed(2)} vEAGLE)`}
+                      maxLabel={`MAX (${parseFloat(vaultShareBalance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} vEAGLE)`}
                       onMaxClick={handleMaxClick}
                     />
                     <p className="text-xs text-gray-600 dark:text-gray-400">
@@ -397,7 +386,7 @@ export default function WrapperView({ provider, account, onToast, onNavigateDown
                       placeholder="0.0"
                       type="text"
                       label="Amount to Unwrap"
-                      maxLabel={`MAX (${parseFloat(oftBalance).toFixed(2)} EAGLE)`}
+                      maxLabel={`MAX (${parseFloat(oftBalance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} EAGLE)`}
                       onMaxClick={handleMaxClick}
                     />
                     <p className="text-xs text-gray-600 dark:text-gray-400">
@@ -472,6 +461,22 @@ export default function WrapperView({ provider, account, onToast, onNavigateDown
             </div>
           </NeoCard>
         </div>
+
+        {/* Back to Vault Button - Bottom */}
+        {onNavigateDown && (
+          <div className="flex justify-center mt-8">
+            <NeoButton 
+              onClick={onNavigateDown}
+              label="Back to Vault"
+              icon={
+                <svg className="w-4 h-4 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                </svg>
+              }
+              className="!px-8"
+            />
+          </div>
+        )}
       </div>
     </div>
   );
