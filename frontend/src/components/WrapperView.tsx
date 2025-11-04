@@ -249,233 +249,127 @@ export default function WrapperView({ provider, account, onToast, onNavigateDown
   };
 
   return (
-    <div className="bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50 dark:from-gray-900 dark:via-black dark:to-gray-900 min-h-screen pb-24 transition-colors">
-      <div className="max-w-6xl mx-auto px-6 pt-6 pb-24">
-        {/* Navigation Buttons */}
-        <div className="flex items-center gap-4 mb-6">
-          {onNavigateUp && (
-            <NeoButton 
-              onClick={onNavigateUp}
-              label="Continue to LP Pool"
-              icon={
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                </svg>
-              }
-            />
-          )}
-        </div>
-
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-6">
-          <img 
-            src={ICONS.EAGLE}
-            alt="EAGLE"
-            className="w-16 h-16 rounded-2xl"
-          />
-          <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Eagle Vault Wrapper</h1>
-              <LayerZeroBadge />
-            </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400 font-mono">{CONTRACTS.WRAPPER}</p>
-          </div>
-          <NeoButton
-            onClick={handleRefresh}
-            disabled={refreshing}
-            label=""
+    <div className="bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50 dark:from-gray-900 dark:via-black dark:to-gray-900 min-h-screen flex flex-col transition-colors">
+      {/* Top Navigation */}
+      <div className="flex justify-center pt-6 pb-4">
+        {onNavigateUp && (
+          <NeoButton 
+            onClick={onNavigateUp}
+            label="EAGLE/ETH LP"
             icon={
-              <svg className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
               </svg>
             }
           />
-        </div>
+        )}
+      </div>
 
-        {/* Description */}
-        <NeoCard className="mb-6">
-          <div className="p-6">
-            <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-              Convert between Vault EAGLE shares (vEAGLE) and OFT EAGLE tokens at a 1:1 ratio. 
-              OFT tokens can be bridged cross-chain via LayerZero, enabling seamless vault share transfers across multiple networks.
-            </p>
-          </div>
-        </NeoCard>
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <NeoStatCard
-            label="Total Locked"
-            value={parseFloat(totalLocked).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            subtext="Vault shares"
-          />
-          <NeoStatCard
-            label="Total OFT Minted"
-            value={parseFloat(totalOftSupply).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            subtext="OFT tokens"
-          />
-          <NeoStatCard
-            label="1:1 Peg Status"
-            value={parseFloat(totalLocked) === parseFloat(totalOftSupply) ? '✓ Active' : '⚠ Checking'}
-            subtext={parseFloat(totalLocked) === parseFloat(totalOftSupply) ? 'Perfect ratio' : 'Syncing...'}
-          />
-        </div>
-
-        {/* Main Wrapper Interface */}
-        <NeoCard className="mb-6">
-          <div className="p-6">
-            <NeoTabs
-              tabs={[
-                { id: 'wrap', label: 'Wrap to OFT' },
-                { id: 'unwrap', label: 'Unwrap to Shares' }
-              ]}
-              activeTab={activeTab}
-              onChange={(tab) => setActiveTab(tab as 'wrap' | 'unwrap')}
-            />
-
-            <div className="mt-6">
-              {activeTab === 'wrap' ? (
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-gray-100">Wrap Vault Shares → OFT Tokens</h3>
-                    <p className="text-gray-600 dark:text-gray-400 text-sm">
-                      Lock your vault EAGLE shares and receive OFT EAGLE tokens at 1:1 ratio.
-                      OFT tokens can be bridged cross-chain via LayerZero.
-                    </p>
-                  </div>
-
-                  {/* Amount Input */}
-                  <div className="space-y-2">
-                    <NeoInput
-                      value={amount}
-                      onChange={setAmount}
-                      placeholder="0.0"
-                      type="text"
-                      label="Amount to Wrap"
-                      maxLabel={`MAX (${parseFloat(vaultShareBalance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} vEAGLE)`}
-                      onMaxClick={handleMaxClick}
-                    />
-                    <p className="text-xs text-gray-600 dark:text-gray-400">
-                      Wrap Fee: {wrapFee}%
-                    </p>
-                  </div>
-
-                  {/* Wrap Button */}
-                  <NeoButton
-                    onClick={handleWrap}
-                    disabled={!account || !amount || loading}
-                    label={loading ? 'Processing...' : (!account ? 'Connect Wallet' : 'Wrap to OFT')}
-                    className="w-full"
-                  />
+      {/* Centered Content */}
+      <div className="flex-1 flex items-center justify-center px-6">
+        <div className="max-w-2xl w-full">
+          {/* Compact Header */}
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-4">
+              <img src={ICONS.EAGLE} alt="EAGLE" className="w-12 h-12 rounded-xl" />
+              <div>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Eagle Wrapper</h1>
+                  <LayerZeroBadge />
                 </div>
-              ) : (
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-gray-100">Unwrap OFT Tokens → Vault Shares</h3>
-                    <p className="text-gray-600 dark:text-gray-400 text-sm">
-                      Burn your OFT EAGLE tokens and receive vault EAGLE shares at 1:1 ratio.
-                      You can then withdraw from the vault.
-                    </p>
-                  </div>
-
-                  {/* Amount Input */}
-                  <div className="space-y-2">
-                    <NeoInput
-                      value={amount}
-                      onChange={setAmount}
-                      placeholder="0.0"
-                      type="text"
-                      label="Amount to Unwrap"
-                      maxLabel={`MAX (${parseFloat(oftBalance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} EAGLE)`}
-                      onMaxClick={handleMaxClick}
-                    />
-                    <p className="text-xs text-gray-600 dark:text-gray-400">
-                      Unwrap Fee: {unwrapFee}%
-                    </p>
-                  </div>
-
-                  {/* Unwrap Button */}
-                  <NeoButton
-                    onClick={handleUnwrap}
-                    disabled={!account || !amount || loading}
-                    label={loading ? 'Processing...' : (!account ? 'Connect Wallet' : 'Unwrap to Shares')}
-                    className="w-full"
-                  />
-                </div>
-              )}
+                <p className="text-xs text-gray-500 dark:text-gray-500">1:1 Cross-Chain Conversion</p>
+              </div>
             </div>
-          </div>
-        </NeoCard>
-
-        {/* Info Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* How it Works */}
-          <NeoCard>
-            <div className="p-6">
-              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-gray-900 dark:text-gray-100">
-                <svg className="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                How it Works
-              </h3>
-              <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
-                <li className="flex items-start gap-2">
-                  <span className="text-purple-600 dark:text-purple-400 mt-0.5">→</span>
-                  <span><strong className="text-gray-900 dark:text-gray-100">Wrap:</strong> Lock vault shares, mint OFT tokens at 1:1 ratio</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-purple-600 dark:text-purple-400 mt-0.5">→</span>
-                  <span><strong className="text-gray-900 dark:text-gray-100">Bridge:</strong> Send OFT tokens to other chains via LayerZero</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-purple-600 dark:text-purple-400 mt-0.5">→</span>
-                  <span><strong className="text-gray-900 dark:text-gray-100">Unwrap:</strong> Burn OFT tokens, receive vault shares back</span>
-                </li>
-              </ul>
-            </div>
-          </NeoCard>
-
-          {/* Features */}
-          <NeoCard>
-            <div className="p-6">
-              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-gray-900 dark:text-gray-100">
-                <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Features
-              </h3>
-              <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
-                <li className="flex items-start gap-2">
-                  <span className="text-blue-600 dark:text-blue-400 mt-0.5">✓</span>
-                  <span>1:1 peg maintained at all times</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-blue-600 dark:text-blue-400 mt-0.5">✓</span>
-                  <span>Cross-chain compatible via LayerZero</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-blue-600 dark:text-blue-400 mt-0.5">✓</span>
-                  <span>Secure and non-custodial</span>
-                </li>
-              </ul>
-            </div>
-          </NeoCard>
-        </div>
-
-        {/* Back to Vault Button - Bottom */}
-        {onNavigateDown && (
-          <div className="flex justify-center mt-8">
-            <NeoButton 
-              onClick={onNavigateDown}
-              label="Back to Vault"
+            <NeoButton
+              onClick={handleRefresh}
+              disabled={refreshing}
+              label=""
               icon={
-                <svg className="w-4 h-4 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                <svg className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
               }
-              className="!px-8"
             />
           </div>
+
+          {/* Compact Stats */}
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            <NeoStatCard
+              label="Your Vault Shares"
+              value={parseFloat(vaultShareBalance).toLocaleString(undefined, { maximumFractionDigits: 2 })}
+              subtext="vEAGLE"
+            />
+            <NeoStatCard
+              label="Your OFT Tokens"
+              value={parseFloat(oftBalance).toLocaleString(undefined, { maximumFractionDigits: 2 })}
+              subtext="EAGLE"
+            />
+          </div>
+
+          {/* Main Wrapper Interface */}
+          <NeoCard className="relative z-10">
+            <div className="p-6 relative z-10">
+              <NeoTabs
+                tabs={[
+                  { id: 'wrap', label: 'Wrap' },
+                  { id: 'unwrap', label: 'Unwrap' }
+                ]}
+                activeTab={activeTab}
+                onChange={(tab) => setActiveTab(tab as 'wrap' | 'unwrap')}
+              />
+
+              <div className="mt-6 space-y-4">
+                {/* Amount Input */}
+                <NeoInput
+                  value={amount}
+                  onChange={setAmount}
+                  placeholder="0.0"
+                  type="text"
+                  label={activeTab === 'wrap' ? 'Wrap Amount' : 'Unwrap Amount'}
+                  maxLabel={`MAX (${activeTab === 'wrap' 
+                    ? parseFloat(vaultShareBalance).toLocaleString(undefined, { maximumFractionDigits: 2 })
+                    : parseFloat(oftBalance).toLocaleString(undefined, { maximumFractionDigits: 2 })
+                  })`}
+                  onMaxClick={handleMaxClick}
+                />
+
+                {/* Action Button */}
+                <NeoButton
+                  onClick={activeTab === 'wrap' ? handleWrap : handleUnwrap}
+                  disabled={!account || !amount || loading}
+                  label={loading ? 'Processing...' : (!account ? 'Connect Wallet' : activeTab === 'wrap' ? 'Wrap to OFT' : 'Unwrap to Shares')}
+                  className="w-full relative z-10 cursor-pointer"
+                />
+                
+                <p className="text-xs text-center text-gray-500 dark:text-gray-500">
+                  Fee: {activeTab === 'wrap' ? wrapFee : unwrapFee}% • 1:1 Ratio • LayerZero Compatible
+                </p>
+              </div>
+            </div>
+          </NeoCard>
+        </div>
+      </div>
+
+      {/* Bottom Navigation - Down to Vault */}
+      <div className="flex flex-col items-center justify-center pt-4 pb-6 relative z-10">
+        {onNavigateDown && (
+          <>
+            <div className="flex items-center gap-2 mb-2">
+              <svg className="w-5 h-5 text-gray-400 dark:text-gray-500 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+              </svg>
+            </div>
+            <NeoButton 
+              onClick={onNavigateDown}
+              label="Eagle Vault (WLFI/USD1)"
+              icon={
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                </svg>
+              }
+              className="cursor-pointer"
+            />
+          </>
         )}
       </div>
     </div>

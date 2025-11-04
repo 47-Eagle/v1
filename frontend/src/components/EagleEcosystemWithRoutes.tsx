@@ -20,6 +20,8 @@ export default function EagleEcosystemWithRoutes({ provider, account, onToast }:
   const location = useLocation();
   const navigate = useNavigate();
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [hasLeftHome, setHasLeftHome] = useState(false);
+  const [showHomeContent, setShowHomeContent] = useState(true);
 
   // Map routes to floors
   const routeToFloor: Record<string, Floor> = {
@@ -33,14 +35,19 @@ export default function EagleEcosystemWithRoutes({ provider, account, onToast }:
 
   // Floor offsets for animation (y-axis vertical positioning)
   const floorOffsets: Record<Floor, { y: number; x: number }> = {
-    'lp': { y: 0, x: 0 },         // Top floor at 0vh
-    'home': { y: 100, x: 0 },     // Main floor at 100vh  
-    'vault': { y: 200, x: 0 },    // Vault at 200vh (basement)
-    'wrapper': { y: 95, x: 100 }  // Wrapper elevated above home, far right
+    'lp': { y: 0, x: 0 },         // Top floor - EAGLE/ETH LP at 0vh
+    'home': { y: 100, x: 0 },     // Center floor - Home page at 100vh (initial landing)
+    'wrapper': { y: 100, x: 0 },  // Center floor - Eagle Vault Wrapper at 100vh (replaces home after navigation)
+    'vault': { y: 200, x: 0 }     // Bottom floor - Vault at 200vh
   };
 
   const navigateToFloor = (floor: Floor) => {
     setIsTransitioning(true);
+    
+    // Mark that user has left home if navigating away from home
+    if (currentFloor === 'home' && floor !== 'home') {
+      setHasLeftHome(true);
+    }
     
     const floorToRoute: Record<Floor, string> = {
       'lp': '/lp',
@@ -49,35 +56,150 @@ export default function EagleEcosystemWithRoutes({ provider, account, onToast }:
       'wrapper': '/wrapper',
     };
     
-    // Scroll floor to top immediately
-    const floorEl = document.getElementById(`${floor}-floor`);
-    if (floorEl) {
-      const scrollEl = floorEl.querySelector('.overflow-y-auto') as HTMLElement;
-      if (scrollEl) {
-        scrollEl.scrollTop = 0;
-      }
-    }
+    // Check if navigating to center from LP/Vault when user has already left home
+    const isReturningToCenter = (currentFloor === 'lp' || currentFloor === 'vault') && 
+                                 (floor === 'home' || floor === 'wrapper') &&
+                                 hasLeftHome;
     
-    // Navigate after animation completes
-    setTimeout(() => {
-      navigate(floorToRoute[floor]);
-      setIsTransitioning(false);
-    }, 1200);
+    if (isReturningToCenter) {
+      // First fade out home content
+      setShowHomeContent(false);
+      // Wait for home to fade out, then navigate to wrapper
+      setTimeout(() => {
+        navigate(floorToRoute['wrapper']);
+        setIsTransitioning(false);
+      }, 2000); // 800ms fade out + 800ms delay + 400ms buffer
+    } else {
+      // Normal navigation
+      // Scroll floor to top immediately
+      const floorEl = document.getElementById(`${floor}-floor`);
+      if (floorEl) {
+        const scrollEl = floorEl.querySelector('.overflow-y-auto') as HTMLElement;
+        if (scrollEl) {
+          scrollEl.scrollTop = 0;
+        }
+      }
+      
+      // Navigate after animation completes
+      setTimeout(() => {
+        navigate(floorToRoute[floor]);
+        setIsTransitioning(false);
+      }, 1200);
+    }
   };
 
   const currentOffset = floorOffsets[currentFloor];
 
+  // Background colors for each floor (RGB values for smooth color transitions)
+  const floorColors: Record<Floor, { top: string; middle: string; bottom: string }> = {
+    'lp': { 
+      top: 'rgba(30, 58, 138, 0.15)',      // blue-950 with opacity
+      middle: 'rgba(59, 7, 100, 0.15)',    // purple-950 with opacity
+      bottom: 'rgba(10, 10, 10, 1)' 
+    },
+    'home': { 
+      top: 'rgba(66, 32, 6, 0.18)',        // yellow-950 with opacity
+      middle: 'rgba(69, 26, 3, 0.18)',     // amber-950 with opacity
+      bottom: 'rgba(10, 10, 10, 1)' 
+    },
+    'vault': { 
+      top: 'rgba(69, 26, 3, 0.25)',        // amber-950 with more opacity
+      middle: 'rgba(99, 49, 0, 0.22)',     // yellow-900 with opacity
+      bottom: 'rgba(10, 10, 10, 1)' 
+    },
+    'wrapper': { 
+      top: 'rgba(59, 7, 100, 0.28)',       // purple-950 with more opacity
+      middle: 'rgba(49, 46, 129, 0.24)',   // indigo-950 with opacity
+      bottom: 'rgba(10, 10, 10, 1)' 
+    },
+  };
+
   return (
-    <div className="h-full overflow-hidden relative bg-[#0a0a0a] transition-colors duration-1000">
-      {/* Unified Gradient Background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0a] via-[#0b0a0f] to-[#0a0a0a]" style={{ height: '300vh' }} />
+    <div className="h-full overflow-hidden relative bg-[#0a0a0a]">
+      {/* Base layer - persistent dark background */}
+      <div className="absolute inset-0 bg-[#0a0a0a]" style={{ height: '300vh' }} />
+      
+      {/* Cross-fade backgrounds for each floor - creates seamless transitions */}
+      {Object.keys(floorColors).map((floor) => (
+        <motion.div
+          key={`bg-${floor}`}
+          className="absolute inset-0"
+          style={{ 
+            height: '300vh',
+            background: `linear-gradient(to bottom, ${floorColors[floor as Floor].top}, ${floorColors[floor as Floor].middle}, ${floorColors[floor as Floor].bottom})`,
+            willChange: 'opacity'
+          }}
+          animate={{
+            opacity: currentFloor === floor ? 1 : 0
+          }}
+          transition={{ 
+            duration: 3.5,
+            ease: [0.19, 1.0, 0.22, 1.0]
+          }}
+        />
+      ))}
+      
+      {/* Radial overlay layers for depth - one per floor */}
+      <motion.div 
+        className="absolute inset-0"
+        style={{ 
+          height: '300vh',
+          willChange: 'opacity, background'
+        }}
+        animate={{
+          background: currentFloor === 'lp' ? 'radial-gradient(ellipse 120% 100% at top, rgba(59, 130, 246, 0.12), transparent 60%)' :
+                      currentFloor === 'home' ? 'radial-gradient(ellipse 120% 100% at center, rgba(245, 158, 11, 0.14), transparent 60%)' :
+                      currentFloor === 'vault' ? 'radial-gradient(ellipse 120% 100% at bottom, rgba(217, 119, 6, 0.16), transparent 60%)' :
+                      'radial-gradient(ellipse 120% 100% at top right, rgba(168, 85, 247, 0.18), transparent 60%)',
+          opacity: 1
+        }}
+        transition={{ 
+          duration: 4.0,
+          ease: [0.165, 0.84, 0.44, 1.0]
+        }}
+      />
+      
+      {/* Subtle vignette layer for additional depth */}
+      <motion.div 
+        className="absolute inset-0"
+        style={{ 
+          height: '300vh',
+          background: 'radial-gradient(ellipse 80% 60% at center, transparent 30%, rgba(0, 0, 0, 0.4) 100%)',
+          willChange: 'opacity'
+        }}
+        animate={{
+          opacity: isTransitioning ? 0.6 : 0.3
+        }}
+        transition={{ 
+          duration: 3.0,
+          ease: [0.33, 0.0, 0.2, 1.0]
+        }}
+      />
+      
+      {/* Transition smoothing overlay */}
+      <motion.div 
+        className="absolute inset-0"
+        style={{ 
+          height: '300vh',
+          willChange: 'opacity'
+        }}
+        initial={{ opacity: 0 }}
+        animate={{
+          opacity: isTransitioning ? 0.3 : 0,
+          background: 'linear-gradient(180deg, rgba(0, 0, 0, 0.2), transparent 30%, transparent 70%, rgba(0, 0, 0, 0.2))'
+        }}
+        transition={{ 
+          duration: 2.5,
+          ease: [0.4, 0.0, 0.2, 1.0]
+        }}
+      />
       
       {/* Animated Container */}
       <motion.div
         className="absolute w-full"
         style={{ 
           height: '300vh', 
-          width: '150vw'
+          width: '100vw'
         }}
         animate={{ 
           y: `${-currentOffset.y}vh`,
@@ -96,108 +218,125 @@ export default function EagleEcosystemWithRoutes({ provider, account, onToast }:
           {/* Animated gradient orbs */}
           <motion.div 
             className="absolute inset-0 overflow-hidden pointer-events-none"
+            style={{ willChange: 'opacity' }}
             animate={{
-              opacity: currentFloor === 'lp' ? 1 : 0.3,
+              opacity: currentFloor === 'lp' ? 1 : 0.1,
             }}
-            transition={{ duration: 0.8, ease: "easeInOut" }}
+            transition={{ duration: 3.5, ease: [0.19, 1.0, 0.22, 1.0] }}
           >
-            <div className="absolute top-0 right-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }}></div>
-            <div className="absolute bottom-1/4 left-1/4 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '6s' }}></div>
+            <motion.div 
+              className="absolute top-0 right-1/4 w-[700px] h-[700px] bg-blue-500/15 rounded-full blur-[100px]"
+              animate={{
+                scale: currentFloor === 'lp' ? [1, 1.1, 1] : 0.8,
+                x: currentFloor === 'lp' ? [0, 50, 0] : 0,
+              }}
+              transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <motion.div 
+              className="absolute bottom-1/4 left-1/4 w-[600px] h-[600px] bg-purple-500/15 rounded-full blur-[100px]"
+              animate={{
+                scale: currentFloor === 'lp' ? [1, 1.15, 1] : 0.8,
+                x: currentFloor === 'lp' ? [0, -40, 0] : 0,
+              }}
+              transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <motion.div 
+              className="absolute top-1/2 left-1/2 w-[500px] h-[500px] bg-cyan-500/10 rounded-full blur-[80px]"
+              animate={{
+                scale: currentFloor === 'lp' ? [1, 1.2, 1] : 0.8,
+                y: currentFloor === 'lp' ? [0, -30, 0] : 0,
+              }}
+              transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+            />
           </motion.div>
           <motion.div
             animate={{
-              opacity: isTransitioning && currentFloor !== 'lp' ? 0.6 : 1,
+              opacity: isTransitioning && currentFloor !== 'lp' ? 0.4 : 1,
             }}
-            transition={{ duration: 0.6, ease: "easeInOut" }}
+            transition={{ duration: 1.5, ease: [0.19, 1.0, 0.22, 1.0] }}
             className="h-full overflow-y-auto overflow-x-hidden relative z-10"
+            style={{ willChange: 'opacity' }}
           >
             <EagleLPContent 
-              onNavigateDown={() => navigateToFloor('home')}
+              onNavigateDown={() => navigateToFloor(hasLeftHome ? 'wrapper' : 'home')}
               provider={provider}
             />
           </motion.div>
         </div>
 
-        {/* Main Floor - Home */}
-        <div className="h-screen overflow-hidden relative" id="home-floor" style={{ position: 'absolute', top: '100vh', left: 0, width: '100vw' }}>
-          {/* Animated gradient orbs */}
-          <motion.div 
-            className="absolute inset-0 overflow-hidden pointer-events-none"
-            animate={{
-              opacity: currentFloor === 'home' ? 1 : 0.3,
-            }}
-            transition={{ duration: 0.8, ease: "easeInOut" }}
-          >
-            <div className="absolute top-1/4 right-1/3 w-[500px] h-[500px] bg-yellow-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '5s' }}></div>
-            <div className="absolute bottom-1/3 left-1/4 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '7s' }}></div>
-          </motion.div>
-          <motion.div
-            animate={{
-              opacity: isTransitioning && currentFloor !== 'home' ? 0.6 : 1,
-            }}
-            transition={{ duration: 0.6, ease: "easeInOut" }}
-            className="h-full overflow-hidden relative z-10"
-          >
-            <EagleHomeContent 
-              onNavigateUp={() => navigateToFloor('lp')}
-              onNavigateDown={() => navigateToFloor('vault')}
-              provider={provider}
-            />
-          </motion.div>
-        </div>
-
-        {/* Basement - Vault */}
-        <div className="h-screen overflow-hidden relative" id="vault-floor" style={{ position: 'absolute', top: '200vh', left: 0, width: '100vw' }}>
-          {/* Animated gradient orbs */}
-          <motion.div 
-            className="absolute inset-0 overflow-hidden pointer-events-none"
-            animate={{
-              opacity: currentFloor === 'vault' ? 1 : 0.3,
-            }}
-            transition={{ duration: 0.8, ease: "easeInOut" }}
-          >
-            <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-yellow-600/5 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '6s' }}></div>
-            <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-amber-600/5 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }}></div>
-          </motion.div>
-          <motion.div
-            animate={{
-              opacity: isTransitioning && currentFloor !== 'vault' ? 0.6 : 1,
-            }}
-            transition={{ duration: 0.6, ease: "easeInOut" }}
-            className="h-full overflow-y-auto overflow-x-hidden scroll-smooth relative z-10"
-            style={{ scrollbarGutter: 'stable' }}
-          >
-            <VaultView 
-              provider={provider}
-              account={account}
-              onToast={onToast}
-              onNavigateUp={() => navigateToFloor('home')}
-              onNavigateToWrapper={() => navigateToFloor('wrapper')}
-            />
-          </motion.div>
-        </div>
-
-        {/* Wrapper - Elevated above Home (far right) */}
-        <div className="h-screen overflow-hidden relative" id="wrapper-floor" style={{ position: 'absolute', top: '95vh', left: '100vw', width: '100vw' }}>
+        {/* Wrapper - Middle Floor (between LP and Vault) */}
+        <motion.div 
+          className="h-screen overflow-hidden relative" 
+          id="wrapper-floor" 
+          style={{ 
+            position: 'absolute', 
+            top: '100vh', 
+            left: 0, 
+            width: '100vw',
+            zIndex: currentFloor === 'wrapper' ? 15 : 5
+          }}
+          initial={{ opacity: 0 }}
+          animate={{ 
+            opacity: currentFloor === 'wrapper' ? 1 : 0,
+            pointerEvents: currentFloor === 'wrapper' ? 'auto' : 'none'
+          }}
+          transition={{ 
+            duration: 0.8,
+            delay: currentFloor === 'wrapper' && !showHomeContent ? 1.2 : 0,
+            ease: [0.4, 0.0, 0.2, 1.0] 
+          }}
+        >
           {/* Animated gradient orbs for wrapper */}
           <motion.div 
             className="absolute inset-0 overflow-hidden pointer-events-none"
+            style={{ willChange: 'opacity' }}
             animate={{
-              opacity: currentFloor === 'wrapper' ? 1 : 0.3,
+              opacity: currentFloor === 'wrapper' ? 1 : 0.1,
             }}
-            transition={{ duration: 0.8, ease: "easeInOut" }}
+            transition={{ duration: 3.5, ease: [0.19, 1.0, 0.22, 1.0] }}
           >
-            <div className="absolute top-1/4 right-1/3 w-[600px] h-[600px] bg-purple-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '5s' }}></div>
-            <div className="absolute bottom-1/4 left-1/4 w-96 h-96 bg-blue-500/8 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '7s' }}></div>
-            <div className="absolute top-1/2 left-1/2 w-[400px] h-[400px] bg-indigo-500/6 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '6s' }}></div>
+            <motion.div 
+              className="absolute top-1/4 right-1/3 w-[850px] h-[850px] bg-purple-500/30 rounded-full blur-[130px]"
+              animate={{
+                scale: currentFloor === 'wrapper' ? [1, 1.25, 1] : 0.8,
+                x: currentFloor === 'wrapper' ? [0, -60, 0] : 0,
+                y: currentFloor === 'wrapper' ? [0, 40, 0] : 0,
+              }}
+              transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <motion.div 
+              className="absolute bottom-1/4 left-1/4 w-[700px] h-[700px] bg-blue-500/25 rounded-full blur-[110px]"
+              animate={{
+                scale: currentFloor === 'wrapper' ? [1, 1.18, 1] : 0.8,
+                x: currentFloor === 'wrapper' ? [0, 50, 0] : 0,
+              }}
+              transition={{ duration: 11, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <motion.div 
+              className="absolute top-1/2 left-1/2 w-[650px] h-[650px] bg-indigo-500/22 rounded-full blur-[100px]"
+              animate={{
+                scale: currentFloor === 'wrapper' ? [1, 1.15, 1] : 0.8,
+                y: currentFloor === 'wrapper' ? [0, -45, 0] : 0,
+              }}
+              transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <motion.div 
+              className="absolute top-3/4 right-1/2 w-[550px] h-[550px] bg-violet-500/18 rounded-full blur-[90px]"
+              animate={{
+                scale: currentFloor === 'wrapper' ? [1, 1.2, 1] : 0.8,
+                x: currentFloor === 'wrapper' ? [0, -40, 0] : 0,
+                y: currentFloor === 'wrapper' ? [0, 30, 0] : 0,
+              }}
+              transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+            />
           </motion.div>
           <motion.div
             animate={{
-              opacity: isTransitioning && currentFloor !== 'wrapper' ? 0.6 : 1,
+              opacity: isTransitioning && currentFloor !== 'wrapper' ? 0.4 : 1,
             }}
-            transition={{ duration: 0.6, ease: "easeInOut" }}
+            transition={{ duration: 1.5, ease: [0.19, 1.0, 0.22, 1.0] }}
             className="h-full overflow-y-auto overflow-x-hidden scroll-smooth relative z-10"
-            style={{ scrollbarGutter: 'stable' }}
+            style={{ scrollbarGutter: 'stable', willChange: 'opacity' }}
           >
             <WrapperView 
               provider={provider}
@@ -205,6 +344,124 @@ export default function EagleEcosystemWithRoutes({ provider, account, onToast }:
               onToast={onToast}
               onNavigateDown={() => navigateToFloor('vault')}
               onNavigateUp={() => navigateToFloor('lp')}
+            />
+          </motion.div>
+        </motion.div>
+
+        {/* Basement - Vault */}
+        <div className="h-screen overflow-hidden relative" id="vault-floor" style={{ position: 'absolute', top: '200vh', left: 0, width: '100vw' }}>
+          {/* Animated gradient orbs */}
+          <motion.div 
+            className="absolute inset-0 overflow-hidden pointer-events-none"
+            style={{ willChange: 'opacity' }}
+            animate={{
+              opacity: currentFloor === 'vault' ? 1 : 0.1,
+            }}
+            transition={{ duration: 3.5, ease: [0.19, 1.0, 0.22, 1.0] }}
+          >
+            <motion.div 
+              className="absolute top-1/3 right-1/4 w-[750px] h-[750px] bg-yellow-600/25 rounded-full blur-[110px]"
+              animate={{
+                scale: currentFloor === 'vault' ? [1, 1.2, 1] : 0.8,
+                y: currentFloor === 'vault' ? [0, -50, 0] : 0,
+              }}
+              transition={{ duration: 11, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <motion.div 
+              className="absolute bottom-1/4 left-1/3 w-[650px] h-[650px] bg-amber-600/22 rounded-full blur-[100px]"
+              animate={{
+                scale: currentFloor === 'vault' ? [1, 1.15, 1] : 0.8,
+                x: currentFloor === 'vault' ? [0, 45, 0] : 0,
+              }}
+              transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <motion.div 
+              className="absolute top-1/2 left-1/4 w-[550px] h-[550px] bg-orange-600/18 rounded-full blur-[90px]"
+              animate={{
+                scale: currentFloor === 'vault' ? [1, 1.18, 1] : 0.8,
+                x: currentFloor === 'vault' ? [0, -35, 0] : 0,
+                y: currentFloor === 'vault' ? [0, 25, 0] : 0,
+              }}
+              transition={{ duration: 13, repeat: Infinity, ease: "easeInOut" }}
+            />
+          </motion.div>
+          <motion.div
+            animate={{
+              opacity: isTransitioning && currentFloor !== 'vault' ? 0.4 : 1,
+            }}
+            transition={{ duration: 1.5, ease: [0.19, 1.0, 0.22, 1.0] }}
+            className="h-full overflow-y-auto overflow-x-hidden scroll-smooth relative z-10"
+            style={{ scrollbarGutter: 'stable', willChange: 'opacity' }}
+          >
+            <VaultView 
+              provider={provider}
+              account={account}
+              onToast={onToast}
+              onNavigateUp={() => navigateToFloor(hasLeftHome ? 'wrapper' : 'home')}
+              onNavigateToWrapper={() => navigateToFloor('wrapper')}
+            />
+          </motion.div>
+        </div>
+
+        {/* Home Floor - Center (initial landing) */}
+        <div 
+          className="h-screen overflow-hidden relative" 
+          id="home-floor" 
+          style={{ 
+            position: 'absolute', 
+            top: '100vh', 
+            left: 0, 
+            width: '100vw',
+            pointerEvents: currentFloor === 'home' ? 'auto' : 'none',
+            zIndex: currentFloor === 'home' ? 10 : 5
+          }}
+        >
+          {/* Animated gradient orbs */}
+          <motion.div 
+            className="absolute inset-0 overflow-hidden pointer-events-none"
+            style={{ willChange: 'opacity' }}
+            animate={{
+              opacity: currentFloor === 'home' ? 1 : 0.1,
+            }}
+            transition={{ duration: 3.5, ease: [0.19, 1.0, 0.22, 1.0] }}
+          >
+            <motion.div 
+              className="absolute top-1/4 right-1/3 w-[800px] h-[800px] bg-yellow-500/20 rounded-full blur-[120px]"
+              animate={{
+                scale: currentFloor === 'home' ? [1, 1.15, 1] : 0.8,
+                x: currentFloor === 'home' ? [0, 60, 0] : 0,
+              }}
+              transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <motion.div 
+              className="absolute bottom-1/3 left-1/4 w-[700px] h-[700px] bg-amber-500/18 rounded-full blur-[110px]"
+              animate={{
+                scale: currentFloor === 'home' ? [1, 1.2, 1] : 0.8,
+                y: currentFloor === 'home' ? [0, 40, 0] : 0,
+              }}
+              transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <motion.div 
+              className="absolute top-1/2 left-1/2 w-[600px] h-[600px] bg-orange-500/12 rounded-full blur-[100px]"
+              animate={{
+                scale: currentFloor === 'home' ? [1, 1.1, 1] : 0.8,
+                x: currentFloor === 'home' ? [0, -50, 0] : 0,
+              }}
+              transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
+            />
+          </motion.div>
+          <motion.div
+            animate={{
+              opacity: showHomeContent ? (isTransitioning && currentFloor !== 'home' ? 0.4 : 1) : 0,
+            }}
+            transition={{ duration: 0.8, ease: [0.4, 0.0, 0.2, 1.0] }}
+            className="h-full overflow-hidden relative z-10"
+            style={{ willChange: 'opacity' }}
+          >
+            <EagleHomeContent 
+              onNavigateUp={() => navigateToFloor('lp')}
+              onNavigateDown={() => navigateToFloor('vault')}
+              provider={provider}
             />
           </motion.div>
         </div>

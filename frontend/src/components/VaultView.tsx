@@ -228,6 +228,19 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
   const [loading, setLoading] = useState(false);
 
   const [refreshing, setRefreshing] = useState(false);
+  
+  // Admin injection state
+  const [injectWlfi, setInjectWlfi] = useState('');
+  const [injectUsd1, setInjectUsd1] = useState('');
+  const [injectLoading, setInjectLoading] = useState(false);
+  const [injectionPreview, setInjectionPreview] = useState<{
+    newShareValue: string;
+    valueIncrease: string;
+    percentageIncrease: string;
+  } | null>(null);
+  
+  // Check if current account is admin
+  const isAdmin = account?.toLowerCase() === CONTRACTS.MULTISIG.toLowerCase();
 
   // PRODUCTION: All values reset to 0 - fresh deployment
   const [data, setData] = useState({
@@ -761,6 +774,127 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
     }
   };
 
+  // Preview capital injection impact
+  const handlePreviewInjection = useCallback(async () => {
+    if (!provider || (!injectWlfi && !injectUsd1)) {
+      setInjectionPreview(null);
+      return;
+    }
+
+    try {
+      const vault = new Contract(
+        CONTRACTS.VAULT,
+        [
+          'function previewCapitalInjection(uint256 wlfiAmount, uint256 usd1Amount) external view returns (uint256 newShareValue, uint256 valueIncrease, uint256 percentageIncrease)'
+        ],
+        provider
+      );
+
+      const wlfiWei = injectWlfi ? parseEther(injectWlfi) : 0n;
+      const usd1Wei = injectUsd1 ? parseEther(injectUsd1) : 0n;
+
+      const [newShareValue, valueIncrease, percentageIncrease] = await vault.previewCapitalInjection(wlfiWei, usd1Wei);
+
+      setInjectionPreview({
+        newShareValue: formatEther(newShareValue),
+        valueIncrease: formatEther(valueIncrease),
+        percentageIncrease: (Number(percentageIncrease) / 100).toFixed(2), // Convert basis points to percentage
+      });
+    } catch (error) {
+      console.error('Error previewing injection:', error);
+      setInjectionPreview(null);
+    }
+  }, [provider, injectWlfi, injectUsd1]);
+
+  // Handle capital injection
+  const handleInjectCapital = async () => {
+    if (!provider || !account || (!injectWlfi && !injectUsd1)) return;
+
+    setInjectLoading(true);
+    try {
+      const signer = await provider.getSigner();
+      const vault = new Contract(
+        CONTRACTS.VAULT,
+        [
+          'function injectCapital(uint256 wlfiAmount, uint256 usd1Amount) external',
+          'function balanceOf(address) external view returns (uint256)'
+        ],
+        signer
+      );
+
+      const wlfiWei = injectWlfi ? parseEther(injectWlfi) : 0n;
+      const usd1Wei = injectUsd1 ? parseEther(injectUsd1) : 0n;
+
+      // Approve tokens if needed
+      if (injectWlfi && parseFloat(injectWlfi) > 0) {
+        const wlfiToken = new Contract(
+          CONTRACTS.WLFI,
+          ['function approve(address spender, uint256 amount) external returns (bool)', 'function allowance(address owner, address spender) external view returns (uint256)'],
+          signer
+        );
+        
+        const allowance = await wlfiToken.allowance(account, CONTRACTS.VAULT);
+        if (allowance < wlfiWei) {
+          onToast({ message: 'Approving WLFI...', type: 'info' });
+          const approveTx = await wlfiToken.approve(CONTRACTS.VAULT, wlfiWei);
+          await approveTx.wait();
+          onToast({ message: 'WLFI approved!', type: 'success', txHash: approveTx.hash });
+        }
+      }
+
+      if (injectUsd1 && parseFloat(injectUsd1) > 0) {
+        const usd1Token = new Contract(
+          CONTRACTS.USD1,
+          ['function approve(address spender, uint256 amount) external returns (bool)', 'function allowance(address owner, address spender) external view returns (uint256)'],
+          signer
+        );
+        
+        const allowance = await usd1Token.allowance(account, CONTRACTS.VAULT);
+        if (allowance < usd1Wei) {
+          onToast({ message: 'Approving USD1...', type: 'info' });
+          const approveTx = await usd1Token.approve(CONTRACTS.VAULT, usd1Wei);
+          await approveTx.wait();
+          onToast({ message: 'USD1 approved!', type: 'success', txHash: approveTx.hash });
+        }
+      }
+
+      // Inject capital
+      onToast({ message: 'Injecting capital into vault...', type: 'info' });
+      const tx = await vault.injectCapital(wlfiWei, usd1Wei);
+      onToast({ message: 'Transaction submitted...', type: 'info', txHash: tx.hash });
+
+      await tx.wait();
+      onToast({ 
+        message: `✅ Successfully injected ${injectWlfi || '0'} WLFI + ${injectUsd1 || '0'} USD1!`, 
+        type: 'success', 
+        txHash: tx.hash 
+      });
+
+      setInjectWlfi('');
+      setInjectUsd1('');
+      setInjectionPreview(null);
+      await fetchData();
+    } catch (error: any) {
+      console.error('Inject capital error:', error);
+      let errorMessage = 'Capital injection failed';
+      
+      if (error.code === 'ACTION_REJECTED' || error.code === 4001) {
+        errorMessage = 'Transaction rejected by user';
+      } else if (error.message) {
+        errorMessage = error.message.slice(0, 150);
+      }
+      
+      onToast({ message: errorMessage, type: 'error' });
+    } finally {
+      setInjectLoading(false);
+    }
+  };
+
+  // Preview injection on amount change
+  useEffect(() => {
+    handlePreviewInjection();
+  }, [handlePreviewInjection]);
+
   return (
     <div className="bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50 dark:from-gray-900 dark:via-black dark:to-gray-900 min-h-screen pb-24 transition-colors">
       <div className="max-w-6xl mx-auto px-6 pt-6 pb-24">
@@ -899,7 +1033,7 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
         </div>
 
         {/* Main Grid */}
-        <div className="grid lg:grid-cols-3 gap-6">
+        <div className={`grid gap-6 ${isAdmin ? 'lg:grid-cols-2' : 'lg:grid-cols-3'}`}>
           {/* Left - Deposit/Withdraw */}
           <div className="lg:col-span-1">
             <NeoCard className="!p-0 overflow-hidden relative">
@@ -1044,8 +1178,97 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
             )}
           </div>
 
+          {/* Admin Panel - Capital Injection (Only visible to multisig) */}
+          {isAdmin && (
+            <div className="lg:col-span-1">
+              <NeoCard>
+                <div className="space-y-4">
+                  {/* Header */}
+                  <div className="flex items-center gap-3 pb-4 border-b border-gray-300/50 dark:border-gray-700/30">
+                    <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 dark:from-red-600 dark:to-red-700 rounded-full flex items-center justify-center shadow-neo-raised dark:shadow-neo-raised-dark">
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-white">Admin Controls</h3>
+                      <p className="text-xs text-gray-600 dark:text-gray-400">Capital Injection</p>
+                    </div>
+                  </div>
+
+                  {/* Description */}
+                  <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700/30 rounded-xl p-3">
+                    <p className="text-xs text-yellow-800 dark:text-yellow-300">
+                      <strong>⚡ Boost share value:</strong> Inject capital to increase share value without minting new shares. All existing holders benefit proportionally.
+                    </p>
+                  </div>
+
+                  {/* WLFI Input */}
+                  <NeoInput
+                    type="number"
+                    value={injectWlfi}
+                    onChange={setInjectWlfi}
+                    placeholder="0"
+                    label="WLFI to Inject"
+                  />
+
+                  {/* USD1 Input */}
+                  <NeoInput
+                    type="number"
+                    value={injectUsd1}
+                    onChange={setInjectUsd1}
+                    placeholder="0"
+                    label="USD1 to Inject"
+                  />
+
+                  {/* Preview Impact */}
+                  {injectionPreview && (injectWlfi || injectUsd1) && (
+                    <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-700/30 rounded-xl p-4 space-y-2">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <p className="text-xs font-bold text-green-800 dark:text-green-300 uppercase">Impact Preview</p>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600 dark:text-gray-400">Share Value Increase:</span>
+                        <span className="font-bold text-green-600 dark:text-green-400">+{injectionPreview.percentageIncrease}%</span>
+                      </div>
+                      <div className="flex justify-between text-xs text-gray-500 dark:text-gray-500">
+                        <span>New Share Value:</span>
+                        <span>{Number(injectionPreview.newShareValue).toFixed(6)} WLFI</span>
+                      </div>
+                      <div className="flex justify-between text-xs text-gray-500 dark:text-gray-500">
+                        <span>Value Increase:</span>
+                        <span>+{Number(injectionPreview.valueIncrease).toFixed(6)} WLFI</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Inject Button */}
+                  <NeoButton
+                    label={injectLoading ? 'Injecting...' : 'Inject Capital'}
+                    onClick={handleInjectCapital}
+                    className="w-full !py-4 !bg-gradient-to-r !from-red-500 !to-red-600 dark:!from-red-600 dark:!to-red-700 !text-white disabled:!opacity-50 disabled:!cursor-not-allowed"
+                    disabled={injectLoading || !account || (!injectWlfi && !injectUsd1)}
+                    icon={
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                    }
+                  />
+
+                  {/* Warning */}
+                  <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700/30 rounded-xl p-3">
+                    <p className="text-xs text-red-800 dark:text-red-300">
+                      <strong>⚠️ Admin only:</strong> This action will transfer tokens from your wallet to the vault permanently.
+                    </p>
+                  </div>
+                </div>
+              </NeoCard>
+            </div>
+          )}
+
           {/* Right - Info Tabs */}
-          <div className="lg:col-span-2">
+          <div className={isAdmin ? 'lg:col-span-2' : 'lg:col-span-2'}>
             <NeoCard className="!p-0">
               {/* Tab Headers */}
               <div className="px-6 pt-6 pb-4 border-b border-gray-300/50 dark:border-gray-700/30">

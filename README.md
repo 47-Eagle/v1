@@ -3,26 +3,9 @@
 **Production-ready dual-token vault with Charm Finance integration and LayerZero omnichain capabilities**
 
 **Network:** Ethereum Mainnet  
-**Status:** 🚀 **READY FOR MAINNET DEPLOYMENT**
+**Status:** ✅ **LIVE & EARNING YIELD**
 
-> **📘 NEW DEPLOYERS**: Start with [`DEPLOYMENT_DOCS_INDEX.md`](./DEPLOYMENT_DOCS_INDEX.md) for complete deployment documentation
-
----
-
-## 🚀 Quick Deployment Links
-
-| Document | Purpose | Time |
-|----------|---------|------|
-| [`MAINNET_READY_SUMMARY.md`](./MAINNET_READY_SUMMARY.md) | **START HERE** - Overview & status | 5 min read |
-| [`QUICK_START_MAINNET.md`](./QUICK_START_MAINNET.md) | Fast deployment guide | 15 min deploy |
-| [`MAINNET_LAUNCH_CHECKLIST.md`](./MAINNET_LAUNCH_CHECKLIST.md) | Complete step-by-step guide | Full details |
-| [`DEPLOYMENT_DOCS_INDEX.md`](./DEPLOYMENT_DOCS_INDEX.md) | Navigation for all docs | Index |
-
-**Deployment Requirements:**
-- 💰 **Funding**: 3.6 ETH total (see [`GAS_ESTIMATION.md`](./GAS_ESTIMATION.md))
-- ⏱️ **Time**: 15-20 minutes
-- ⛽ **Optimal Gas**: <30 gwei
-- ✅ **Tests**: 163+ passing (98% coverage)
+> **📘 Quick Start**: See [Architecture Overview](./ARCHITECTURE_OVERVIEW.md) | [Testing Guide](./TESTING_GUIDE.md) | [CREATE2 Deployment](./CREATE2_DEPLOYMENT_GUIDE.md)
 
 ---
 
@@ -104,56 +87,42 @@ npx hardhat run scripts/check-charm-success.ts --network ethereum
 ```
 eagle-ovault-clean/
 │
-├── 📘 DEPLOYMENT GUIDES (START HERE!)
-│   ├── DEPLOYMENT_DOCS_INDEX.md        # Navigation guide
-│   ├── MAINNET_READY_SUMMARY.md        # Executive summary  
-│   ├── MAINNET_LAUNCH_CHECKLIST.md     # Complete checklist
-│   ├── QUICK_START_MAINNET.md          # Fast deployment (15min)
-│   ├── SECURITY_AUDIT_CHECKLIST.md     # Security review
-│   ├── DEPLOYMENT_VERIFICATION.md      # Post-deploy checks
-│   └── GAS_ESTIMATION.md               # Funding requirements
-│
 ├── 💎 CONTRACTS (PRODUCTION READY)
-│   ├── contracts/
-│   │   ├── EagleOVault.sol                    # Main vault (27KB)
-│   │   ├── EagleVaultWrapper.sol              # Wrapper (44KB)
-│   │   ├── EagleRegistry.sol                  # Chain registry
-│   │   ├── strategies/
-│   │   │   ├── CharmStrategyUSD1.sol          # USD1 strategy (40KB)
-│   │   │   └── CharmStrategy.sol              # WETH strategy (39KB)
-│   │   └── layerzero/
-│   │       ├── oft/EagleShareOFT.sol          # OFT token (35KB)
-│   │       ├── composers/EagleOVaultComposer.sol  # Unified composer (36KB)
-│   │       └── adapters/                      # Asset adapters
+│   ├── EagleOVault.sol                    # Main vault (27KB, ERC4626)
+│   ├── EagleVaultWrapper.sol              # Wrapper (44KB)
+│   ├── EagleRegistry.sol                  # Chain registry
+│   ├── strategies/
+│   │   └── CharmStrategyUSD1.sol          # USD1 strategy (40KB)
+│   ├── layerzero/
+│   │   ├── oft/EagleShareOFT.sol          # OFT token (35KB)
+│   │   ├── oft/WLFIAssetOFT.sol           # Cross-chain WLFI (Future)
+│   │   ├── oft/USD1AssetOFT.sol           # Cross-chain USD1 (Future)
+│   │   ├── composers/EagleOVaultComposer.sol  # Deposit orchestrator (Future)
+│   │   └── adapters/productive/           # Productive adapters (Future)
+│   └── factories/
+│       └── DeterministicEagleFactory.sol  # CREATE2 factory
 │
 ├── 🧪 TESTS (71/71 PASSING - 100%)
-│   ├── test/
-│   │   ├── EagleOVault.t.sol              # Vault tests
-│   │   ├── EagleShareOFT.t.sol            # OFT tests (36/36)
-│   │   ├── EagleVaultWrapper.t.sol        # Wrapper tests (35/35)
-│   │   ├── CharmStrategyUSD1.t.sol        # Strategy tests
-│   │   └── CharmStrategy.t.sol            # WETH strategy tests
+│   └── test/
+│       ├── EagleOVault.t.sol              # Vault tests
+│       ├── EagleShareOFT.t.sol            # OFT tests
+│       ├── EagleVaultWrapper.t.sol        # Wrapper tests
+│       └── CharmStrategyUSD1.t.sol        # Strategy tests
 │
 ├── 🚀 DEPLOYMENT SCRIPTS
-│   ├── script/
-│   │   ├── DeployVanityVault.s.sol        # CREATE2 deployment
-│   │   ├── DeployRegistryCreate2.s.sol    # Registry deployment
-│   │   ├── DeploySepoliaComplete.s.sol    # Testnet deploy
-│   │   └── multi-chain/                   # Cross-chain scripts
+│   └── script/
+│       ├── DeployProductionVanity.s.sol   # Production deployment
+│       └── Deploy*.s.sol                  # Other deployment scripts
 │
-├── 📚 ARCHITECTURE DOCS
-│   ├── ARCHITECTURE_DECISION.md           # EagleVaultWrapper rationale
-│   ├── EAGLESHAREOFT_REVIEW.md           # OFT contract review
-│   ├── WRAPPER_TEST_REPORT.md            # Wrapper test analysis
-│   ├── COMPOSER_VAULT_COUPLING.md        # Coupling documentation
-│   ├── ABSTRACTION_LAYER.md              # UX abstraction
-│   ├── LAYERZERO_INTEGRATION.md          # LayerZero integration
-│   ├── UNIFIED_COMPOSER.md               # Composer documentation
+├── 📚 KEY DOCUMENTATION
+│   ├── ARCHITECTURE_OVERVIEW.md           # Start here - system overview
+│   ├── CREATE2_DEPLOYMENT_GUIDE.md        # Deterministic deployment
+│   ├── TESTING_GUIDE.md                   # Test documentation
+│   ├── MONITORING_GUIDE.md                # Production monitoring
 │   └── contracts/layerzero/
-│       ├── README.md                      # LayerZero guide
-│       ├── WRAPPER_ARCHITECTURE.md        # Wrapper details
-│       ├── ARCHITECTURE_FAQ.md            # FAQs
-│       └── COMPLETE_ARCHITECTURE.md       # Complete guide
+│       ├── README.md                      # LayerZero integration
+│       ├── COMPLETE_ARCHITECTURE.md       # Full omnichain architecture
+│       └── adapters/productive/README.md  # Productive adapters (Future)
 │
 ├── ⚙️ CONFIGURATION
 │   ├── hardhat.config.ts                  # Hardhat config
@@ -162,15 +131,8 @@ eagle-ovault-clean/
 │   └── package.json                       # Dependencies
 │
 └── 🎨 FRONTEND
-    └── frontend/                           # React + Vite UI
+    └── frontend/                           # React + Vite UI (Live)
 ```
-
-**✨ Recently Cleaned:**
-- ✅ Removed duplicate documentation
-- ✅ Removed old fee-related scripts (fees removed from OFT)
-- ✅ Removed utility tools (vanity generators)
-- ✅ Removed outdated deployment docs
-- ✅ All contracts compile successfully
 
 ---
 
@@ -200,67 +162,38 @@ eagle-ovault-clean/
 
 ---
 
-## 📜 Scripts
-
-See `scripts/README.md` for full list.
-
-**Essential Commands:**
-```bash
-# Check vault
-npx hardhat run scripts/check-current-vault-state.ts --network ethereum
-
-# Check Charm position
-npx hardhat run scripts/check-charm-success.ts --network ethereum
-
-# Check approvals
-npx hardhat run scripts/check-strategy-approvals.ts --network ethereum
-
-# Set deployment threshold
-npx hardhat run scripts/set-deployment-threshold.ts --network ethereum
-```
-
----
-
 ## 🧪 Testing
 
 ```bash
-# Run tests
+# Run all tests
 npx hardhat test
 
-# Specific test
-npx hardhat test test/VaultDeploymentTest.test.ts
+# Run specific test file
+npx hardhat test test/EagleOVault.t.sol
+
+# Foundry tests
+forge test
+
+# With gas report
+forge test --gas-report
 ```
 
 ---
 
 ## 📖 Documentation
 
-### 🚀 Deployment (Start Here!)
-- **[Deployment Docs Index](DEPLOYMENT_DOCS_INDEX.md)** - 📍 Navigation for all deployment docs
-- **[Mainnet Ready Summary](MAINNET_READY_SUMMARY.md)** - Executive overview
-- **[Quick Start Mainnet](QUICK_START_MAINNET.md)** - Fast 15-min deployment
-- **[Mainnet Launch Checklist](MAINNET_LAUNCH_CHECKLIST.md)** - Complete step-by-step guide
-- **[Security Audit Checklist](SECURITY_AUDIT_CHECKLIST.md)** - Security review procedures
-- **[Deployment Verification](DEPLOYMENT_VERIFICATION.md)** - Post-deployment verification
-- **[Gas Estimation](GAS_ESTIMATION.md)** - Funding requirements (3.6 ETH)
+### 🏗️ Core Architecture
+- **[Architecture Overview](ARCHITECTURE_OVERVIEW.md)** - 📍 **START HERE** - Complete system architecture
+- **[CREATE2 Deployment Guide](CREATE2_DEPLOYMENT_GUIDE.md)** - Deterministic deployment strategy
+- **[Testing Guide](TESTING_GUIDE.md)** - Test coverage and testing strategy
 
-### 🏗️ Architecture
-- **[Architecture Decision](ARCHITECTURE_DECISION.md)** - EagleVaultWrapper pattern explained
-- **[EagleShareOFT Review](EAGLESHAREOFT_REVIEW.md)** - OFT contract review (36/36 tests ✅)
-- **[Wrapper Test Report](WRAPPER_TEST_REPORT.md)** - Wrapper testing analysis (35/35 tests ✅)
-- **[Composer Vault Coupling](COMPOSER_VAULT_COUPLING.md)** - Tight coupling documentation
-- **[Abstraction Layer](ABSTRACTION_LAYER.md)** - User experience abstraction
-- **[LayerZero Integration](LAYERZERO_INTEGRATION.md)** - Cross-chain integration guide
-- **[Unified Composer](UNIFIED_COMPOSER.md)** - EagleOVaultComposer documentation
+### 🌐 LayerZero / Omnichain
+- **[LayerZero README](contracts/layerzero/README.md)** - Cross-chain integration overview
+- **[Complete Architecture](contracts/layerzero/COMPLETE_ARCHITECTURE.md)** - Full omnichain technical guide
+- **[Productive Adapters](contracts/layerzero/adapters/productive/README.md)** - Capital efficiency optimization (Future)
 
-### 🌐 LayerZero / Cross-Chain
-- **[LayerZero README](contracts/layerzero/README.md)** - Cross-chain deployment guide
-- **[Wrapper Architecture](contracts/layerzero/WRAPPER_ARCHITECTURE.md)** - Detailed wrapper flow
-- **[Architecture FAQ](contracts/layerzero/ARCHITECTURE_FAQ.md)** - Common questions answered
-- **[Complete Architecture](contracts/layerzero/COMPLETE_ARCHITECTURE.md)** - Full technical guide
-
-### 📋 Vault Details
-- **[README EagleOVault](README_EAGLEOVAULT.md)** - Complete vault documentation
+### 📊 Operations & Monitoring
+- **[Monitoring Guide](MONITORING_GUIDE.md)** - Production monitoring and alerting
 
 ---
 
@@ -327,28 +260,28 @@ npm run build  # Production
 
 ## 🧹 Repository Status
 
-**Last Cleanup:** October 27, 2025  
+**Last Major Cleanup:** November 4, 2025  
 **Test Status:** 71/71 passing (100%) ✅  
 **Build Status:** All contracts compile successfully ✅  
-**Production Ready:** Yes ✅
+**Production Status:** Live on Ethereum Mainnet ✅
 
-**Recent Changes:**
-- ✅ Removed duplicate documentation from `gist-content/` and `documents/`
-- ✅ Removed 9+ old fee-related scripts (fees removed from EagleShareOFT)
-- ✅ Removed vanity-generator and vanity-miner utilities
-- ✅ Removed outdated deployment documentation
-- ✅ Unified composer contract with EagleRegistry integration
-- ✅ Repository cleaned and organized for mainnet deployment
+**Recent Cleanup (Nov 4, 2025):**
+- ✅ Removed 50+ outdated deployment documentation files
+- ✅ Removed multi-agent deployment system files (no longer needed)
+- ✅ Removed vanity generation tools and artifacts (deployment complete)
+- ✅ Removed old UI files and temporary scripts
+- ✅ Updated .gitignore for build artifacts
+- ✅ Streamlined README with only essential docs
 
-**Contract Sizes (Production):**
+**Contract Sizes (Optimized for Deployment):**
 - EagleOVault: 27 KB ✅
 - EagleVaultWrapper: 44 KB ✅
 - EagleShareOFT: 35 KB ✅
-- EagleOVaultComposer: 36 KB ✅
+- EagleOVaultComposer: 36 KB ✅ (Future)
 - CharmStrategyUSD1: 40 KB ✅
 
 ---
 
-**Last Updated:** October 27, 2025  
+**Last Updated:** November 4, 2025  
 **License:** MIT  
-**Version:** Production v2.1 (Unified Composer + Repository Cleanup)
+**Version:** Production v2.2 (Deployed + Repository Cleanup)

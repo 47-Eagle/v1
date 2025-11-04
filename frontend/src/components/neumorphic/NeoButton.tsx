@@ -27,13 +27,14 @@ export const NeoButton = ({
       whileHover={disabled ? {} : { scale: 1.03, y: -2 }}
       whileTap={disabled ? {} : { scale: 0.97 }}
       transition={{ type: "spring", stiffness: 500, damping: 20 }}
+      style={{ pointerEvents: disabled ? 'none' : 'auto' }}
       className={`
         px-8 py-3.5 rounded-full flex items-center justify-center gap-3 font-semibold
         bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850
         text-gray-900 dark:text-gray-100
         border border-gray-200/50 dark:border-gray-600/50
         transition-all duration-400 ease-out
-        ${disabled ? 'opacity-40 cursor-not-allowed grayscale' : ''}
+        ${disabled ? 'opacity-40 cursor-not-allowed grayscale' : 'cursor-pointer'}
         ${active 
           ? 'shadow-neo-pressed dark:shadow-neo-pressed-dark border-gray-300/70 dark:border-gray-500/60' 
           : 'shadow-neo-raised hover:shadow-neo-hover dark:shadow-neo-raised-dark dark:hover:shadow-neo-hover-dark hover:border-gray-300/70 dark:hover:border-gray-500/60'
