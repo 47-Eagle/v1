@@ -193,6 +193,33 @@ export default function EagleLPContent({ onNavigateDown }: Props) {
           </span>
         </div>
 
+        {/* DexScreener Chart Embed */}
+        <motion.div 
+          className="mb-12"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.3 }}
+        >
+          <NeoCard className="!p-0 overflow-hidden">
+            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
+                <svg className="w-5 h-5 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                Live Price Chart
+              </h3>
+            </div>
+            <div className="relative w-full" style={{ height: '500px' }}>
+              <iframe
+                src="https://dexscreener.com/ethereum/0xcf728b099b672c72d61f6ec4c4928c2f2a96cefdfd518c3470519d76545ed333?embed=1&theme=dark&trades=0&info=0"
+                className="w-full h-full border-0"
+                title="DexScreener Chart"
+                allow="clipboard-write"
+              />
+            </div>
+          </NeoCard>
+        </motion.div>
+
         {/* Live Pool Card */}
         <motion.div 
           initial={{ scale: 0.95, opacity: 0 }}
@@ -287,13 +314,15 @@ export default function EagleLPContent({ onNavigateDown }: Props) {
                   whileHover={{ scale: 1.05, y: -4 }}
                   transition={{ type: "spring", stiffness: 400, damping: 17 }}
                 >
-                  <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 rounded-2xl p-4 shadow-neo-inset dark:shadow-neo-inset-dark border border-gray-200/50 dark:border-gray-600/50 flex items-center justify-center">
-                    <img 
-                      src={ICONS.ETHEREUM}
-                      alt="Ethereum Network"
-                      className="w-12 h-12 rounded-full"
-                      title="Ethereum Network"
-                    />
+                  <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 rounded-2xl p-4 shadow-neo-inset dark:shadow-neo-inset-dark border border-gray-200/50 dark:border-gray-600/50">
+                    <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider">Network</div>
+                    <div className="flex items-center justify-center">
+                      <img 
+                        src={ICONS.ETHEREUM}
+                        alt="Ethereum Network"
+                        className="w-10 h-10 rounded-full"
+                      />
+                    </div>
                   </div>
                 </motion.div>
               </div>
