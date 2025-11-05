@@ -34,27 +34,7 @@ console.error = (...args) => {
   originalConsoleError.apply(console, args);
 };
 
-const root = document.getElementById('root');
-
-if (!root) {
-  throw new Error('Root element not found');
-}
-
-// Test if App component exists
-if (!App) {
-  console.error('App component is undefined!');
-  throw new Error('App component failed to import');
-}
-
-console.log('Starting React app...');
-console.log('WagmiProvider:', WagmiProvider);
-console.log('QueryClientProvider:', QueryClientProvider);
-console.log('RainbowKitProvider:', RainbowKitProvider);
-console.log('AuthProvider:', AuthProvider);
-console.log('ErrorBoundary:', ErrorBoundary);
-console.log('App:', App);
-
-ReactDOM.createRoot(root).render(
+ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <ErrorBoundary>
       <WagmiProvider config={config}>

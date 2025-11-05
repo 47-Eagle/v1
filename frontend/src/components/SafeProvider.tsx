@@ -1,4 +1,4 @@
-import { SafeAppProvider } from '@safe-global/safe-apps-react-sdk';
+import { SafeProvider as SafeSDKProvider } from '@safe-global/safe-apps-react-sdk';
 import { ReactNode } from 'react';
 
 interface SafeProviderProps {
@@ -11,7 +11,7 @@ interface SafeProviderProps {
  */
 export function SafeProvider({ children }: SafeProviderProps) {
   return (
-    <SafeAppProvider
+    <SafeSDKProvider
       opts={{
         // Allow the app to work outside of Safe context
         allowedDomains: [/app.safe.global$/, /gnosis-safe.io$/],
@@ -19,7 +19,7 @@ export function SafeProvider({ children }: SafeProviderProps) {
       }}
     >
       {children}
-    </SafeAppProvider>
+    </SafeSDKProvider>
   );
 }
 
