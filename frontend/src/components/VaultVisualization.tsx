@@ -4,6 +4,7 @@ import { OrbitControls, Text } from "@react-three/drei"
 import { useState, useEffect, useMemo } from "react"
 import { CONTRACTS } from '../config/contracts'
 import { UniswapBadge, CharmBadge } from './tech-stack'
+import { useCharmVaultData } from '../hooks/useCharmVaultData'
 
 const WLFI_PRICE_USD = 0.127
 const CURRENT_TICK = Math.floor(Math.log(WLFI_PRICE_USD) / Math.log(1.0001))
@@ -97,54 +98,34 @@ interface VaultVisualizationProps {
 
 export default function VaultVisualization({ currentPrice = WLFI_PRICE_USD }: VaultVisualizationProps) {
   const size = 20
-  const [charmData, setCharmData] = useState<any>(null)
   const [revertData, setRevertData] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
   const [hoveredTick, setHoveredTick] = useState<number | null>(null)
+  
+  // Fetch real on-chain Charm vault data
+  const charmData = useCharmVaultData()
+  const loading = charmData.loading
 
   useEffect(() => {
-    Promise.all([
-      fetchCharmData(),
-      fetchRevertFinanceData()
-      // Skipping fetchPoolPositions() due to CORS issues with The Graph
-    ]).then(([charm, revert]) => {
-      if (charm) {
-        console.log('[VaultViz] Charm Finance Data:')
-        console.log('  baseLower:', charm.baseLower)
-        console.log('  baseUpper:', charm.baseUpper)
-        console.log('  limitLower:', charm.limitLower)
-        console.log('  limitUpper:', charm.limitUpper)
-        console.log('  fullRangeWeight:', charm.fullRangeWeight, '(', (parseFloat(charm.fullRangeWeight) / 10000).toFixed(2), '% )')
-        console.log('  currentTick:', charm.pool?.tick)
-      }
-      setCharmData(charm)
-      // setPoolData(pool) - Disabled for now
+    // Fetch Revert Finance data for APR/volume metrics
+    fetchRevertFinanceData().then((revert) => {
       setRevertData(revert)
-      setLoading(false)
     })
   }, [])
 
   const positions = useMemo(() => {
-    // Parse Charm data (fullRangeWeight is in basis points: 470000 = 47%)
-    const fullWeight = charmData?.fullRangeWeight ? parseFloat(charmData.fullRangeWeight) / 10000 : 47
-    
-    // Calculate base and limit weights from remaining liquidity
-    // Typical Charm strategy is ~55% base, ~45% limit of non-full-range
-    const remainingWeight = 100 - fullWeight
-    const baseWeight = remainingWeight * 0.55
-    const limitWeight = remainingWeight * 0.45
+    // Use real data from contract
+    const fullWeight = charmData.loading ? 47 : charmData.fullRangeWeight
+    const baseWeight = charmData.loading ? 29 : charmData.baseWeight
+    const limitWeight = charmData.loading ? 24 : charmData.limitWeight
 
-    const currentTickValue = charmData?.pool?.tick || CURRENT_TICK
+    const currentTickValue = charmData.loading ? CURRENT_TICK : charmData.currentTick
 
-    // Use real tick ranges from Charm or defaults
-    const baseLower = charmData?.baseLower ? parseInt(charmData.baseLower) : (currentTickValue - 2100)
-    const baseUpper = charmData?.baseUpper ? parseInt(charmData.baseUpper) : (currentTickValue + 2100)
+    // Use real tick ranges from Charm vault contract
+    const baseLower = charmData.loading ? (currentTickValue - 2100) : charmData.baseTickLower
+    const baseUpper = charmData.loading ? (currentTickValue + 2100) : charmData.baseTickUpper
     
-    // Limit order - make it adjacent to current price
-    // If limitLower is less than current tick, it's a buy order (below price)
-    // If limitLower is above current tick, it's a sell order (above price)
-    let limitLower = charmData?.limitLower ? parseInt(charmData.limitLower) : currentTickValue
-    let limitUpper = charmData?.limitUpper ? parseInt(charmData.limitUpper) : (currentTickValue + 12000)
+    let limitLower = charmData.loading ? currentTickValue : charmData.limitTickLower
+    let limitUpper = charmData.loading ? (currentTickValue + 12000) : charmData.limitTickUpper
     
     // Ensure limit order is adjacent to current price for better visualization
     if (limitUpper < currentTickValue) {
@@ -181,7 +162,7 @@ export default function VaultVisualization({ currentPrice = WLFI_PRICE_USD }: Va
   const tickDistribution = useMemo(() => {
     const TICK_SPACING = 200 // Uniswap V3 1% pool spacing
     const RANGE = 80000 // Display range ±40k ticks from current
-    const currentTickValue = charmData?.pool?.tick || CURRENT_TICK
+    const currentTickValue = charmData.loading ? CURRENT_TICK : charmData.currentTick
     
     const tickBars: Array<{ tick: number; liquidity: number }> = []
     
@@ -205,7 +186,7 @@ export default function VaultVisualization({ currentPrice = WLFI_PRICE_USD }: Va
     return tickBars
   }, [positions, charmData])
 
-  const usedTick = charmData?.pool?.tick || CURRENT_TICK
+  const usedTick = charmData.loading ? CURRENT_TICK : charmData.currentTick
 
   return (
     <div className="w-full">
@@ -230,7 +211,18 @@ export default function VaultVisualization({ currentPrice = WLFI_PRICE_USD }: Va
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              <p className="text-xs text-gray-300">Loading position data...</p>
+              <p className="text-xs text-gray-300">Loading Charm Finance vault data...</p>
+            </div>
+          </div>
+        ) : charmData.error ? (
+          <div className="flex items-center justify-center h-96 bg-black/20">
+            <div className="text-center max-w-md px-4">
+              <svg className="w-12 h-12 mx-auto mb-3 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p className="text-sm text-red-400 mb-2">Error loading vault data</p>
+              <p className="text-xs text-gray-400">{charmData.error}</p>
+              <p className="text-xs text-gray-500 mt-2">Displaying fallback data</p>
             </div>
           </div>
         ) : (
