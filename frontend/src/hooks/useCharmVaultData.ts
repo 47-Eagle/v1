@@ -42,16 +42,23 @@ async function fetchFromGraphQL() {
 
   console.log('[fetchFromGraphQL] Success! Vault data:', vault);
 
-  // Parse the GraphQL data
+  // Parse the GraphQL data (values in basis points: 10000 = 100%)
+  const baseThreshold = parseFloat(vault.baseThreshold || '0');
+  const limitThreshold = parseFloat(vault.limitThreshold || '0');
+  const fullRangeWeight = parseFloat(vault.fullRangeWeight || '0');
+  
+  console.log('[fetchFromGraphQL] Raw values:', { baseThreshold, limitThreshold, fullRangeWeight });
+  
   return {
     baseTickLower: parseInt(vault.baseLower),
     baseTickUpper: parseInt(vault.baseUpper),
     limitTickLower: parseInt(vault.limitLower),
     limitTickUpper: parseInt(vault.limitUpper),
     currentTick: vault.pool?.tick ? parseInt(vault.pool.tick) : 0,
-    baseWeight: parseFloat(vault.baseThreshold || '0') / 100,
-    limitWeight: parseFloat(vault.limitThreshold || '0') / 100,
-    fullRangeWeight: parseFloat(vault.fullRangeWeight || '0') / 100,
+    // Convert basis points to percentage: divide by 100 (not 10000 since GraphQL already returns percentage-like values)
+    baseWeight: baseThreshold > 1000 ? baseThreshold / 100 : baseThreshold,
+    limitWeight: limitThreshold > 1000 ? limitThreshold / 100 : limitThreshold,
+    fullRangeWeight: fullRangeWeight > 1000 ? fullRangeWeight / 100 : fullRangeWeight,
     total0: '0',
     total1: '0',
   };

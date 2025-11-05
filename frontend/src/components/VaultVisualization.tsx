@@ -113,10 +113,15 @@ export default function VaultVisualization({ currentPrice = WLFI_PRICE_USD }: Va
   }, [])
 
   const positions = useMemo(() => {
-    // Use real data from contract
-    const fullWeight = charmData.loading ? 47 : charmData.fullRangeWeight
-    const baseWeight = charmData.loading ? 29 : charmData.baseWeight
-    const limitWeight = charmData.loading ? 24 : charmData.limitWeight
+    // Use real data from contract - ensure values are reasonable
+    let fullWeight = charmData.loading ? 47 : charmData.fullRangeWeight
+    let baseWeight = charmData.loading ? 29 : charmData.baseWeight
+    let limitWeight = charmData.loading ? 24 : charmData.limitWeight
+
+    // Clamp weights to reasonable values (0-100%)
+    fullWeight = Math.min(Math.max(fullWeight, 0), 100)
+    baseWeight = Math.min(Math.max(baseWeight, 0), 100)
+    limitWeight = Math.min(Math.max(limitWeight, 0), 100)
 
     const currentTickValue = charmData.loading ? CURRENT_TICK : charmData.currentTick
 
@@ -129,10 +134,8 @@ export default function VaultVisualization({ currentPrice = WLFI_PRICE_USD }: Va
     
     // Ensure limit order is adjacent to current price for better visualization
     if (limitUpper < currentTickValue) {
-      // Below current price - adjust to touch current price
       limitUpper = currentTickValue
     } else if (limitLower > currentTickValue) {
-      // Above current price - starts at current price
       limitLower = currentTickValue
     }
 
@@ -160,8 +163,8 @@ export default function VaultVisualization({ currentPrice = WLFI_PRICE_USD }: Va
 
   // Generate tick-by-tick liquidity distribution from positions
   const tickDistribution = useMemo(() => {
-    const TICK_SPACING = 200 // Uniswap V3 1% pool spacing
-    const RANGE = 80000 // Display range ±40k ticks from current
+    const TICK_SPACING = 400 // Wider spacing for better visualization
+    const RANGE = 60000 // Narrower range focused on active positions
     const currentTickValue = charmData.loading ? CURRENT_TICK : charmData.currentTick
     
     const tickBars: Array<{ tick: number; liquidity: number }> = []
@@ -171,18 +174,25 @@ export default function VaultVisualization({ currentPrice = WLFI_PRICE_USD }: Va
       let liquidityAtTick = 0
       
       // Check each position to see if this tick is covered
+      // Skip full range for now as it dominates the visualization
       positions.forEach(pos => {
-        if (tick >= pos.tickLower && tick <= pos.tickUpper) {
+        if (pos.name !== "Full Range" && tick >= pos.tickLower && tick <= pos.tickUpper) {
           liquidityAtTick += pos.weight
         }
       })
+      
+      // Add a small portion of full range for reference
+      const fullRangePos = positions.find(p => p.name === "Full Range")
+      if (fullRangePos && tick >= fullRangePos.tickLower && tick <= fullRangePos.tickUpper) {
+        liquidityAtTick += fullRangePos.weight * 0.15 // Scale down full range to 15% for visibility
+      }
       
       if (liquidityAtTick > 0) {
         tickBars.push({ tick, liquidity: liquidityAtTick })
       }
     }
     
-    console.log(`[VaultViz] Tick Distribution: ${tickBars.length} bars`)
+    console.log(`[VaultViz] Tick Distribution: ${tickBars.length} bars (range: ${currentTickValue - RANGE/2} to ${currentTickValue + RANGE/2})`)
     return tickBars
   }, [positions, charmData])
 
