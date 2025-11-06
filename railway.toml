@@ -1,0 +1,12 @@
+[build]
+builder = "nixpacks"
+buildCommand = "cd telegram-bot && npm install && npm run build"
+
+[deploy]
+startCommand = "cd telegram-bot && npm start"
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 10
+
+[env]
+# Railway will use the environment variables you set in the dashboard
+
