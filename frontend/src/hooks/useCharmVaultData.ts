@@ -304,23 +304,35 @@ export function useCharmVaultData(): CharmVaultData {
         }
 
         // Log raw values from contract BEFORE conversion
-        console.log('[useCharmVaultData] Raw contract values (should be basis points):', {
+        console.log('[useCharmVaultData] Raw contract values:', {
           baseThreshold: baseThreshold.toString(),
           limitThreshold: limitThreshold.toString(),
           fullRangeWeight: fullRangeWeight.toString(),
         });
 
-        // Calculate weights (values are in basis points: 10000 = 100%)
-        // Convert BigInt to number then to percentage
-        const baseWeightCalc = Number(baseThreshold) / 100; // basis points to percentage
-        const limitWeightCalc = Number(limitThreshold) / 100;
+        // Calculate weights
+        // fullRangeWeight is the actual allocation (e.g., 7400 = 74%)
         const fullRangeWeightCalc = Number(fullRangeWeight) / 100;
         
-        console.log('[useCharmVaultData] After dividing by 100:', {
-          baseWeight: baseWeightCalc,
-          limitWeight: limitWeightCalc,
-          fullRangeWeight: fullRangeWeightCalc,
-          total: (baseWeightCalc + limitWeightCalc + fullRangeWeightCalc)
+        // The remaining % is split between base and limit
+        const remainingPercent = 100 - fullRangeWeightCalc;
+        
+        console.log('[useCharmVaultData] Full range:', fullRangeWeightCalc + '%');
+        console.log('[useCharmVaultData] Remaining for base+limit:', remainingPercent + '%');
+        
+        // baseThreshold and limitThreshold are NOT weights, they're rebalancing thresholds
+        // We need to calculate the actual split based on position widths or amounts
+        // For now, use a simple split based on tick width:
+        // Base = 2000 ticks, Limit = 4000 ticks (from user info)
+        // So limit gets 2x the allocation of base
+        const baseWeightCalc = remainingPercent * (2000 / 6000); // 2000 out of 6000 total ticks
+        const limitWeightCalc = remainingPercent * (4000 / 6000); // 4000 out of 6000 total ticks
+        
+        console.log('[useCharmVaultData] Calculated weights:', {
+          baseWeight: baseWeightCalc.toFixed(2) + '%',
+          limitWeight: limitWeightCalc.toFixed(2) + '%',
+          fullRangeWeight: fullRangeWeightCalc.toFixed(2) + '%',
+          total: (baseWeightCalc + limitWeightCalc + fullRangeWeightCalc).toFixed(2) + '%'
         });
 
         const vaultData: CharmVaultData = {

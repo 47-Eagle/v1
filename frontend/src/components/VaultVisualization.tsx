@@ -114,26 +114,14 @@ export default function VaultVisualization({ currentPrice = WLFI_PRICE_USD }: Va
 
   const positions = useMemo(() => {
     // Weights are now correctly calculated in the hook:
-    // - Full range: from contract configuration (e.g., 74%)
-    // - Base/Limit: split the remaining % based on actual position amounts
-    // Note: Values should already be in percentage form (74, not 7400)
-    let fullWeight = charmData.loading ? 47 : charmData.fullRangeWeight
-    let baseWeight = charmData.loading ? 29 : charmData.baseWeight
-    let limitWeight = charmData.loading ? 24 : charmData.limitWeight
-
-    // Safety check: if values are > 100, they're likely in basis points (divide by 100)
-    if (fullWeight > 100) {
-      console.warn('[VaultViz] Full weight > 100%, dividing by 100. Was:', fullWeight);
-      fullWeight = fullWeight / 100;
-    }
-    if (baseWeight > 100) {
-      console.warn('[VaultViz] Base weight > 100%, dividing by 100. Was:', baseWeight);
-      baseWeight = baseWeight / 100;
-    }
-    if (limitWeight > 100) {
-      console.warn('[VaultViz] Limit weight > 100%, dividing by 100. Was:', limitWeight);
-      limitWeight = limitWeight / 100;
-    }
+    // - Full range: from contract (e.g., 74%)
+    // - Base/Limit: split the remaining 26% based on tick widths
+    //   * Base = 2000 ticks → gets 1/3 of 26% = ~8.67%
+    //   * Limit = 4000 ticks → gets 2/3 of 26% = ~17.33%
+    //   * Total = 74% + 8.67% + 17.33% = 100% ✅
+    const fullWeight = charmData.loading ? 47 : charmData.fullRangeWeight
+    const baseWeight = charmData.loading ? 29 : charmData.baseWeight
+    const limitWeight = charmData.loading ? 24 : charmData.limitWeight
 
     const currentTickValue = charmData.loading ? CURRENT_TICK : charmData.currentTick
 
@@ -439,8 +427,8 @@ export default function VaultVisualization({ currentPrice = WLFI_PRICE_USD }: Va
           </div>
           <div className="text-xs text-gray-500 mb-3">
             Total Allocation: {positions.reduce((sum, pos) => sum + pos.weight, 0).toFixed(1)}%
-            {positions.reduce((sum, pos) => sum + pos.weight, 0) > 105 && (
-              <span className="text-yellow-500 ml-2">⚠️ Warning: Total exceeds 100%</span>
+            {(positions.reduce((sum, pos) => sum + pos.weight, 0) < 95 || positions.reduce((sum, pos) => sum + pos.weight, 0) > 105) && (
+              <span className="text-yellow-500 ml-2">⚠️ Warning: Total should be ~100%</span>
             )}
           </div>
           {revertData && (
