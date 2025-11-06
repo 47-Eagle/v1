@@ -48,14 +48,14 @@ export class TelegramService {
     // /start command - Welcome message
     this.bot.command('start', async (ctx) => {
       await ctx.reply(
-        `<b>🦅 EAGLE VAULT - SMART MONEY TRACKER</b>\n` +
-        `━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
-        `Track whales, smart money, and alpha in real-time.\n\n` +
+        `<b>🦅 EAGLE SMART MONEY</b>\n` +
+        `━━━━━━━━━━━━\n\n` +
+        `Track whales & alpha in real-time\n\n` +
         `<b>Quick Start:</b>\n` +
-        `• /help - View all commands\n` +
-        `• /settings - Configure alerts\n` +
-        `• /track [wallet] - Follow smart money\n\n` +
-        `Type /help to see all features!`,
+        `/help - All commands\n` +
+        `/stats - View activity\n` +
+        `/track - Follow wallets\n\n` +
+        `<i>Type /help for full guide</i>`,
         { parse_mode: 'HTML' }
       );
     });
@@ -74,12 +74,13 @@ export class TelegramService {
         const topWallet = topWallets[0];
         
         await ctx.reply(
-          `<b>📊 STATS</b>\n\n` +
-          `<b>Total Swaps</b>  ${totalSwapsTracked}\n` +
-          `<b>Known Wallets</b>  ${topWallets.length}\n` +
-          `<b>Tracking</b>  ${trackedWallets.length}\n` +
-          `<b>Muted</b>  ${mutedWallets.length}\n\n` +
-          (topWallet ? `<b>Top Trader</b>\n<code>${topWallet.address.slice(0, 6)}...${topWallet.address.slice(-4)}</code>  ${topWallet.totalSwaps} swaps\n\n` : '') +
+          `<b>📊 STATS</b>\n` +
+          `━━━━━━━━━━━━\n\n` +
+          `<b>Swaps:</b> <code>${totalSwapsTracked}</code>\n` +
+          `<b>Wallets:</b> <code>${topWallets.length}</code>\n` +
+          `<b>Tracking:</b> <code>${trackedWallets.length}</code>\n` +
+          `<b>Muted:</b> <code>${mutedWallets.length}</code>\n\n` +
+          (topWallet ? `<b>Top Trader:</b>\n<code>${topWallet.address.slice(0, 6)}...${topWallet.address.slice(-4)}</code> ${topWallet.totalSwaps}x\n\n` : '') +
           `<i>Status: 🟢 ACTIVE</i>`,
           { parse_mode: 'HTML' }
         );
@@ -277,19 +278,20 @@ export class TelegramService {
           return;
         }
         
-        let message = `<b>🏆 TOP TRADERS</b>\n\n`;
+        let message = `<b>🏆 TOP TRADERS</b>\n` +
+          `━━━━━━━━━━━━\n\n`;
         
         topWallets.forEach((wallet: any, index: any) => {
-          const num = (index + 1).toString().padStart(2, ' ');
+          const num = (index + 1).toString();
           const addr = wallet.address.slice(0, 6) + '...' + wallet.address.slice(-4);
           const volume = this.formatNumber(wallet.totalVolumeUSD);
-          const swaps = wallet.totalSwaps.toString();
           
-          message += `<code>${num}</code>  <code>${addr}</code>\n`;
-          message += `     <b>$${volume}</b>  •  ${swaps} swaps${wallet.isTracked ? ' ⭐' : ''}\n\n`;
+          message += `<code>${num}.</code> <code>${addr}</code>`;
+          if (wallet.isTracked) message += ' ⭐';
+          message += `\n   <b>$${volume}</b> · ${wallet.totalSwaps}x\n\n`;
         });
         
-        message += `<i>Use /wallet [address] for stats</i>`;
+        message += `<i>/wallet [address] for details</i>`;
         
         await ctx.reply(message, { parse_mode: 'HTML' });
       } catch (error) {
@@ -681,17 +683,16 @@ export class TelegramService {
         await this.retryWithBackoff(
           () => this.bot.telegram.sendMessage(
             config.telegram.chatId,
-            `<b>🦅 EAGLE VAULT - SMART MONEY TRACKER</b>\n` +
-            `━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-            `<b>Status:</b> <code>🟢 ACTIVE</code>\n` +
-            `<b>Network:</b> <code>Ethereum Mainnet</code>\n` +
+            `<b>🦅 EAGLE SMART MONEY</b>\n` +
+            `━━━━━━━━━━━━\n\n` +
+            `<b>Status:</b> 🟢 <code>ACTIVE</code>\n` +
+            `<b>Network:</b> <code>Ethereum</code>\n` +
             `<b>Monitoring:</b> <code>${poolsText}</code>\n` +
-            `<b>Token Filter:</b> <code>${monitoredToken.slice(0, 10)}...${monitoredToken.slice(-8)}</code>\n` +
+            `<b>Token:</b>\n<code>${monitoredToken.slice(0, 8)}...${monitoredToken.slice(-6)}</code>\n` +
             `<b>Threshold:</b> <code>$${settings.minThreshold}</code>\n` +
-            `<b>Tracked Wallets:</b> <code>${trackedWallets.length}</code>\n` +
-            `━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-            `<i>✨ Only monitoring EAGLE token swaps!</i>\n` +
-            `<i>Type /help to see available commands</i>`,
+            `<b>Tracking:</b> <code>${trackedWallets.length}</code>\n\n` +
+            `<i>✨ Only monitoring EAGLE swaps</i>\n` +
+            `<i>Type /help for commands</i>`,
             { parse_mode: 'HTML' }
           ),
           2,
@@ -1109,48 +1110,48 @@ export class TelegramService {
     const classification = walletData?.classification || 'Trader';
     const classEmoji = this.getClassificationEmoji(classification);
     
-    // Build world-class message
+    // Build mobile-friendly message
     let message = `${action} ${tier.emoji}\n`;
-    message += `━━━━━━━━━━━━━━━━━━━━\n\n`;
+    message += `━━━━━━━━━━━━\n\n`;
     
-    // Main trade info
+    // Main trade info - more compact
     message += `<b>${eagleAmount} ${token1Symbol}</b>`;
     if (totalValueUSD !== 'N/A') {
-      message += ` <b>≈ $${totalValueUSD}</b>`;
+      message += ` <b>($${totalValueUSD})</b>`;
     }
     message += `\n`;
     
-    // Price info
-    message += `💰 <code>${ethAmount} ${token0Symbol}</code>`;
+    // Price info - single line
+    message += `💰 ${ethAmount} ${token0Symbol}`;
     if (usdPricePerToken !== 'N/A') {
-      message += ` · $${usdPricePerToken}/${token1Symbol}`;
+      message += ` · $${usdPricePerToken}`;
     }
     message += `\n\n`;
     
-    // Trader info with badges
-    message += `${classEmoji} <b>${classification}</b>`;
+    // Trader info - shorter address
+    message += `${classEmoji} <code>${swap.actualTrader.slice(0, 6)}...${swap.actualTrader.slice(-4)}</code>`;
     if (indicators) {
       message += ` ${indicators}`;
     }
-    message += `\n`;
-    message += `<code>${swap.actualTrader.slice(0, 8)}...${swap.actualTrader.slice(-6)}</code>`;
     
-    // Add wallet stats if available
+    // Add compact wallet stats if available
     if (walletData && walletData.totalSwaps > 1) {
-      const avgSize = walletData.avgBuySize > 0 ? `$${this.formatNumber(walletData.avgBuySize)}` : 'N/A';
-      message += `\n📊 ${walletData.totalSwaps} swaps · Avg: ${avgSize}`;
+      message += `\n📊 ${walletData.totalSwaps} swaps`;
+      if (walletData.avgBuySize > 0) {
+        message += ` · $${this.formatNumber(walletData.avgBuySize)} avg`;
+      }
     }
     
     message += `\n\n`;
     
-    // Volume bar if USD value available
+    // Compact volume bar
     if (swap.valueUSD && swap.valueUSD > 0) {
       const volumeBar = this.getVolumeBar(swap.valueUSD);
-      message += `${volumeBar} ${tier.name}\n\n`;
+      message += `${volumeBar}\n\n`;
     }
     
-    // Footer
-    message += `<i>⏰ ${timeStr} · #${swap.blockNumber}</i>`;
+    // Footer - more compact
+    message += `<i>${timeStr} · #${swap.blockNumber}</i>`;
     
     return message;
   }
