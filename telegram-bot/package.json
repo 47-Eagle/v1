@@ -1,0 +1,44 @@
+{
+  "name": "uniswap-v4-telegram-bot",
+  "version": "1.0.0",
+  "description": "Telegram bot to detect buys from Uniswap V4 pools",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "node dist/index.js",
+    "postinstall": "npm run build",
+    "dev": "ts-node src/index.ts",
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "discover": "ts-node src/discover-pools.ts",
+    "discover:verify": "ts-node src/discover-pools.ts verify",
+    "discover:scan": "ts-node src/discover-pools.ts scan",
+    "discover:watch": "ts-node src/discover-pools.ts watch",
+    "find-deployment": "ts-node src/find-deployment-block.ts",
+    "check-contract": "ts-node src/check-contract.ts",
+    "watch-events": "ts-node src/watch-events.ts",
+    "token-history": "ts-node src/get-token-history.ts"
+  },
+  "keywords": [
+    "telegram",
+    "uniswap",
+    "v4",
+    "bot",
+    "ethereum"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@prisma/client": "^6.19.0",
+    "@uniswap/v4-core": "^1.0.2",
+    "axios": "^1.6.0",
+    "dotenv": "^16.6.1",
+    "ethers": "^6.14.0",
+    "telegraf": "^4.15.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "prisma": "^6.19.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.0.0"
+  }
+}

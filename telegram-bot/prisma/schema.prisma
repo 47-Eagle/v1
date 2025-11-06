@@ -1,0 +1,266 @@
+// Eagle Vault - DeFi Trading Intelligence Database Schema
+// World-class wallet tracking, analytics, and smart money detection
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// WALLET TRACKING
+// ============================================================================
+
+model Wallet {
+  id                String   @id @default(cuid())
+  address           String   @unique
+  
+  // Tracking status
+  isTracked         Boolean  @default(false)
+  isMuted           Boolean  @default(false)
+  trackedSince      DateTime?
+  label             String?
+  
+  // Statistics
+  totalSwaps        Int      @default(0)
+  totalVolumeUSD    Float    @default(0)
+  buyCount          Int      @default(0)
+  sellCount         Int      @default(0)
+  avgBuySize        Float    @default(0)
+  largestBuy        Float    @default(0)
+  totalTokensTraded Int      @default(0)
+  profitableTokens  Int      @default(0)
+  
+  // Classification
+  classification    String?  // "Whale", "Smart Money", etc.
+  riskScore         Float    @default(0) // 0-100
+  smartMoneyScore   Float    @default(0) // 0-100
+  
+  // Timestamps
+  firstSeen         DateTime
+  lastSeen          DateTime
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  // Relations
+  swaps             Swap[]
+  labels            WalletLabel[]
+  performance       WalletPerformance[]
+  
+  @@index([address])
+  @@index([isTracked])
+  @@index([totalVolumeUSD])
+  @@index([lastSeen])
+}
+
+model WalletLabel {
+  id        String   @id @default(cuid())
+  wallet    Wallet   @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  walletId  String
+  label     String
+  category  String?  // "whale", "smart_money", "degen", etc.
+  createdAt DateTime @default(now())
+  
+  @@index([walletId])
+}
+
+// ============================================================================
+// TOKEN TRACKING
+// ============================================================================
+
+model Token {
+  id              String   @id @default(cuid())
+  address         String   @unique
+  symbol          String
+  name            String?
+  decimals        Int
+  
+  // Metrics
+  totalHolders    Int      @default(0)
+  liquidityUSD    Float    @default(0)
+  volumeUSD24h    Float    @default(0)
+  priceUSD        Float    @default(0)
+  priceChange24h  Float    @default(0)
+  
+  // Metadata
+  deployedAt      DateTime?
+  isScam          Boolean  @default(false)
+  isHoneypot      Boolean  @default(false)
+  
+  // Timestamps
+  firstSeen       DateTime @default(now())
+  lastSeen        DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  swaps           Swap[]
+  priceHistory    TokenPriceHistory[]
+  
+  @@index([address])
+  @@index([symbol])
+}
+
+model TokenPriceHistory {
+  id          String   @id @default(cuid())
+  token       Token    @relation(fields: [tokenId], references: [id], onDelete: Cascade)
+  tokenId     String
+  priceUSD    Float
+  volumeUSD   Float
+  liquidityUSD Float
+  timestamp   DateTime
+  
+  @@index([tokenId, timestamp])
+}
+
+// ============================================================================
+// SWAP TRANSACTIONS
+// ============================================================================
+
+model Swap {
+  id              String   @id @default(cuid())
+  
+  // Transaction details
+  txHash          String   @unique
+  blockNumber     Int
+  poolId          String
+  
+  // Trader info
+  wallet          Wallet   @relation(fields: [walletId], references: [id])
+  walletId        String
+  actualTrader    String   // The address that initiated
+  
+  // Token info
+  token           Token    @relation(fields: [tokenId], references: [id])
+  tokenId         String
+  
+  // Swap details
+  amount0         String   // BigInt as string
+  amount1         String   // BigInt as string
+  valueUSD        Float?
+  pricePerToken   Float?
+  
+  // Classification
+  isBuy           Boolean
+  tier            String?  // "WHALE", "SHARK", etc.
+  
+  // Metadata
+  timestamp       DateTime
+  notificationSent Boolean @default(false)
+  
+  createdAt       DateTime @default(now())
+  
+  @@index([walletId])
+  @@index([tokenId])
+  @@index([timestamp])
+  @@index([valueUSD])
+  @@index([txHash])
+}
+
+// ============================================================================
+// WALLET PERFORMANCE TRACKING
+// ============================================================================
+
+model WalletPerformance {
+  id            String   @id @default(cuid())
+  wallet        Wallet   @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  walletId      String
+  
+  // Time period
+  periodStart   DateTime
+  periodEnd     DateTime
+  periodType    String   // "daily", "weekly", "monthly"
+  
+  // Performance metrics
+  totalTrades   Int
+  volumeUSD     Float
+  profitUSD     Float?
+  winRate       Float?
+  avgHoldTime   Int?     // seconds
+  bestTrade     Float?
+  worstTrade    Float?
+  
+  createdAt     DateTime @default(now())
+  
+  @@index([walletId, periodType])
+}
+
+// ============================================================================
+// ALERT SETTINGS & CONFIGURATION
+// ============================================================================
+
+model AlertSettings {
+  id                      String   @id @default(cuid())
+  
+  // Thresholds
+  minThreshold            Float    @default(100)
+  maxThreshold            Float?
+  minLiquidity            Float?
+  
+  // Toggles
+  onlyNewTokens           Boolean  @default(false)
+  showSmallTrades         Boolean  @default(true)
+  enableSmartMoneyAlerts  Boolean  @default(true)
+  enableWhaleAlerts       Boolean  @default(true)
+  
+  // Timestamps
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+}
+
+// ============================================================================
+// ANALYTICS & INSIGHTS
+// ============================================================================
+
+model DailyAnalytics {
+  id                String   @id @default(cuid())
+  date              DateTime @unique
+  
+  // Volume metrics
+  totalSwaps        Int      @default(0)
+  totalVolumeUSD    Float    @default(0)
+  uniqueWallets     Int      @default(0)
+  uniqueTokens      Int      @default(0)
+  
+  // Trader metrics
+  newWallets        Int      @default(0)
+  activeWhales      Int      @default(0)
+  smartMoneyTrades  Int      @default(0)
+  
+  // Performance
+  avgTradeSize      Float    @default(0)
+  medianTradeSize   Float    @default(0)
+  largestTrade      Float    @default(0)
+  
+  createdAt         DateTime @default(now())
+  
+  @@index([date])
+}
+
+// ============================================================================
+// NOTIFICATION HISTORY
+// ============================================================================
+
+model NotificationHistory {
+  id              String   @id @default(cuid())
+  
+  // Notification details
+  walletAddress   String
+  tokenAddress    String
+  swapValue       Float
+  messageType     String   // "buy", "sell", "whale_alert", etc.
+  priority        String   // "high", "normal", "low"
+  
+  // Outcome tracking (for analytics)
+  wasOpened       Boolean  @default(false)
+  userAction      String?  // "tracked", "muted", "traded", etc.
+  
+  // Timestamps
+  sentAt          DateTime @default(now())
+  
+  @@index([walletAddress])
+  @@index([sentAt])
+}
