@@ -302,7 +302,7 @@ ${this.divider}`;
     const topWallets = await this.db.getTopWallets(5);
 
     const topTraders = topWallets
-      .map((w, i) => `${i + 1}. <code>${w.address.slice(0, 8)}...</code> $${this.formatNumber(w.totalVolumeUSD)}`)
+      .map((w: any, i: any) => `${i + 1}. <code>${w.address.slice(0, 8)}...</code> $${this.formatNumber(w.totalVolumeUSD)}`)
       .join('\n');
 
     return (

@@ -310,7 +310,7 @@ export class DatabaseService {
     limit?: number;
     minValueUSD?: number;
   }) {
-    const where: Prisma.SwapWhereInput = {};
+    const where: any = {};
     
     if (options.walletAddress) {
       where.actualTrader = options.walletAddress.toLowerCase();
@@ -389,18 +389,18 @@ export class DatabaseService {
       },
     });
 
-    const uniqueWallets = new Set(swaps.map(s => s.actualTrader)).size;
-    const uniqueTokens = new Set(swaps.map(s => s.tokenId)).size;
-    const totalVolume = swaps.reduce((sum, s) => sum + (s.valueUSD || 0), 0);
+    const uniqueWallets = new Set(swaps.map((s: any) => s.actualTrader)).size;
+    const uniqueTokens = new Set(swaps.map((s: any) => s.tokenId)).size;
+    const totalVolume = swaps.reduce((sum: any, s: any) => sum + (s.valueUSD || 0), 0);
     const avgTradeSize = swaps.length > 0 ? totalVolume / swaps.length : 0;
     
-    const tradeSizes = swaps.map(s => s.valueUSD || 0).sort((a, b) => a - b);
+    const tradeSizes = swaps.map((s: any) => s.valueUSD || 0).sort((a: any, b: any) => a - b);
     const medianTradeSize = tradeSizes.length > 0 
       ? tradeSizes[Math.floor(tradeSizes.length / 2)] 
       : 0;
     
     const largestTrade = Math.max(...tradeSizes, 0);
-    const smartMoneyTrades = swaps.filter(s => 
+    const smartMoneyTrades = swaps.filter((s: any) => 
       s.wallet?.classification?.includes('Smart Money') || 
       s.wallet?.classification?.includes('Whale')
     ).length;
@@ -481,11 +481,11 @@ export class DatabaseService {
     return {
       total: notifications.length,
       byPriority: {
-        high: notifications.filter(n => n.priority === 'high').length,
-        normal: notifications.filter(n => n.priority === 'normal').length,
-        low: notifications.filter(n => n.priority === 'low').length,
+        high: notifications.filter((n: any) => n.priority === 'high').length,
+        normal: notifications.filter((n: any) => n.priority === 'normal').length,
+        low: notifications.filter((n: any) => n.priority === 'low').length,
       },
-      byType: notifications.reduce((acc, n) => {
+      byType: notifications.reduce((acc: any, n: any) => {
         acc[n.messageType] = (acc[n.messageType] || 0) + 1;
         return acc;
       }, {} as Record<string, number>),

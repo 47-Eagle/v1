@@ -64,8 +64,8 @@ export class TelegramService {
     this.bot.command('stats', async (ctx) => {
       try {
         const topWallets = await this.db.getTopWallets(100);
-        const totalSwapsTracked = topWallets.reduce((sum, w) => sum + w.totalSwaps, 0);
-        const totalVolumeUSD = topWallets.reduce((sum, w) => sum + w.totalVolumeUSD, 0);
+        const totalSwapsTracked = topWallets.reduce((sum: any, w: any) => sum + w.totalSwaps, 0);
+        const totalVolumeUSD = topWallets.reduce((sum: any, w: any) => sum + w.totalVolumeUSD, 0);
         
         const trackedWallets = await this.db.getTrackedWallets();
         const mutedWallets = await this.db.getMutedWallets();
@@ -279,7 +279,7 @@ export class TelegramService {
         
         let message = `<b>🏆 TOP TRADERS</b>\n\n`;
         
-        topWallets.forEach((wallet, index) => {
+        topWallets.forEach((wallet: any, index: any) => {
           const num = (index + 1).toString().padStart(2, ' ');
           const addr = wallet.address.slice(0, 6) + '...' + wallet.address.slice(-4);
           const volume = this.formatNumber(wallet.totalVolumeUSD);
@@ -310,7 +310,7 @@ export class TelegramService {
             '<b>Example:</b> <code>/track 0x742d... Smart Money Alpha</code>\n\n' +
             '<b>Currently Tracking:</b>\n' +
             (trackedWallets.length > 0 
-              ? trackedWallets.map(w => `• <code>${w.address.slice(0, 12)}...</code>${w.label ? ` - ${w.label}` : ''}`).join('\n')
+              ? trackedWallets.map((w: any) => `• <code>${w.address.slice(0, 12)}...</code>${w.label ? ` - ${w.label}` : ''}`).join('\n')
               : '<i>No wallets tracked yet</i>'),
             { parse_mode: 'HTML' }
           );
