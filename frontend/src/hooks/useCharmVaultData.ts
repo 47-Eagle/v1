@@ -64,11 +64,10 @@ async function fetchFromGraphQL() {
     return null;
   }
 
-  console.log('[fetchFromGraphQL] Success! Full vault data:', vault);
+  console.log('[fetchFromGraphQL] Success! Raw vault data:', vault);
+  console.log('[fetchFromGraphQL] Raw fullRangeWeight value:', vault.fullRangeWeight);
 
-  // Calculate actual allocation percentages from the amounts in each position
-  // Each position has token0 and token1 amounts - we'll use USD value approximation
-  
+  // Try to get amounts - GraphQL might not have these fields populated
   const fullAmount0 = parseFloat(vault.fullAmount0 || '0');
   const fullAmount1 = parseFloat(vault.fullAmount1 || '0');
   const baseAmount0 = parseFloat(vault.baseAmount0 || '0');
@@ -76,50 +75,41 @@ async function fetchFromGraphQL() {
   const limitAmount0 = parseFloat(vault.limitAmount0 || '0');
   const limitAmount1 = parseFloat(vault.limitAmount1 || '0');
   
-  console.log('[fetchFromGraphQL] Position amounts:', {
-    full: { token0: fullAmount0, token1: fullAmount1 },
-    base: { token0: baseAmount0, token1: baseAmount1 },
-    limit: { token0: limitAmount0, token1: limitAmount1 }
+  const totalValue = fullAmount0 + fullAmount1 + baseAmount0 + baseAmount1 + limitAmount0 + limitAmount1;
+  
+  console.log('[fetchFromGraphQL] Amount fields from API:', {
+    fullAmount0: vault.fullAmount0,
+    fullAmount1: vault.fullAmount1,
+    baseAmount0: vault.baseAmount0,
+    baseAmount1: vault.baseAmount1,
+    limitAmount0: vault.limitAmount0,
+    limitAmount1: vault.limitAmount1,
+    totalValue
   });
   
-  // For simplicity, sum token0 amounts (USD1) as the primary measure of value
-  // This gives us a rough approximation of capital allocation
+  // If amounts aren't available from GraphQL, return null to fall back to contract calls
+  if (totalValue === 0) {
+    console.log('[fetchFromGraphQL] No amount data available from GraphQL, will use direct contract calls');
+    return null;
+  }
+  
+  // Calculate percentages from actual amounts
   const fullValue = fullAmount0 + fullAmount1;
   const baseValue = baseAmount0 + baseAmount1;
   const limitValue = limitAmount0 + limitAmount1;
-  const totalValue = fullValue + baseValue + limitValue;
   
-  console.log('[fetchFromGraphQL] Position values:', {
-    full: fullValue.toFixed(2),
-    base: baseValue.toFixed(2),
-    limit: limitValue.toFixed(2),
-    total: totalValue.toFixed(2)
-  });
+  const fullRangePercent = (fullValue / totalValue) * 100;
+  const basePercent = (baseValue / totalValue) * 100;
+  const limitPercent = (limitValue / totalValue) * 100;
   
-  let fullRangePercent = 0;
-  let basePercent = 0;
-  let limitPercent = 0;
-  
-  if (totalValue > 0) {
-    // Calculate percentages based on actual capital in each position
-    fullRangePercent = (fullValue / totalValue) * 100;
-    basePercent = (baseValue / totalValue) * 100;
-    limitPercent = (limitValue / totalValue) * 100;
-  } else {
-    // Fallback to fullRangeWeight from contract if no amounts available
-    const fullRangeWeightBps = parseFloat(vault.fullRangeWeight || '0');
-    fullRangePercent = fullRangeWeightBps / 100;
-    const remainingPercent = 100 - fullRangePercent;
-    basePercent = remainingPercent * 0.55;
-    limitPercent = remainingPercent * 0.45;
-    console.log('[fetchFromGraphQL] No amounts available, using fallback weights');
-  }
-  
-  console.log('[fetchFromGraphQL] Calculated allocation percentages:', {
-    fullRange: fullRangePercent.toFixed(2) + '%',
-    base: basePercent.toFixed(2) + '%',
-    limit: limitPercent.toFixed(2) + '%',
-    total: (fullRangePercent + basePercent + limitPercent).toFixed(2) + '%'
+  console.log('[fetchFromGraphQL] Calculated from amounts:', {
+    values: { full: fullValue, base: baseValue, limit: limitValue, total: totalValue },
+    percentages: {
+      fullRange: fullRangePercent.toFixed(2) + '%',
+      base: basePercent.toFixed(2) + '%',
+      limit: limitPercent.toFixed(2) + '%',
+      total: (fullRangePercent + basePercent + limitPercent).toFixed(2) + '%'
+    }
   });
   
   return {
@@ -259,11 +249,25 @@ export function useCharmVaultData(): CharmVaultData {
           console.log('[useCharmVaultData] getTotalAmounts not available, using defaults');
         }
 
+        // Log raw values from contract BEFORE conversion
+        console.log('[useCharmVaultData] Raw contract values (should be basis points):', {
+          baseThreshold: baseThreshold.toString(),
+          limitThreshold: limitThreshold.toString(),
+          fullRangeWeight: fullRangeWeight.toString(),
+        });
+
         // Calculate weights (values are in basis points: 10000 = 100%)
         // Convert BigInt to number then to percentage
         const baseWeightCalc = Number(baseThreshold) / 100; // basis points to percentage
         const limitWeightCalc = Number(limitThreshold) / 100;
         const fullRangeWeightCalc = Number(fullRangeWeight) / 100;
+        
+        console.log('[useCharmVaultData] After dividing by 100:', {
+          baseWeight: baseWeightCalc,
+          limitWeight: limitWeightCalc,
+          fullRangeWeight: fullRangeWeightCalc,
+          total: (baseWeightCalc + limitWeightCalc + fullRangeWeightCalc)
+        });
 
         const vaultData: CharmVaultData = {
           baseTickLower: Number(baseLower),
