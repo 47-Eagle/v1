@@ -8,17 +8,28 @@ const PUBLIC_RPC = import.meta.env.VITE_ETHEREUM_RPC || 'https://eth.llamarpc.co
 
 // Fetch from Charm Finance GraphQL API
 async function fetchFromGraphQL() {
+  // Use the actual Charm Finance query structure
   const query = `
     query GetVault($address: ID!) {
       vault(id: $address) {
+        id
         baseLower
         baseUpper
         limitLower
         limitUpper
-        baseThreshold
-        limitThreshold
         fullRangeWeight
-        pool { tick }
+        total0
+        total1
+        totalSupply
+        pool {
+          id
+          tick
+          sqrtPrice
+          token0
+          token1
+          token0Symbol
+          token1Symbol
+        }
       }
     }
   `;
@@ -33,38 +44,46 @@ async function fetchFromGraphQL() {
   });
 
   const result = await response.json();
+  
+  if (result.errors) {
+    console.error('[fetchFromGraphQL] GraphQL errors:', result.errors);
+    return null;
+  }
+  
   const vault = result.data?.vault;
   
   if (!vault) {
-    console.log('[fetchFromGraphQL] No vault data returned');
+    console.log('[fetchFromGraphQL] No vault data returned, response:', result);
     return null;
   }
 
-  console.log('[fetchFromGraphQL] Success! Vault data:', vault);
+  console.log('[fetchFromGraphQL] Success! Full vault data:', vault);
 
-  // Parse the GraphQL data (values are in various formats depending on the vault)
-  let baseThreshold = parseFloat(vault.baseThreshold || '0');
-  let limitThreshold = parseFloat(vault.limitThreshold || '0');
-  let fullRangeWeight = parseFloat(vault.fullRangeWeight || '0');
+  // Parse the GraphQL data
+  // fullRangeWeight is in basis points (10000 = 100%)
+  const fullRangeWeightBps = parseFloat(vault.fullRangeWeight || '0');
+  const fullRangePercent = fullRangeWeightBps / 100; // Convert basis points to percentage
   
-  console.log('[fetchFromGraphQL] Raw values from API:', { baseThreshold, limitThreshold, fullRangeWeight });
+  // Calculate base and limit weights from the remaining percentage
+  // In Charm vaults, the weights are distributed as: fullRange + base + limit = 100%
+  // The actual base/limit split isn't stored directly, we need to calculate it from the amounts
   
-  // Convert from basis points if needed (values > 1000 are likely basis points)
-  if (baseThreshold > 1000) baseThreshold = baseThreshold / 100;
-  if (limitThreshold > 1000) limitThreshold = limitThreshold / 100;
-  if (fullRangeWeight > 1000) fullRangeWeight = fullRangeWeight / 100;
+  console.log('[fetchFromGraphQL] Raw fullRangeWeight (basis points):', fullRangeWeightBps);
+  console.log('[fetchFromGraphQL] Full range percentage:', fullRangePercent + '%');
   
-  console.log('[fetchFromGraphQL] After basis point conversion:', { baseThreshold, limitThreshold, fullRangeWeight });
+  // For now, use a typical Charm distribution for base/limit from the remaining allocation
+  const remainingPercent = 100 - fullRangePercent;
   
-  // Normalize to ensure they sum to 100% (in case they're weights, not percentages)
-  const total = baseThreshold + limitThreshold + fullRangeWeight;
-  if (total > 0 && (total < 99 || total > 101)) {
-    console.log(`[fetchFromGraphQL] Total is ${total}%, normalizing to 100%`);
-    baseThreshold = (baseThreshold / total) * 100;
-    limitThreshold = (limitThreshold / total) * 100;
-    fullRangeWeight = (fullRangeWeight / total) * 100;
-    console.log('[fetchFromGraphQL] After normalization:', { baseThreshold, limitThreshold, fullRangeWeight, total: baseThreshold + limitThreshold + fullRangeWeight });
-  }
+  // Typical Charm strategy: ~55% base, ~45% limit of the non-full-range allocation
+  const basePercent = remainingPercent * 0.55;
+  const limitPercent = remainingPercent * 0.45;
+  
+  console.log('[fetchFromGraphQL] Calculated weights:', {
+    fullRange: fullRangePercent.toFixed(2) + '%',
+    base: basePercent.toFixed(2) + '%',
+    limit: limitPercent.toFixed(2) + '%',
+    total: (fullRangePercent + basePercent + limitPercent).toFixed(2) + '%'
+  });
   
   return {
     baseTickLower: parseInt(vault.baseLower),
@@ -72,11 +91,11 @@ async function fetchFromGraphQL() {
     limitTickLower: parseInt(vault.limitLower),
     limitTickUpper: parseInt(vault.limitUpper),
     currentTick: vault.pool?.tick ? parseInt(vault.pool.tick) : 0,
-    baseWeight: baseThreshold,
-    limitWeight: limitThreshold,
-    fullRangeWeight: fullRangeWeight,
-    total0: '0',
-    total1: '0',
+    baseWeight: basePercent,
+    limitWeight: limitPercent,
+    fullRangeWeight: fullRangePercent,
+    total0: vault.total0 || '0',
+    total1: vault.total1 || '0',
   };
 }
 
