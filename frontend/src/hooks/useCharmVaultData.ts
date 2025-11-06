@@ -77,13 +77,22 @@ async function fetchFromGraphQL() {
   
   const totalValue = fullAmount0 + fullAmount1 + baseAmount0 + baseAmount1 + limitAmount0 + limitAmount1;
   
-  console.log('[fetchFromGraphQL] Amount fields from API:', {
+  console.log('[fetchFromGraphQL] Raw amount fields from API:', {
     fullAmount0: vault.fullAmount0,
     fullAmount1: vault.fullAmount1,
     baseAmount0: vault.baseAmount0,
     baseAmount1: vault.baseAmount1,
     limitAmount0: vault.limitAmount0,
     limitAmount1: vault.limitAmount1,
+  });
+  
+  console.log('[fetchFromGraphQL] Parsed amounts (as numbers):', {
+    fullAmount0,
+    fullAmount1,
+    baseAmount0,
+    baseAmount1,
+    limitAmount0,
+    limitAmount1,
     totalValue
   });
   
@@ -98,9 +107,17 @@ async function fetchFromGraphQL() {
   const baseValue = baseAmount0 + baseAmount1;
   const limitValue = limitAmount0 + limitAmount1;
   
-  const fullRangePercent = (fullValue / totalValue) * 100;
-  const basePercent = (baseValue / totalValue) * 100;
-  const limitPercent = (limitValue / totalValue) * 100;
+  let fullRangePercent = (fullValue / totalValue) * 100;
+  let basePercent = (baseValue / totalValue) * 100;
+  let limitPercent = (limitValue / totalValue) * 100;
+  
+  // Safeguard: If any value > 100, divide by 100 (likely already in basis points format)
+  if (fullRangePercent > 100) {
+    console.warn('[fetchFromGraphQL] fullRangePercent > 100, dividing by 100:', fullRangePercent);
+    fullRangePercent = fullRangePercent / 100;
+    basePercent = basePercent / 100;
+    limitPercent = limitPercent / 100;
+  }
   
   console.log('[fetchFromGraphQL] Calculated from amounts:', {
     values: { full: fullValue, base: baseValue, limit: limitValue, total: totalValue },

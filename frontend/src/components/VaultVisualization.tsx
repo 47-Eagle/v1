@@ -114,10 +114,24 @@ export default function VaultVisualization({ currentPrice = WLFI_PRICE_USD }: Va
 
   const positions = useMemo(() => {
     // Use actual weights from Charm Finance data (calculated from position amounts)
-    // These are now guaranteed to sum to 100% from the hook calculation
-    const fullWeight = charmData.loading ? 47 : charmData.fullRangeWeight
-    const baseWeight = charmData.loading ? 29 : charmData.baseWeight
-    const limitWeight = charmData.loading ? 24 : charmData.limitWeight
+    // Safeguard: if values are > 100, they're likely in basis points, divide by 100
+    let fullWeight = charmData.loading ? 47 : charmData.fullRangeWeight
+    let baseWeight = charmData.loading ? 29 : charmData.baseWeight
+    let limitWeight = charmData.loading ? 24 : charmData.limitWeight
+    
+    // Convert from basis points if needed (values should be 0-100%)
+    if (fullWeight > 100) {
+      console.warn('[VaultViz] fullWeight > 100 (likely basis points), dividing by 100:', fullWeight);
+      fullWeight = fullWeight / 100;
+    }
+    if (baseWeight > 100) {
+      console.warn('[VaultViz] baseWeight > 100 (likely basis points), dividing by 100:', baseWeight);
+      baseWeight = baseWeight / 100;
+    }
+    if (limitWeight > 100) {
+      console.warn('[VaultViz] limitWeight > 100 (likely basis points), dividing by 100:', limitWeight);
+      limitWeight = limitWeight / 100;
+    }
 
     const currentTickValue = charmData.loading ? CURRENT_TICK : charmData.currentTick
 
