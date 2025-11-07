@@ -1255,8 +1255,9 @@ contract EagleOVault is ERC4626, Ownable, ReentrancyGuard {
         uint256 currentTotalAssets = totalAssets();
         uint256 currentShareValue = (currentTotalAssets * 1e18) / supply;
         
-        // New total assets after injection
-        uint256 newTotalAssets = currentTotalAssets + wlfiAmount + usd1Amount;
+        // New total assets after injection (convert USD1 to WLFI equivalent)
+        uint256 usd1InWlfi = wlfiEquivalent(usd1Amount);
+        uint256 newTotalAssets = currentTotalAssets + wlfiAmount + usd1InWlfi;
         
         // New share value
         newShareValue = (newTotalAssets * 1e18) / supply;

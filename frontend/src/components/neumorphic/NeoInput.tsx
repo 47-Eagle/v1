@@ -24,14 +24,14 @@ export const NeoInput = ({
   return (
     <div className={className}>
       {(label || maxLabel) && (
-        <div className="flex justify-between mb-3">
-          {label && <label className="text-sm text-gray-700 dark:text-gray-300 font-semibold tracking-wide">{label}</label>}
+        <div className="flex justify-between mb-2 sm:mb-3">
+          {label && <label className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 font-semibold tracking-wide">{label}</label>}
           {maxLabel && onMaxClick && (
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={onMaxClick}
-              className="text-xs text-gray-600 dark:text-gray-400 hover:text-eagle-gold dark:hover:text-eagle-gold-light font-semibold transition-all duration-300 px-2 py-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+              className="text-xs text-gray-600 dark:text-gray-400 hover:text-eagle-gold dark:hover:text-eagle-gold-light font-semibold transition-all duration-300 px-2 py-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 touch-manipulation active:bg-gray-200 dark:active:bg-gray-700"
             >
               {maxLabel}
             </motion.button>
@@ -49,7 +49,7 @@ export const NeoInput = ({
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           className="
-            w-full px-5 py-4 rounded-2xl
+            w-full px-4 py-3 sm:px-5 sm:py-4 rounded-xl sm:rounded-2xl
             bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850
             shadow-neo-inset dark:shadow-neo-inset-dark
             focus:shadow-neo-pressed dark:focus:shadow-neo-pressed-dark
@@ -57,9 +57,10 @@ export const NeoInput = ({
             focus:border-gray-300/70 dark:focus:border-gray-500/60
             text-gray-900 dark:text-gray-100 
             placeholder-gray-400 dark:placeholder-gray-500
-            text-lg font-semibold
+            text-base sm:text-lg font-semibold
             focus:outline-none focus:ring-2 focus:ring-eagle-gold dark:focus:ring-eagle-gold-light focus:ring-opacity-40
             transition-all duration-400 ease-out
+            touch-manipulation
           "
         />
       </motion.div>

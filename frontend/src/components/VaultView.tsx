@@ -1214,7 +1214,7 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
               )}
               
               {/* Tabs */}
-              <div className="p-2">
+              <div className="p-1.5 sm:p-2">
                 <NeoTabs
                   tabs={[
                     { id: 'deposit', label: 'Deposit' },
@@ -1226,10 +1226,10 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
               </div>
 
               {/* Content */}
-              <div className="p-6">
+              <div className="p-4 sm:p-6">
                 {activeTab === 'deposit' ? (
-                  <div className="space-y-4">
-                    <p className="text-xs text-gray-600 dark:text-gray-400 font-medium uppercase tracking-wider mb-4">From wallet</p>
+                  <div className="space-y-3 sm:space-y-4">
+                    <p className="text-xs text-gray-600 dark:text-gray-400 font-medium uppercase tracking-wider mb-3 sm:mb-4">From wallet</p>
                     
                     {/* WLFI Input */}
                     <NeoInput
@@ -1258,18 +1258,18 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
                       label={loading ? 'Depositing...' : !account ? 'Connect Wallet' : 'Deposit'}
                       onClick={handleDeposit}
                       active={false}
-                      className="w-full !py-4 !bg-gradient-to-r !from-yellow-400 !to-yellow-500 dark:!from-yellow-600 dark:!to-yellow-700 !text-gray-900 dark:!text-white disabled:!opacity-50 disabled:!cursor-not-allowed"
+                      className="w-full !py-3 sm:!py-4 !text-sm sm:!text-base !bg-gradient-to-r !from-yellow-400 !to-yellow-500 dark:!from-yellow-600 dark:!to-yellow-700 !text-gray-900 dark:!text-white disabled:!opacity-50 disabled:!cursor-not-allowed"
                       disabled={loading || !account || (!wlfiAmount && !usd1Amount)}
                     />
 
                     {/* Preview */}
-                    <div className={`pt-6 mt-4 border-t ${DS.borders.separator}`}>
-                      <div className={`${DS.text.labelSmall} mb-3`}>You will receive</div>
-                      <div className={`flex items-center gap-3 p-4 ${DS.backgrounds.card} ${DS.radius.md} ${DS.shadows.inset} ${DS.borders.subtle}`}>
+                    <div className={`pt-4 sm:pt-6 mt-3 sm:mt-4 border-t ${DS.borders.separator}`}>
+                      <div className={`${DS.text.labelSmall} mb-2 sm:mb-3`}>You will receive</div>
+                      <div className={`flex items-center gap-2 sm:gap-3 p-3 sm:p-4 ${DS.backgrounds.card} ${DS.radius.md} ${DS.shadows.inset} ${DS.borders.subtle}`}>
                         <img 
                           src="https://tomato-abundant-urial-204.mypinata.cloud/ipfs/bafybeigzyatm2pgrkqbnskyvflnagtqli6rgh7wv7t2znaywkm2pixmkxy" 
                           alt="vEAGLE"
-                          className={`w-10 h-10 ${DS.radius.sm} shadow-lg`}
+                          className={`w-8 h-8 sm:w-10 sm:h-10 ${DS.radius.sm} shadow-lg`}
                         />
                         <div className="flex-1">
                           <div className={DS.text.h4}>vEAGLE</div>
@@ -1279,8 +1279,8 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-4">
-                    <p className="text-xs text-gray-600 dark:text-gray-400 font-medium uppercase tracking-wider mb-4">To wallet</p>
+                  <div className="space-y-3 sm:space-y-4">
+                    <p className="text-xs text-gray-600 dark:text-gray-400 font-medium uppercase tracking-wider mb-3 sm:mb-4">To wallet</p>
                     
                     {/* vEAGLE Input */}
                     <NeoInput
@@ -1299,20 +1299,20 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
                       onClick={handleWithdraw}
                       active={false}
                       disabled={loading || !account || !withdrawAmount}
-                      className="w-full !py-4 !bg-gradient-to-r !from-yellow-400 !to-yellow-500 dark:!from-yellow-600 dark:!to-yellow-700 !text-gray-900 dark:!text-white"
+                      className="w-full !py-3 sm:!py-4 !text-sm sm:!text-base !bg-gradient-to-r !from-yellow-400 !to-yellow-500 dark:!from-yellow-600 dark:!to-yellow-700 !text-gray-900 dark:!text-white"
                     />
 
                     {/* Preview */}
-                    <div className={`pt-6 mt-4 border-t ${DS.borders.separator}`}>
-                      <div className={`${DS.text.labelSmall} mb-3`}>You will receive</div>
+                    <div className={`pt-4 sm:pt-6 mt-3 sm:mt-4 border-t ${DS.borders.separator}`}>
+                      <div className={`${DS.text.labelSmall} mb-2 sm:mb-3`}>You will receive</div>
                       <div className={DS.spacing.itemGapSmall}>
-                        <div className={`flex justify-between items-center p-4 ${DS.backgrounds.card} ${DS.radius.md} ${DS.shadows.inset} ${DS.borders.subtle}`}>
-                          <span className={DS.text.label}>WLFI</span>
-                          <span className={DS.text.valueSmall}>~{(Number(withdrawAmount || 0) * 0.5).toFixed(4)}</span>
+                        <div className={`flex justify-between items-center p-3 sm:p-4 ${DS.backgrounds.card} ${DS.radius.md} ${DS.shadows.inset} ${DS.borders.subtle}`}>
+                          <span className={`${DS.text.label} text-sm sm:text-base`}>WLFI</span>
+                          <span className={`${DS.text.valueSmall} text-sm sm:text-base`}>~{(Number(withdrawAmount || 0) * 0.5).toFixed(4)}</span>
                         </div>
-                        <div className={`flex justify-between items-center p-4 ${DS.backgrounds.card} ${DS.radius.md} ${DS.shadows.inset} ${DS.borders.subtle}`}>
-                          <span className={DS.text.label}>USD1</span>
-                          <span className={DS.text.valueSmall}>~{(Number(withdrawAmount || 0) * 0.5).toFixed(4)}</span>
+                        <div className={`flex justify-between items-center p-3 sm:p-4 ${DS.backgrounds.card} ${DS.radius.md} ${DS.shadows.inset} ${DS.borders.subtle}`}>
+                          <span className={`${DS.text.label} text-sm sm:text-base`}>USD1</span>
+                          <span className={`${DS.text.valueSmall} text-sm sm:text-base`}>~{(Number(withdrawAmount || 0) * 0.5).toFixed(4)}</span>
                         </div>
                       </div>
                     </div>
@@ -1343,22 +1343,22 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
           {isAdmin && (
             <div className="lg:col-span-1">
               <NeoCard>
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                   {/* Header */}
-                  <div className="flex items-center gap-3 pb-4 border-b border-gray-300/50 dark:border-gray-700/30">
-                    <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 dark:from-red-600 dark:to-red-700 rounded-full flex items-center justify-center shadow-neo-raised dark:shadow-neo-raised-dark">
-                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="flex items-center gap-2 sm:gap-3 pb-3 sm:pb-4 border-b border-gray-300/50 dark:border-gray-700/30">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-red-500 to-red-600 dark:from-red-600 dark:to-red-700 rounded-full flex items-center justify-center shadow-neo-raised dark:shadow-neo-raised-dark shrink-0">
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
                       </svg>
                     </div>
-                    <div>
-                      <h3 className="text-lg font-bold text-gray-900 dark:text-white">Admin Controls</h3>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">Capital Injection {isActualAdmin ? '(You are Admin)' : '(View Only)'}</p>
+                    <div className="min-w-0">
+                      <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">Admin Controls</h3>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 truncate">Capital Injection {isActualAdmin ? '(You are Admin)' : '(View Only)'}</p>
                     </div>
                   </div>
 
                   {/* Description */}
-                  <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700/30 rounded-xl p-3">
+                  <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700/30 rounded-xl p-2.5 sm:p-3">
                     <p className="text-xs text-yellow-800 dark:text-yellow-300">
                       <strong>⚡ Boost share value:</strong> Inject capital to increase share value without minting new shares. All existing holders benefit proportionally.
                     </p>
@@ -1366,7 +1366,7 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
 
                   {/* Admin Notice */}
                   {!isActualAdmin && (
-                    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/30 rounded-xl p-3">
+                    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/30 rounded-xl p-2.5 sm:p-3">
                       <p className="text-xs text-blue-800 dark:text-blue-300">
                         <strong>ℹ️ Info:</strong> This panel is visible to all users for transparency. Only the multisig admin can execute capital injections.
                       </p>
@@ -1393,12 +1393,12 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
 
                   {/* Preview Impact */}
                   {injectionPreview && (injectWlfi || injectUsd1) && (
-                    <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-700/30 rounded-xl p-4 space-y-2">
+                    <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-700/30 rounded-xl p-3 sm:p-4 space-y-2">
                       <div className="flex items-center gap-2 mb-2">
                         <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                         <p className="text-xs font-bold text-green-800 dark:text-green-300 uppercase">Impact Preview</p>
                       </div>
-                      <div className="flex justify-between text-sm">
+                      <div className="flex justify-between text-xs sm:text-sm">
                         <span className="text-gray-600 dark:text-gray-400">Share Value Increase:</span>
                         <span className="font-bold text-green-600 dark:text-green-400">+{injectionPreview.percentageIncrease}%</span>
                       </div>
@@ -1423,10 +1423,10 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
                           : 'Inject Capital'
                     }
                     onClick={handleInjectCapital}
-                    className="w-full !py-4 !bg-gradient-to-r !from-red-500 !to-red-600 dark:!from-red-600 dark:!to-red-700 !text-white disabled:!opacity-50 disabled:!cursor-not-allowed"
+                    className="w-full !py-3 sm:!py-4 !text-sm sm:!text-base !bg-gradient-to-r !from-red-500 !to-red-600 dark:!from-red-600 dark:!to-red-700 !text-white disabled:!opacity-50 disabled:!cursor-not-allowed"
                     disabled={injectLoading || !account || (!injectWlfi && !injectUsd1) || !isActualAdmin}
                     icon={
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isActualAdmin ? "M13 10V3L4 14h7v7l9-11h-7z" : "M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"} />
                       </svg>
                     }
@@ -1434,7 +1434,7 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
 
                   {/* Warning */}
                   {isActualAdmin ? (
-                    <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700/30 rounded-xl p-3">
+                    <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700/30 rounded-xl p-2.5 sm:p-3">
                       <p className="text-xs text-red-800 dark:text-red-300">
                         <strong>⚠️ Admin only:</strong> This action will transfer tokens from your wallet to the vault permanently.
                       </p>
@@ -1455,7 +1455,7 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
           <div className={isAdmin ? 'lg:col-span-2' : 'lg:col-span-2'}>
             <NeoCard className="!p-0">
               {/* Tab Headers */}
-              <div className="px-6 pt-6 pb-4 border-b border-gray-300/50 dark:border-gray-700/30">
+              <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b border-gray-300/50 dark:border-gray-700/30">
                 <NeoTabs
                   tabs={[
                     { id: 'about', label: 'Vault' },
@@ -1467,7 +1467,7 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
               </div>
 
               {/* Tab Content */}
-              <div className="p-4 sm:p-6 lg:p-8">
+              <div className="p-4 sm:p-6">
                 {infoTab === 'about' && (
                   <div className="space-y-6">
                     {/* Vault Description */}
@@ -1488,15 +1488,15 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
                         
                     {/* Bootstrapping Notice */}
                     <div className={`${DS.backgrounds.info} ${DS.borders.info} ${DS.radius.md} ${DS.spacing.cardPadding} ${DS.shadows.raised}`}>
-                      <div className="flex items-start gap-3">
-                        <div className={`flex-shrink-0 w-6 h-6 bg-blue-500 dark:bg-blue-600 ${DS.radius.full} flex items-center justify-center mt-0.5`}>
-                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="flex items-start gap-2 sm:gap-3">
+                        <div className={`flex-shrink-0 w-5 h-5 sm:w-6 sm:h-6 bg-blue-500 dark:bg-blue-600 ${DS.radius.full} flex items-center justify-center mt-0.5`}>
+                          <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
                         </div>
-                        <div className="flex-1">
-                          <h4 className="text-blue-900 dark:text-blue-200 font-bold mb-2 text-lg">Bootstrapping Phase</h4>
-                          <p className="text-blue-800 dark:text-blue-300 leading-relaxed">
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-blue-900 dark:text-blue-200 font-bold mb-2 text-base sm:text-lg">Bootstrapping Phase</h4>
+                          <p className="text-xs sm:text-sm text-blue-800 dark:text-blue-300 leading-relaxed">
                             We are currently in the bootstrapping phase and have temporarily disabled deposits and withdrawals. 
                             We are carefully easing capital into strategies as a safety precaution to ensure optimal performance and security. 
                             Thank you for your patience.
@@ -1507,20 +1507,20 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
 
                     {/* Fee Structure */}
                     <div>
-                      <h4 className={`${DS.text.h4} mb-4`}>Fee Structure</h4>
+                      <h4 className={`${DS.text.h4} mb-3 sm:mb-4`}>Fee Structure</h4>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-                        <div className={`${DS.backgrounds.card} ${DS.shadows.raised} ${DS.radius.md} p-6 ${DS.borders.subtle} ${DS.shadows.raisedHover} ${DS.transitions.default}`}>
-                          <div className={`${DS.text.labelSmall} mb-3`}>Deposit</div>
-                          <div className={DS.text.valueMedium}>1%</div>
+                        <div className={`${DS.backgrounds.card} ${DS.shadows.raised} ${DS.radius.md} p-4 sm:p-6 ${DS.borders.subtle} ${DS.shadows.raisedHover} ${DS.transitions.default}`}>
+                          <div className={`${DS.text.labelSmall} mb-2 sm:mb-3`}>Deposit</div>
+                          <div className={`${DS.text.valueMedium} text-xl sm:text-2xl`}>1%</div>
                         </div>
-                        <div className={`${DS.backgrounds.card} ${DS.shadows.raised} ${DS.radius.md} p-6 ${DS.borders.subtle} ${DS.shadows.raisedHover} ${DS.transitions.default}`}>
-                          <div className={`${DS.text.labelSmall} mb-3`}>Withdrawal</div>
-                          <div className={DS.text.valueMedium}>2%</div>
+                        <div className={`${DS.backgrounds.card} ${DS.shadows.raised} ${DS.radius.md} p-4 sm:p-6 ${DS.borders.subtle} ${DS.shadows.raisedHover} ${DS.transitions.default}`}>
+                          <div className={`${DS.text.labelSmall} mb-2 sm:mb-3`}>Withdrawal</div>
+                          <div className={`${DS.text.valueMedium} text-xl sm:text-2xl`}>2%</div>
                         </div>
-                        <div className={`${DS.backgrounds.highlight} ${DS.shadows.raised} ${DS.radius.md} p-6 ${DS.borders.highlight} ${DS.shadows.raisedHover} ${DS.transitions.default}`}>
-                          <div className="text-xs text-gray-700 dark:text-yellow-200 font-bold uppercase tracking-wider mb-3">Performance</div>
-                          <div className="text-2xl font-bold text-yellow-700 dark:text-yellow-300">4.7%</div>
-                          <div className="text-xs text-gray-600 dark:text-yellow-200/70 mt-2">On profits only</div>
+                        <div className={`${DS.backgrounds.highlight} ${DS.shadows.raised} ${DS.radius.md} p-4 sm:p-6 ${DS.borders.highlight} ${DS.shadows.raisedHover} ${DS.transitions.default}`}>
+                          <div className="text-xs text-gray-700 dark:text-yellow-200 font-bold uppercase tracking-wider mb-2 sm:mb-3">Performance</div>
+                          <div className="text-xl sm:text-2xl font-bold text-yellow-700 dark:text-yellow-300">4.7%</div>
+                          <div className="text-xs text-gray-600 dark:text-yellow-200/70 mt-1 sm:mt-2">On profits only</div>
                         </div>
                         </div>
                       </div>
