@@ -89,68 +89,68 @@ export default function EagleLPContent({ onNavigateDown }: Props) {
   }, []);
   return (
     <div className="h-full overflow-y-auto bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50 dark:from-gray-900 dark:via-gray-850 dark:to-gray-900">
-      <div className="container mx-auto px-6 py-12 max-w-7xl">
+      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 md:py-12 max-w-7xl">
         {/* Back Button */}
         <NeoButton
           onClick={onNavigateDown}
           label="Back to Home"
           icon={<ArrowDown className="w-4 h-4" />}
-          className="mb-8"
+          className="mb-4 sm:mb-6 md:mb-8"
         />
 
         {/* Header */}
         <motion.div 
-          className="mb-12"
+          className="mb-6 sm:mb-8 md:mb-12"
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
         >
-          <div className="flex items-center gap-4 mb-6">
-            <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2.5 sm:gap-3 md:gap-4 mb-4 sm:mb-5 md:mb-6">
+            <div className="flex items-center gap-2.5 sm:gap-3 md:gap-4">
               <motion.div
                 className="relative"
                 whileHover={{ scale: 1.05, rotate: 5 }}
                 transition={{ type: "spring", stiffness: 400, damping: 17 }}
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/20 to-orange-400/20 rounded-2xl blur-xl"></div>
-                <div className="relative bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 p-3 rounded-2xl shadow-neo-raised dark:shadow-neo-raised-dark border border-gray-200/50 dark:border-gray-600/50">
+                <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/20 to-orange-400/20 rounded-xl sm:rounded-2xl blur-lg sm:blur-xl"></div>
+                <div className="relative bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 p-2 sm:p-2.5 md:p-3 rounded-xl sm:rounded-2xl shadow-neo-raised dark:shadow-neo-raised-dark border border-gray-200/50 dark:border-gray-600/50">
                   <img 
                     src={ICONS.EAGLE}
                     alt="Eagle"
-                    className="w-12 h-12"
+                    className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12"
                   />
                 </div>
               </motion.div>
               
-              <span className="text-3xl font-bold text-gray-400 dark:text-gray-500">+</span>
+              <span className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-400 dark:text-gray-500">+</span>
               
               <motion.div
                 className="relative"
                 whileHover={{ scale: 1.05, rotate: -5 }}
                 transition={{ type: "spring", stiffness: 400, damping: 17 }}
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-2xl blur-xl"></div>
-                <div className="relative bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 p-3 rounded-2xl shadow-neo-raised dark:shadow-neo-raised-dark border border-gray-200/50 dark:border-gray-600/50">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-xl sm:rounded-2xl blur-lg sm:blur-xl"></div>
+                <div className="relative bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 p-2 sm:p-2.5 md:p-3 rounded-xl sm:rounded-2xl shadow-neo-raised dark:shadow-neo-raised-dark border border-gray-200/50 dark:border-gray-600/50">
                   <img 
                     src={ICONS.ETHEREUM}
                     alt="ETH"
-                    className="w-12 h-12 rounded-full"
+                    className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full"
                   />
                 </div>
               </motion.div>
             </div>
           </div>
           
-          <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 dark:from-gray-100 dark:via-white dark:to-gray-100 bg-clip-text text-transparent mb-4">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 dark:from-gray-100 dark:via-white dark:to-gray-100 bg-clip-text text-transparent mb-2 sm:mb-3 md:mb-4">
             EAGLE/ETH Liquidity Pool
           </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-400">
+          <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-600 dark:text-gray-400">
             Provide liquidity, earn trading fees, and support the Eagle ecosystem
           </p>
         </motion.div>
 
         {/* Stats Grid */}
         <motion.div 
-          className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12"
+          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8 md:mb-12"
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.2 }}
@@ -179,7 +179,7 @@ export default function EagleLPContent({ onNavigateDown }: Props) {
         </motion.div>
 
         {/* Last Update Indicator */}
-        <div className="flex justify-end items-center gap-2 mb-6 text-xs text-gray-500 dark:text-gray-400">
+        <div className="flex justify-end items-center gap-1.5 sm:gap-2 mb-4 sm:mb-5 md:mb-6 text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
           <motion.div
             animate={{ rotate: loading ? 360 : 0 }}
             transition={{ duration: 1, repeat: loading ? Infinity : 0, ease: "linear" }}
@@ -195,56 +195,57 @@ export default function EagleLPContent({ onNavigateDown }: Props) {
 
         {/* Pool Info Badges - Minimal Design */}
         <motion.div 
-          className="mb-8"
+          className="mb-4 sm:mb-6 md:mb-8"
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.3 }}
         >
-          <div className="flex items-center justify-between flex-wrap gap-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between gap-3 sm:gap-4">
             {/* Left: Pool Info Badges */}
-            <div className="flex items-center gap-3 flex-wrap">
-              <div className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 rounded-full shadow-neo-inset dark:shadow-neo-inset-dark border border-gray-200/50 dark:border-gray-600/50">
-                <img src={ICONS.UNISWAP} alt="Uniswap" className="w-5 h-5" />
-                <span className="text-sm font-bold text-pink-600 dark:text-pink-400">V4</span>
+            <div className="flex items-center gap-2 sm:gap-2.5 md:gap-3 flex-wrap">
+              <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 bg-white dark:bg-gray-800 rounded-full shadow-neo-inset dark:shadow-neo-inset-dark border border-gray-200/50 dark:border-gray-600/50">
+                <img src={ICONS.UNISWAP} alt="Uniswap" className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="text-xs sm:text-sm font-bold text-pink-600 dark:text-pink-400">V4</span>
               </div>
               
-              <div className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 rounded-full shadow-neo-inset dark:shadow-neo-inset-dark border border-gray-200/50 dark:border-gray-600/50">
-                <span className="text-xs text-gray-500 dark:text-gray-400">Fee:</span>
-                <span className="text-sm font-bold text-orange-600 dark:text-orange-400">2%</span>
+              <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 bg-white dark:bg-gray-800 rounded-full shadow-neo-inset dark:shadow-neo-inset-dark border border-gray-200/50 dark:border-gray-600/50">
+                <span className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Fee:</span>
+                <span className="text-xs sm:text-sm font-bold text-orange-600 dark:text-orange-400">2%</span>
               </div>
               
-              <div className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 rounded-full shadow-neo-inset dark:shadow-neo-inset-dark border border-gray-200/50 dark:border-gray-600/50">
-                <img src={ICONS.ETHEREUM} alt="Ethereum" className="w-5 h-5 rounded-full" />
-                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Ethereum</span>
+              <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 bg-white dark:bg-gray-800 rounded-full shadow-neo-inset dark:shadow-neo-inset-dark border border-gray-200/50 dark:border-gray-600/50">
+                <img src={ICONS.ETHEREUM} alt="Ethereum" className="w-4 h-4 sm:w-5 sm:h-5 rounded-full" />
+                <span className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">Ethereum</span>
               </div>
               
-              <div className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-900/20 dark:to-green-900/20 rounded-full shadow-neo-raised dark:shadow-neo-raised-dark border border-emerald-200 dark:border-emerald-700">
-                <div className="w-2 h-2 bg-emerald-500 dark:bg-emerald-400 rounded-full animate-pulse"></div>
-                <span className="text-sm font-bold text-emerald-700 dark:text-emerald-300">LIVE</span>
+              <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-900/20 dark:to-green-900/20 rounded-full shadow-neo-raised dark:shadow-neo-raised-dark border border-emerald-200 dark:border-emerald-700">
+                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-emerald-500 dark:bg-emerald-400 rounded-full animate-pulse"></div>
+                <span className="text-xs sm:text-sm font-bold text-emerald-700 dark:text-emerald-300">LIVE</span>
               </div>
             </div>
             
             {/* Right: CTA Buttons */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-2.5 md:gap-3 w-full sm:w-auto">
               <a 
                 href="https://dexscreener.com/ethereum/0xcf728b099b672c72d61f6ec4c4928c2f2a96cefdfd518c3470519d76545ed333" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="px-4 py-2 bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-white text-sm font-semibold rounded-full shadow-neo-raised dark:shadow-neo-raised-dark transition-all duration-300 flex items-center gap-2"
+                className="flex-1 sm:flex-none px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 active:from-yellow-700 active:to-orange-800 text-white text-xs sm:text-sm font-semibold rounded-full shadow-neo-raised dark:shadow-neo-raised-dark transition-all duration-300 flex items-center justify-center gap-1.5 sm:gap-2 touch-manipulation"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                 </svg>
-                <span>DexScreener</span>
+                <span className="hidden sm:inline">DexScreener</span>
+                <span className="sm:hidden">DEX</span>
               </a>
               
               <a 
                 href="https://t.me/Eagle_community_47" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="px-4 py-2 bg-gradient-to-r from-[#229ED9] to-[#0088cc] hover:from-[#0088cc] hover:to-[#006699] text-white text-sm font-semibold rounded-full shadow-neo-raised dark:shadow-neo-raised-dark transition-all duration-300 flex items-center gap-2"
+                className="flex-1 sm:flex-none px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-[#229ED9] to-[#0088cc] hover:from-[#0088cc] hover:to-[#006699] active:from-[#007BB3] active:to-[#005580] text-white text-xs sm:text-sm font-semibold rounded-full shadow-neo-raised dark:shadow-neo-raised-dark transition-all duration-300 flex items-center justify-center gap-1.5 sm:gap-2 touch-manipulation"
               >
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
                 </svg>
                 <span>Telegram</span>
@@ -255,21 +256,21 @@ export default function EagleLPContent({ onNavigateDown }: Props) {
 
         {/* DexScreener Chart Embed */}
         <motion.div 
-          className="mb-12"
+          className="mb-6 sm:mb-8 md:mb-12"
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.4 }}
         >
           <NeoCard className="!p-0 overflow-hidden">
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-                <svg className="w-5 h-5 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="p-3 sm:p-4 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2 sm:gap-3">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
                 Live Price Chart
               </h3>
             </div>
-            <div className="relative w-full" style={{ height: '500px' }}>
+            <div className="relative w-full h-64 sm:h-80 md:h-96 lg:h-[500px]">
               <iframe
                 src="https://dexscreener.com/ethereum/0xcf728b099b672c72d61f6ec4c4928c2f2a96cefdfd518c3470519d76545ed333?embed=1&theme=dark&trades=0&info=0"
                 className="w-full h-full border-0"
