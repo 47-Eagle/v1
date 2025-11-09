@@ -221,20 +221,13 @@ export class UIRenderer {
       // Calculate emoji count based on dollar value (1 emoji per $1, no upper limit)
       const usdValue = parseFloat(valueUSD.replace(/[$,]/g, ''));
       const emojiCount = Math.max(1, Math.floor(usdValue));
-      // Use custom emojis from 47 Eagle pack
-      const customEagle = '<tg-emoji emoji-id="5145476085961459815">🦅</tg-emoji>';
-      const customTrophy = '<tg-emoji emoji-id="5129962024138179530">🏅</tg-emoji>';
+      // Use alternating diamond and eagle emojis
       const diamond = '💎';
+      const eagle = '🦅';
       let repeatedEmojis = '';
       for (let i = 0; i < emojiCount; i++) {
-        repeatedEmojis += i % 2 === 0 ? diamond : customEagle;
+        repeatedEmojis += i % 2 === 0 ? diamond : eagle;
       }
-      
-      // Custom emojis for the notification
-      const customChart = '<tg-emoji emoji-id="4992797622155608899">📊</tg-emoji>';
-      const customSwap = '<tg-emoji emoji-id="5127902823542948533">🔀</tg-emoji>';
-      const customUser = '<tg-emoji emoji-id="5127450709515568072">👤</tg-emoji>';
-      const customUniswap = '<tg-emoji emoji-id="5127797863132168989">🦄</tg-emoji>';
 
       message =
 `EAGLE ${direction}!
@@ -243,10 +236,10 @@ ${repeatedEmojis}
 
 💵 ${ethAmount} ${tokenIn} (${valueUSD})
 🪙 ${tokenAmount} ${tokenOut}
-${customUser} <a href="${traderProfileLink}">${traderLabel}</a> | <a href="${txLink}">Txn</a>
-${customTrophy} Market Cap: ${marketCap}
+👤 <a href="${traderProfileLink}">${traderLabel}</a> | <a href="${txLink}">Txn</a>
+🏅 Market Cap: ${marketCap}
 
-${customChart} <a href="https://dexscreener.com/ethereum/${tokenAddress}">Chart</a> | ${customUniswap} <a href="https://app.uniswap.org/swap?chain=mainnet&inputCurrency=ETH&outputCurrency=${tokenAddress}">Buy</a> | ${customSwap} <a href="https://www.geckoterminal.com/eth/pools/${swap.poolId}">Trending</a>
+📊 <a href="https://dexscreener.com/ethereum/${tokenAddress}">Chart</a> | 🦄 <a href="https://app.uniswap.org/swap?chain=mainnet&inputCurrency=ETH&outputCurrency=${tokenAddress}">Buy</a> | 🔀 <a href="https://www.geckoterminal.com/eth/pools/${swap.poolId}">Trending</a>
 📱 <a href="https://47eagle.com">47Eagle</a>`;
     }
 
