@@ -97,7 +97,7 @@ interface VaultVisualizationProps {
 }
 
 export default function VaultVisualization({ currentPrice = WLFI_PRICE_USD }: VaultVisualizationProps) {
-  const size = 15  // Reduced from 20 for better visibility
+  const size = 30  // Increased for better visibility
   const [revertData, setRevertData] = useState<any>(null)
   const [hoveredTick, setHoveredTick] = useState<number | null>(null)
   
@@ -287,7 +287,7 @@ export default function VaultVisualization({ currentPrice = WLFI_PRICE_USD }: Va
           </div>
         ) : (
           <div className="h-64 sm:h-80 md:h-96 lg:h-[500px]" style={{ background: '#000' }}>
-            <Canvas camera={{ position: [0, 5, 30], fov: 60 }}>
+            <Canvas camera={{ position: [0, 8, 50], fov: 60 }}>
               <ambientLight intensity={0.5} />
               <pointLight position={[10, 10, 10]} intensity={1} />
               <pointLight position={[-10, -10, -10]} intensity={0.3} />
@@ -300,7 +300,7 @@ export default function VaultVisualization({ currentPrice = WLFI_PRICE_USD }: Va
               </mesh>
 
               {/* Price Label */}
-              <Text position={[0, 0.5, size / 2 + 1]} color="yellow" fontSize={0.4} anchorX="center">
+              <Text position={[0, 1, size / 2 + 2]} color="yellow" fontSize={0.8} anchorX="center">
                 ${currentPrice.toFixed(4)}
               </Text>
 
@@ -368,7 +368,7 @@ export default function VaultVisualization({ currentPrice = WLFI_PRICE_USD }: Va
                         document.body.style.cursor = 'default'
                       }}
                     >
-                      <boxGeometry args={[TICK_WIDTH, height, isHovered ? 3 : 1.5]} />
+                      <boxGeometry args={[TICK_WIDTH, height, isHovered ? 5 : 3]} />
                       <meshStandardMaterial 
                         color={color} 
                         transparent 
@@ -380,11 +380,11 @@ export default function VaultVisualization({ currentPrice = WLFI_PRICE_USD }: Va
                     
                     {/* Hover Tooltip */}
                     {isHovered && (
-                      <group position={[x, height + 1.5, 0]}>
+                      <group position={[x, height + 2.5, 0]}>
                         <Text
-                          position={[0, 0.6, 0]}
+                          position={[0, 1.2, 0]}
                           color="#fbbf24"
-                          fontSize={0.35}
+                          fontSize={0.7}
                           anchorX="center"
                           anchorY="middle"
                           fontWeight="bold"
@@ -392,18 +392,18 @@ export default function VaultVisualization({ currentPrice = WLFI_PRICE_USD }: Va
                           Tick {bar.tick}
                         </Text>
                         <Text
-                          position={[0, 0.2, 0]}
+                          position={[0, 0.4, 0]}
                           color="white"
-                          fontSize={0.25}
+                          fontSize={0.5}
                           anchorX="center"
                           anchorY="middle"
                         >
                           Price: ${tickPrice.toFixed(6)}
                         </Text>
                         <Text
-                          position={[0, -0.1, 0]}
+                          position={[0, -0.4, 0]}
                           color="#10b981"
-                          fontSize={0.25}
+                          fontSize={0.5}
                           anchorX="center"
                           anchorY="middle"
                           fontWeight="bold"
@@ -426,17 +426,17 @@ export default function VaultVisualization({ currentPrice = WLFI_PRICE_USD }: Va
                 return (
                   <group key={`label-${i}`}>
                     <Text 
-                      position={[x, visualHeight + 0.5, 0]} 
+                      position={[x, visualHeight + 1, 0]} 
                       color="white" 
-                      fontSize={0.4}
+                      fontSize={0.8}
                       anchorX="center"
                     >
                       {pos.name}
                     </Text>
                     <Text 
-                      position={[x, visualHeight + 1.0, 0]} 
+                      position={[x, visualHeight + 2, 0]} 
                       color={pos.color} 
-                      fontSize={0.35}
+                      fontSize={0.7}
                       anchorX="center"
                       fontWeight="bold"
                     >
@@ -446,7 +446,7 @@ export default function VaultVisualization({ currentPrice = WLFI_PRICE_USD }: Va
                 )
               })}
 
-              <gridHelper args={[20, 20, 0x202020, 0x404040]} />
+              <gridHelper args={[40, 40, 0x202020, 0x404040]} />
             </Canvas>
           </div>
         )}
