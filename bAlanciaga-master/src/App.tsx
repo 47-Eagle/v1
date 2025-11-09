@@ -10,7 +10,7 @@ import { Provider } from "react-redux";
 import store from "./store/index";
 import View from "./components/view/View";
 import Deposit from "./components/Deposit/Deposit";
-import HomePage from "./components/dashboard/Homepage";
+import HomePage from "./components/dashboard/HomePage";
 import Agent from "./components/dashboard/Agent";
 function App() {
   const dynamicSettings = {

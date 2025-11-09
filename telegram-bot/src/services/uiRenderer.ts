@@ -82,9 +82,24 @@ export class UIRenderer {
           return (current.liquidity?.usd || 0) > (best.liquidity?.usd || 0) ? current : best;
         });
 
+        // Get market cap from API or calculate it
+        let marketCap = bestPair.marketCap || null;
+        const price = bestPair.priceUsd ? parseFloat(bestPair.priceUsd) : null;
+        
+        // If no market cap but we have price, calculate it
+        if (!marketCap && price) {
+          const totalSupply = await this.getTotalSupply(tokenAddress);
+          if (totalSupply) {
+            // Convert total supply to human readable (divide by 10^18)
+            const supplyNumber = Number(totalSupply) / 1e18;
+            marketCap = price * supplyNumber;
+            console.log(`📊 Calculated market cap: $${marketCap.toFixed(2)} (Price: $${price} × Supply: ${supplyNumber.toFixed(0)})`);
+          }
+        }
+
         return {
-          marketCap: bestPair.marketCap || null,
-          price: bestPair.priceUsd ? parseFloat(bestPair.priceUsd) : null,
+          marketCap,
+          price,
           priceChange24h: bestPair.priceChange?.h24 ? parseFloat(bestPair.priceChange.h24) : null,
           volume24h: bestPair.volume?.h24 ? parseFloat(bestPair.volume.h24) : null,
           liquidity: bestPair.liquidity?.usd ? parseFloat(bestPair.liquidity.usd) : null,
