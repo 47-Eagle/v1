@@ -323,6 +323,7 @@ interface Props {
 
 export default function VaultView({ provider, account, onToast, onNavigateUp, onNavigateToWrapper }: Props) {
   const [activeTab, setActiveTab] = useState<'deposit' | 'withdraw'>('deposit');
+  const [infoTab, setInfoTab] = useState<'vault' | 'strategies'>('vault');
   const [wlfiAmount, setWlfiAmount] = useState('');
   const [usd1Amount, setUsd1Amount] = useState('');
   const [withdrawAmount, setWithdrawAmount] = useState('');
@@ -1246,15 +1247,13 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
           </div>
         </div>
 
-        {/* Vault Info & Asset Deployment Sunburst Chart */}
+        {/* Asset Deployment Sunburst Chart */}
         <AssetAllocationSunburst
           vaultWLFI={Number(data.vaultLiquidWLFI)}
           vaultUSD1={Number(data.vaultLiquidUSD1)}
           strategyWLFI={Number(data.strategyWLFI)}
           strategyUSD1={Number(data.strategyUSD1)}
           wlfiPrice={Number(data.wlfiPrice)}
-          usd1Price={data.usd1Price}
-          vaultAddress={CONTRACTS.VAULT}
         />
 
         {/* Stats */}
@@ -1628,18 +1627,134 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
             )}
           </div>
 
-          {/* Column 1 - Strategies */}
+          {/* Column 1 - Tabbed Vault Info & Strategies */}
           <div className={isAdmin ? 'lg:col-span-1' : 'lg:col-span-2'}>
             <NeoCard className="!p-0">
-              {/* Header */}
+              {/* Tab Headers */}
               <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b border-gray-300/50 dark:border-gray-700/30">
-                <h3 className="text-gray-900 dark:text-gray-100 font-bold text-xl sm:text-2xl">Strategies</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Active and upcoming investment strategies</p>
+                <NeoTabs
+                  tabs={[
+                    { id: 'vault', label: 'Vault' },
+                    { id: 'strategies', label: 'Strategies' },
+                  ]}
+                  defaultTab={infoTab}
+                  onChange={(tabId) => setInfoTab(tabId as 'vault' | 'strategies')}
+                />
               </div>
 
-              {/* Content */}
+              {/* Tab Content */}
               <div className="p-4 sm:p-6">
-                <div className="space-y-5">
+                {infoTab === 'vault' && (
+                  <div className="space-y-6">
+                    {/* ERC-4626 Vault Description */}
+                    <div>
+                      <h3 className={`${DS.text.h3} mb-3`}>ERC-4626 Tokenized Vault</h3>
+                      <p className={`${DS.text.body} leading-relaxed`}>
+                        A standardized vault accepting{' '}
+                        <a href="https://worldlibertyfinancial.com/" target="_blank" rel="noopener noreferrer" className={`${DS.text.highlightBold} hover:text-yellow-800 dark:hover:text-yellow-300 ${DS.transitions.fast}`}>
+                          WLFI
+                        </a>
+                        {' '}and{' '}
+                        <a href="https://worldlibertyfinancial.com/usd1" target="_blank" rel="noopener noreferrer" className={`${DS.text.highlightBold} hover:text-yellow-800 dark:hover:text-yellow-300 ${DS.transitions.fast}`}>
+                          USD1
+                        </a>
+                        , issuing vEAGLE shares that represent proportional ownership and automatically compound yields.
+                      </p>
+                    </div>
+                    
+                    {/* Bootstrapping Notice */}
+                    <div className={`${DS.backgrounds.info} ${DS.borders.info} ${DS.radius.md} ${DS.spacing.cardPadding} ${DS.shadows.raised}`}>
+                      <div className="flex items-start gap-2 sm:gap-3">
+                        <div className={`flex-shrink-0 w-5 h-5 sm:w-6 sm:h-6 bg-blue-500 dark:bg-blue-600 ${DS.radius.full} flex items-center justify-center mt-0.5`}>
+                          <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-blue-900 dark:text-blue-200 font-bold mb-2 text-base sm:text-lg">Bootstrapping Phase</h4>
+                          <p className="text-xs sm:text-sm text-blue-800 dark:text-blue-300 leading-relaxed">
+                            We are currently in the bootstrapping phase and have temporarily disabled deposits and withdrawals. 
+                            We are carefully easing capital into strategies as a safety precaution to ensure optimal performance and security. 
+                            Thank you for your patience.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Fee Structure */}
+                    <div>
+                      <h4 className={`${DS.text.h4} mb-3 sm:mb-4`}>Fee Structure</h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                        <div className={`${DS.backgrounds.card} ${DS.shadows.raised} ${DS.radius.md} p-4 sm:p-6 ${DS.borders.subtle} ${DS.shadows.raisedHover} ${DS.transitions.default}`}>
+                          <div className={`${DS.text.labelSmall} mb-2 sm:mb-3`}>Deposit</div>
+                          <div className={`${DS.text.valueMedium} text-xl sm:text-2xl`}>1%</div>
+                        </div>
+                        <div className={`${DS.backgrounds.card} ${DS.shadows.raised} ${DS.radius.md} p-4 sm:p-6 ${DS.borders.subtle} ${DS.shadows.raisedHover} ${DS.transitions.default}`}>
+                          <div className={`${DS.text.labelSmall} mb-2 sm:mb-3`}>Withdrawal</div>
+                          <div className={`${DS.text.valueMedium} text-xl sm:text-2xl`}>2%</div>
+                        </div>
+                        <div className={`${DS.backgrounds.highlight} ${DS.shadows.raised} ${DS.radius.md} p-4 sm:p-6 ${DS.borders.highlight} ${DS.shadows.raisedHover} ${DS.transitions.default}`}>
+                          <div className="text-xs text-gray-700 dark:text-yellow-200 font-bold uppercase tracking-wider mb-2 sm:mb-3">Performance</div>
+                          <div className="text-xl sm:text-2xl font-bold text-yellow-700 dark:text-yellow-300">4.7%</div>
+                          <div className="text-xs text-gray-600 dark:text-yellow-200/70 mt-1 sm:mt-2">On profits only</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Accepted Assets */}
+                    <div>
+                      <h4 className={`${DS.text.h4} mb-4`}>Accepted Assets</h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                        <div className={`${DS.backgrounds.card} ${DS.shadows.raised} ${DS.radius.md} ${DS.spacing.cardPadding} ${DS.borders.subtle} ${DS.shadows.raisedHover} ${DS.transitions.default}`}>
+                          <div className="flex items-center gap-4">
+                            <img src={ICONS.WLFI} alt="WLFI" className={`w-14 h-14 ${DS.radius.full} border-2 border-white dark:border-gray-600 shadow-lg flex-shrink-0`} />
+                            <div className="flex-1">
+                              <div className={`${DS.text.h4} mb-1`}>WLFI</div>
+                              <div className={`${DS.text.highlight} font-bold text-lg`}>${data.wlfiPrice}</div>
+                              <div className={DS.text.descriptionSmall}>World Liberty Financial</div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className={`${DS.backgrounds.card} ${DS.shadows.raised} ${DS.radius.md} ${DS.spacing.cardPadding} ${DS.borders.subtle} ${DS.shadows.raisedHover} ${DS.transitions.default}`}>
+                          <div className="flex items-center gap-4">
+                            <img src={ICONS.USD1} alt="USD1" className={`w-14 h-14 ${DS.radius.full} border-2 border-white dark:border-gray-600 shadow-lg flex-shrink-0`} />
+                            <div className="flex-1">
+                              <div className={`${DS.text.h4} mb-1`}>USD1</div>
+                              <div className={`${DS.text.highlight} font-bold text-lg`}>${data.usd1Price}</div>
+                              <div className={DS.text.descriptionSmall}>Stablecoin</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Vault Contract */}
+                    <div>
+                      <h4 className={`${DS.text.h4} mb-4`}>Vault Contract</h4>
+                      <div className={`${DS.backgrounds.card} ${DS.shadows.raised} ${DS.radius.md} ${DS.spacing.cardPadding} ${DS.borders.subtle} ${DS.shadows.raisedHover} ${DS.transitions.default}`}>
+                        <a 
+                          href={`https://etherscan.io/address/${CONTRACTS.VAULT}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex justify-between items-center group"
+                        >
+                          <span className={`${DS.text.label} font-bold`}>ERC-4626 Vault</span>
+                          <div className={`flex items-center gap-2 ${DS.text.highlight} hover:text-yellow-700 dark:hover:text-yellow-300 ${DS.transitions.fast}`}>
+                            <code className="text-xs font-mono font-semibold break-all">
+                              {CONTRACTS.VAULT}
+                            </code>
+                            <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                          </div>
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {infoTab === 'strategies' && (
+                  <div className="space-y-5">
                     {/* All 5 Strategies as Expandable Rows */}
                     {[
                       {
@@ -1695,7 +1810,8 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
                         revertData={revertData}
                       />
                     ))}
-                </div>
+                  </div>
+                )}
               </div>
             </NeoCard>
           </div>
