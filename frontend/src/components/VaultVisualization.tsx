@@ -286,7 +286,7 @@ export default function VaultVisualization({ currentPrice = WLFI_PRICE_USD }: Va
             </div>
           </div>
         ) : (
-          <div className="h-64 sm:h-80 md:h-96 lg:h-[500px]" style={{ background: '#000' }}>
+          <div className="h-96 sm:h-[500px] md:h-[600px] lg:h-[700px] xl:h-[800px]" style={{ background: '#000' }}>
             <Canvas camera={{ position: [0, 8, 50], fov: 60 }}>
               <ambientLight intensity={0.5} />
               <pointLight position={[10, 10, 10]} intensity={1} />
@@ -471,14 +471,40 @@ export default function VaultVisualization({ currentPrice = WLFI_PRICE_USD }: Va
             )}
           </div>
           {revertData && (
-            <div className="pt-2 sm:pt-3 border-t border-white/5">
-              <div className="text-[10px] sm:text-xs text-gray-400 space-y-1 sm:space-y-0">
-                <div className="text-blue-400 font-semibold">Pool Analytics (7-day):</div>
-                <div className="sm:inline sm:ml-1">
-                  TVL ${revertData.latest?.tvl_usd.toFixed(2) || '0'} • 
-                  Avg APR {revertData.avgAPR?.toFixed(1) || '0'}% • 
-                  Max APR {revertData.maxAPR?.toFixed(1) || '0'}% • 
-                  Avg Vol ${revertData.avgVolume?.toFixed(0) || '0'}/day
+            <div className="pt-3 sm:pt-4 border-t border-white/5">
+              <div className="text-xs sm:text-sm text-gray-300">
+                <div className="text-blue-400 font-semibold text-sm sm:text-base mb-2">
+                  POOL ANALYTICS
+                  <span className="text-[10px] sm:text-xs text-gray-500 font-normal ml-2">(Last 7 days)</span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+                  <div className="bg-black/30 rounded-lg p-2 sm:p-3 border border-white/5">
+                    <div className="text-[10px] sm:text-xs text-gray-500 mb-1">TVL</div>
+                    <div className="text-sm sm:text-base font-bold text-cyan-400">
+                      ${revertData.latest?.tvl_usd.toFixed(2) || '0'}
+                    </div>
+                  </div>
+                  <div className="bg-black/30 rounded-lg p-2 sm:p-3 border border-white/5">
+                    <div className="text-[10px] sm:text-xs text-gray-500 mb-1">7d Avg APR</div>
+                    <div className="text-sm sm:text-base font-bold text-green-400">
+                      {revertData.avgAPR?.toFixed(1) || '0'}%
+                    </div>
+                  </div>
+                  <div className="bg-black/30 rounded-lg p-2 sm:p-3 border border-white/5">
+                    <div className="text-[10px] sm:text-xs text-gray-500 mb-1">Max APR</div>
+                    <div className="text-sm sm:text-base font-bold text-yellow-400">
+                      {revertData.maxAPR?.toFixed(1) || '0'}%
+                    </div>
+                  </div>
+                  <div className="bg-black/30 rounded-lg p-2 sm:p-3 border border-white/5">
+                    <div className="text-[10px] sm:text-xs text-gray-500 mb-1">Avg Vol</div>
+                    <div className="text-sm sm:text-base font-bold text-purple-400">
+                      ${revertData.avgVolume?.toFixed(0) || '0'}/day
+                    </div>
+                  </div>
+                </div>
+                <div className="text-[9px] sm:text-[10px] text-gray-600 mt-2 text-center">
+                  via Revert Finance
                 </div>
               </div>
             </div>
