@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
+import { ICONS } from '../config/icons';
+import { DS } from './neumorphic/designSystem';
 
 interface AssetAllocationSunburstProps {
   vaultWLFI: number;
@@ -7,6 +9,8 @@ interface AssetAllocationSunburstProps {
   strategyWLFI: number;
   strategyUSD1: number;
   wlfiPrice: number;
+  usd1Price: string;
+  vaultAddress: string;
 }
 
 interface HierarchyNode {
@@ -21,7 +25,9 @@ export default function AssetAllocationSunburst({
   vaultUSD1,
   strategyWLFI,
   strategyUSD1,
-  wlfiPrice
+  wlfiPrice,
+  usd1Price,
+  vaultAddress
 }: AssetAllocationSunburstProps) {
   
   const svgRef = useRef<SVGSVGElement>(null);
@@ -272,6 +278,138 @@ export default function AssetAllocationSunburst({
             </a>
             , issuing vEAGLE shares that represent proportional ownership and automatically compound yields.
           </p>
+        </div>
+
+        {/* Bootstrapping Notice */}
+        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-300 dark:border-blue-700 rounded-xl p-4 sm:p-5 mb-5 sm:mb-6 shadow-sm">
+          <div className="flex items-start gap-2 sm:gap-3">
+            <div className="flex-shrink-0 w-5 h-5 sm:w-6 sm:h-6 bg-blue-500 dark:bg-blue-600 rounded-full flex items-center justify-center mt-0.5">
+              <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div className="flex-1 min-w-0">
+              <h4 className="text-blue-900 dark:text-blue-200 font-bold mb-2 text-base sm:text-lg">Bootstrapping Phase</h4>
+              <p className="text-xs sm:text-sm text-blue-800 dark:text-blue-300 leading-relaxed">
+                We are currently in the bootstrapping phase and have temporarily disabled deposits and withdrawals. 
+                We are carefully easing capital into strategies as a safety precaution to ensure optimal performance and security. 
+                Thank you for your patience.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Fee Structure */}
+        <div className="mb-5 sm:mb-6">
+          <h4 className="text-gray-900 dark:text-gray-100 font-bold text-base sm:text-lg mb-3 sm:mb-4">Fee Structure</h4>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+            <div className="bg-white dark:bg-gray-800 shadow-neo-raised dark:shadow-neo-raised-dark rounded-xl p-4 sm:p-6 border border-gray-300/50 dark:border-gray-600/40 hover:shadow-neo-hover dark:hover:shadow-neo-hover-dark transition-all duration-200">
+              <div className="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2 sm:mb-3 font-semibold">Deposit</div>
+              <div className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">1%</div>
+            </div>
+            <div className="bg-white dark:bg-gray-800 shadow-neo-raised dark:shadow-neo-raised-dark rounded-xl p-4 sm:p-6 border border-gray-300/50 dark:border-gray-600/40 hover:shadow-neo-hover dark:hover:shadow-neo-hover-dark transition-all duration-200">
+              <div className="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2 sm:mb-3 font-semibold">Withdrawal</div>
+              <div className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">2%</div>
+            </div>
+            <div className="bg-gradient-to-br from-yellow-100 to-yellow-200 dark:from-yellow-900/30 dark:to-yellow-800/30 shadow-neo-raised dark:shadow-neo-raised-dark rounded-xl p-4 sm:p-6 border border-yellow-400 dark:border-yellow-600 hover:shadow-neo-hover dark:hover:shadow-neo-hover-dark transition-all duration-200">
+              <div className="text-xs text-gray-700 dark:text-yellow-200 font-bold uppercase tracking-wider mb-2 sm:mb-3">Performance</div>
+              <div className="text-xl sm:text-2xl font-bold text-yellow-700 dark:text-yellow-300">4.7%</div>
+              <div className="text-xs text-gray-600 dark:text-yellow-200/70 mt-1 sm:mt-2">On profits only</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Accepted Assets */}
+        <div className="mb-5 sm:mb-6">
+          <h4 className="text-gray-900 dark:text-gray-100 font-bold text-base sm:text-lg mb-4">Accepted Assets</h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div className="bg-white dark:bg-gray-800 shadow-neo-raised dark:shadow-neo-raised-dark rounded-xl p-4 border border-gray-300/50 dark:border-gray-600/40 hover:shadow-neo-hover dark:hover:shadow-neo-hover-dark transition-all duration-200">
+              <div className="flex items-center gap-4">
+                <img src={ICONS.WLFI} alt="WLFI" className="w-14 h-14 rounded-full border-2 border-white dark:border-gray-600 shadow-lg flex-shrink-0" />
+                <div className="flex-1">
+                  <div className="text-gray-900 dark:text-gray-100 font-bold text-base mb-1">WLFI</div>
+                  <div className="text-yellow-600 dark:text-yellow-400 font-bold text-lg">${wlfiPrice}</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400">World Liberty Financial</div>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white dark:bg-gray-800 shadow-neo-raised dark:shadow-neo-raised-dark rounded-xl p-4 border border-gray-300/50 dark:border-gray-600/40 hover:shadow-neo-hover dark:hover:shadow-neo-hover-dark transition-all duration-200">
+              <div className="flex items-center gap-4">
+                <img src={ICONS.USD1} alt="USD1" className="w-14 h-14 rounded-full border-2 border-white dark:border-gray-600 shadow-lg flex-shrink-0" />
+                <div className="flex-1">
+                  <div className="text-gray-900 dark:text-gray-100 font-bold text-base mb-1">USD1</div>
+                  <div className="text-yellow-600 dark:text-yellow-400 font-bold text-lg">${usd1Price}</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400">Stablecoin</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Vault Contract */}
+        <div className="mb-5 sm:mb-6">
+          <h4 className="text-gray-900 dark:text-gray-100 font-bold text-base sm:text-lg mb-4">Vault Contract</h4>
+          <div className="bg-white dark:bg-gray-800 shadow-neo-raised dark:shadow-neo-raised-dark rounded-xl p-4 border border-gray-300/50 dark:border-gray-600/40 hover:shadow-neo-hover dark:hover:shadow-neo-hover-dark transition-all duration-200">
+            <a 
+              href={`https://etherscan.io/address/${vaultAddress}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex justify-between items-center group"
+            >
+              <span className="text-gray-900 dark:text-gray-100 font-bold">ERC-4626 Vault</span>
+              <div className="flex items-center gap-2 text-yellow-600 dark:text-yellow-400 hover:text-yellow-700 dark:hover:text-yellow-300 transition-colors">
+                <code className="text-xs font-mono font-semibold break-all">
+                  {vaultAddress}
+                </code>
+                <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </div>
+            </a>
+          </div>
+        </div>
+
+        {/* Asset Allocation Progress Bars */}
+        <div className="mb-6 sm:mb-8">
+          <h4 className="text-gray-900 dark:text-gray-100 font-bold text-base sm:text-lg mb-4">Strategy Allocation</h4>
+          <div className="space-y-3">
+            {/* Strategy 1 - Active */}
+            <div className="bg-white dark:bg-gray-800 shadow-neo-raised dark:shadow-neo-raised-dark rounded-xl p-4 border border-gray-300/50 dark:border-gray-600/40">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-gradient-to-r from-green-500 to-emerald-600"></div>
+                  <span className="text-gray-900 dark:text-gray-100 font-semibold text-sm">Strategy 1</span>
+                  <span className="px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs font-bold rounded-full">
+                    ACTIVE
+                  </span>
+                </div>
+                <span className="text-yellow-600 dark:text-yellow-400 font-bold text-lg">100%</span>
+              </div>
+              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+                <div className="bg-gradient-to-r from-green-500 to-emerald-600 h-2.5 rounded-full" style={{width: '100%'}}></div>
+              </div>
+              <p className="text-xs text-gray-600 dark:text-gray-400 mt-2">Charm USD1/WLFI Alpha Vault</p>
+            </div>
+
+            {/* Strategies 2-5 - Coming Soon */}
+            {[2, 3, 4, 5].map((num) => (
+              <div key={num} className="bg-white dark:bg-gray-800 shadow-neo-inset dark:shadow-neo-inset-dark rounded-xl p-4 border border-gray-300/50 dark:border-gray-600/40 opacity-50">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-gray-400 dark:bg-gray-600"></div>
+                    <span className="text-gray-900 dark:text-gray-100 font-semibold text-sm">Strategy {num}</span>
+                    <span className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 text-xs font-bold rounded-full">
+                      COMING SOON
+                    </span>
+                  </div>
+                  <span className="text-gray-600 dark:text-gray-400 text-sm">0%</span>
+                </div>
+                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+                  <div className="bg-gray-400 dark:bg-gray-600 h-2.5 rounded-full" style={{width: '0%'}}></div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-5 md:mb-6">
