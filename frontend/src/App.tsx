@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { BrowserProvider } from 'ethers';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAccount } from 'wagmi';
 import ModernHeader from './components/ModernHeader';
 import EagleEcosystemWithRoutes from './components/EagleEcosystemWithRoutes';
 import { Showcase } from './pages/Showcase';
 import { ICONS } from './config/icons';
 import { SafeProvider } from './components/SafeProvider';
 import { useSafeApp } from './hooks/useSafeApp';
+import { useEthersProvider } from './hooks/useEthersProvider';
 
 interface Toast {
   id: number;
@@ -17,80 +19,18 @@ interface Toast {
 }
 
 function AppContent() {
-  const [account, setAccount] = useState<string>('');
-  const [provider, setProvider] = useState<BrowserProvider | null>(null);
   const [toasts, setToasts] = useState<Toast[]>([]);
   
+  // Use wagmi's connection state
+  const { address: wagmiAddress, isConnected } = useAccount();
+  const wagmiProvider = useEthersProvider();
+  
   // Safe App detection
-  const { isSafeApp, safeAddress, sdk } = useSafeApp();
-
-  useEffect(() => {
-    const checkConnection = async () => {
-      // If running as Safe App, use Safe address with window.ethereum provider
-      // Safe provides window.ethereum that routes transactions through the Safe
-      if (isSafeApp && safeAddress) {
-        console.log('🔐 Running as Safe App:', safeAddress);
-        setAccount(safeAddress);
-        
-        // Use window.ethereum (provided by Safe) as the provider
-        try {
-          if (window.ethereum) {
-            const safeProvider = new BrowserProvider(window.ethereum);
-            setProvider(safeProvider);
-            console.log('✅ Safe provider created successfully');
-            showToast({
-              message: '🔐 Connected via Safe App',
-              type: 'success'
-            });
-          } else {
-            console.warn('⚠️ No window.ethereum available in Safe App context');
-          }
-        } catch (error) {
-          console.error('Error creating Safe provider:', error);
-        }
-        return;
-      }
-
-      // Standard MetaMask/wallet connection
-      if (window.ethereum) {
-        try {
-          const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-          if (accounts.length > 0) {
-            const provider = new BrowserProvider(window.ethereum);
-            setProvider(provider);
-            setAccount(accounts[0]);
-          }
-        } catch (error) {
-          console.error('Error checking connection:', error);
-        }
-      }
-    };
-
-    checkConnection();
-
-    // Only set up listeners for standard wallet (not Safe App)
-    if (!isSafeApp && window.ethereum) {
-      window.ethereum.on('accountsChanged', (accounts: string[]) => {
-        if (accounts.length > 0) {
-          setAccount(accounts[0]);
-        } else {
-          setAccount('');
-          setProvider(null);
-        }
-      });
-
-      window.ethereum.on('chainChanged', () => {
-        window.location.reload();
-      });
-    }
-
-    return () => {
-      if (!isSafeApp && window.ethereum) {
-        window.ethereum.removeAllListeners('accountsChanged');
-        window.ethereum.removeAllListeners('chainChanged');
-      }
-    };
-  }, [isSafeApp, safeAddress, sdk]);
+  const { isSafeApp, safeAddress } = useSafeApp();
+  
+  // Determine which account and provider to use
+  const account = isSafeApp && safeAddress ? safeAddress : (wagmiAddress || '');
+  const provider = wagmiProvider;
 
   const showToast = (toast: { message: string; type: 'success' | 'error' | 'info'; txHash?: string }) => {
     const id = Date.now();
@@ -99,6 +39,28 @@ function AppContent() {
       setToasts(prev => prev.filter(t => t.id !== id));
     }, 5000);
   };
+
+  // Log connection status for debugging
+  useEffect(() => {
+    console.log('🔌 Connection Status:', {
+      isConnected,
+      wagmiAddress,
+      isSafeApp,
+      safeAddress,
+      finalAccount: account,
+      hasProvider: !!provider
+    });
+    
+    if (isSafeApp && safeAddress) {
+      console.log('🔐 Running as Safe App:', safeAddress);
+      showToast({
+        message: '🔐 Connected via Safe App',
+        type: 'success'
+      });
+    } else if (isConnected && wagmiAddress) {
+      console.log('✅ Connected via wallet:', wagmiAddress);
+    }
+  }, [isConnected, wagmiAddress, isSafeApp, safeAddress, account, provider]);
 
   return (
     <div className="h-screen flex flex-col bg-neo-bg-light dark:bg-neo-bg-dark transition-colors duration-300">
