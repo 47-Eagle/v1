@@ -1148,6 +1148,7 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
           vaultUSD1={Number(data.vaultLiquidUSD1)}
           strategyWLFI={Number(data.strategyWLFI)}
           strategyUSD1={Number(data.strategyUSD1)}
+          wlfiPrice={Number(data.wlfiPrice)}
         />
 
         {/* Stats */}

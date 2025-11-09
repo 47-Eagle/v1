@@ -6,6 +6,7 @@ interface AssetAllocationSunburstProps {
   vaultUSD1: number;
   strategyWLFI: number;
   strategyUSD1: number;
+  wlfiPrice: number;
 }
 
 interface HierarchyNode {
@@ -19,16 +20,24 @@ export default function AssetAllocationSunburst({
   vaultWLFI,
   vaultUSD1,
   strategyWLFI,
-  strategyUSD1
+  strategyUSD1,
+  wlfiPrice
 }: AssetAllocationSunburstProps) {
   
   const svgRef = useRef<SVGSVGElement>(null);
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
   const [animationKey, setAnimationKey] = useState(0);
   
+  // Convert USD1 to WLFI equivalent (USD1 = $1, so USD1 / wlfiPrice = WLFI equivalent)
+  const vaultUSD1InWLFI = wlfiPrice > 0 ? vaultUSD1 / wlfiPrice : 0;
+  const strategyUSD1InWLFI = wlfiPrice > 0 ? strategyUSD1 / wlfiPrice : 0;
+  
   const totalVault = vaultWLFI + vaultUSD1;
   const totalStrategy = strategyWLFI + strategyUSD1;
   const grandTotal = totalVault + totalStrategy;
+  
+  // Total in WLFI terms
+  const totalInWLFI = vaultWLFI + vaultUSD1InWLFI + strategyWLFI + strategyUSD1InWLFI;
 
   useEffect(() => {
     if (!svgRef.current) return;
@@ -222,9 +231,7 @@ export default function AssetAllocationSunburst({
       .attr('stroke', 'rgba(212, 175, 55, 0.3)')
       .attr('stroke-width', 1.5);
     
-    // Center content - always visible
-    const totalWLFI = vaultWLFI + strategyWLFI;
-    
+    // Center content - display total in WLFI terms
     centerGroup.append('text')
       .attr('text-anchor', 'middle')
       .attr('y', -8)
@@ -232,7 +239,7 @@ export default function AssetAllocationSunburst({
       .style('font-weight', '700')
       .style('fill', '#d4af37')
       .style('letter-spacing', '1px')
-      .text(totalWLFI.toFixed(2));
+      .text(totalInWLFI.toFixed(2));
 
     centerGroup.append('text')
       .attr('text-anchor', 'middle')
@@ -243,7 +250,7 @@ export default function AssetAllocationSunburst({
       .style('letter-spacing', '1.5px')
       .text('WLFI');
 
-  }, [vaultWLFI, vaultUSD1, strategyWLFI, strategyUSD1, grandTotal, selectedPath, animationKey]);
+  }, [vaultWLFI, vaultUSD1, strategyWLFI, strategyUSD1, grandTotal, selectedPath, animationKey, wlfiPrice, totalInWLFI]);
 
   return (
     <div className="relative bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 shadow-neo-raised dark:shadow-neo-raised-dark rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 mb-4 sm:mb-6 md:mb-8 overflow-hidden border border-gray-300/50 dark:border-gray-600/40 transition-colors duration-300">
@@ -351,9 +358,9 @@ export default function AssetAllocationSunburst({
             <div className="bg-white dark:bg-gray-800 shadow-neo-inset dark:shadow-neo-inset-dark rounded-lg sm:rounded-xl p-3 sm:p-4 border border-gray-200/50 dark:border-gray-600/50">
               <div className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-1 font-semibold">Total Assets</div>
               <div className="text-2xl sm:text-3xl font-bold text-yellow-600 dark:text-yellow-400">
-                {grandTotal.toFixed(2)}
+                {totalInWLFI.toFixed(2)}
               </div>
-              <div className="text-[10px] sm:text-xs text-gray-700 dark:text-gray-300 mt-1 font-medium">WLFI + USD1</div>
+              <div className="text-[10px] sm:text-xs text-gray-700 dark:text-gray-300 mt-1 font-medium">WLFI (incl. USD1 equiv.)</div>
             </div>
           </div>
 
