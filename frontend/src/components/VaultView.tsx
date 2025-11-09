@@ -323,6 +323,7 @@ interface Props {
 
 export default function VaultView({ provider, account, onToast, onNavigateUp, onNavigateToWrapper }: Props) {
   const [activeTab, setActiveTab] = useState<'deposit' | 'withdraw'>('deposit');
+  const [infoTab, setInfoTab] = useState<'vault' | 'strategies'>('vault');
   const [wlfiAmount, setWlfiAmount] = useState('');
   const [usd1Amount, setUsd1Amount] = useState('');
   const [withdrawAmount, setWithdrawAmount] = useState('');
@@ -1296,8 +1297,8 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
           />
         </div>
 
-        {/* Main Grid - 3 Columns: Controls, Vault Info, Strategies */}
-        <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-3">
+        {/* Main Grid - 2 Columns: Controls, Vault Info */}
+        <div className={`grid gap-4 sm:gap-6 grid-cols-1 ${isAdmin ? 'lg:grid-cols-2' : 'lg:grid-cols-3'}`}>
           {/* Column 0 - User/Admin Controls */}
           <div className="lg:col-span-1">
             <NeoCard className="!p-0 overflow-hidden relative">
@@ -1626,11 +1627,26 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
             )}
           </div>
 
-          {/* Column 1 - Vault Info */}
-          <div className="lg:col-span-1">
-            <NeoCard>
-              <div className="space-y-6">
-                {/* Vault Description */}
+          {/* Column 1 - Tabbed Vault Info & Strategies */}
+          <div className={isAdmin ? 'lg:col-span-1' : 'lg:col-span-2'}>
+            <NeoCard className="!p-0">
+              {/* Tab Headers */}
+              <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b border-gray-300/50 dark:border-gray-700/30">
+                <NeoTabs
+                  tabs={[
+                    { id: 'vault', label: 'Vault' },
+                    { id: 'strategies', label: 'Strategies' },
+                  ]}
+                  defaultTab={infoTab}
+                  onChange={(tabId) => setInfoTab(tabId as 'vault' | 'strategies')}
+                />
+              </div>
+
+              {/* Tab Content */}
+              <div className="p-4 sm:p-6">
+                {infoTab === 'vault' && (
+                  <div className="space-y-6">
+                    {/* Vault Description */}
                     <div>
                       <h3 className={`${DS.text.h3} mb-3`}>ERC-4626 Tokenized Vault</h3>
                       <p className={`${DS.text.body} leading-relaxed`}>
@@ -1777,82 +1793,73 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
                         ))}
                       </div>
                     </div>
+                  </div>
+                )}
+
+                {infoTab === 'strategies' && (
+                  <div className="space-y-5">
+                    {/* All 5 Strategies as Expandable Rows */}
+                    {[
+                      {
+                        id: 1,
+                        name: 'Charm USD1/WLFI Alpha Vault',
+                        protocol: 'Charm Finance',
+                        pool: 'USD1/WLFI',
+                        feeTier: '1%',
+                        allocation: '100%',
+                        status: 'active',
+                        description: 'Actively managed concentrated liquidity position on Uniswap V3, optimized for the USD1/WLFI 1% fee tier pool.',
+                        analytics: 'https://alpha.charm.fi/vault/1/0x47b2f57fb48177c02e9e219ad4f4e42d5f4f1a0c',
+                        revertAnalytics: 'https://revert.finance/#/pool/mainnet/uniswapv3/0xf9f5e6f7a44ee10c72e67bded6654afaf4d0c85d',
+                        contract: CONTRACTS.STRATEGY
+                      },
+                      {
+                        id: 2,
+                        name: 'Strategy 2',
+                        protocol: 'TBD',
+                        description: 'Additional yield strategy coming soon. Protocol and implementation details to be announced.',
+                        status: 'coming-soon',
+                        allocation: '0%'
+                      },
+                      {
+                        id: 3,
+                        name: 'Strategy 3',
+                        protocol: 'TBD',
+                        description: 'Additional yield strategy coming soon. Protocol and implementation details to be announced.',
+                        status: 'coming-soon',
+                        allocation: '0%'
+                      },
+                      {
+                        id: 4,
+                        name: 'Strategy 4',
+                        protocol: 'TBD',
+                        description: 'Additional yield strategy coming soon. Protocol and implementation details to be announced.',
+                        status: 'coming-soon',
+                        allocation: '0%'
+                      },
+                      {
+                        id: 5,
+                        name: 'Strategy 5',
+                        protocol: 'TBD',
+                        description: 'Additional yield strategy coming soon. Protocol and implementation details to be announced.',
+                        status: 'coming-soon',
+                        allocation: '0%'
+                      }
+                    ].map((strategy) => (
+                      <StrategyRow 
+                        key={strategy.id} 
+                        strategy={strategy} 
+                        wlfiPrice={data.wlfiPrice} 
+                        revertData={revertData}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
             </NeoCard>
           </div>
-
-          {/* Column 2 - Strategies */}
-          <div className="lg:col-span-1">
-            <NeoCard>
-              <div className="space-y-6">
-                <div className="border-b border-gray-300/50 dark:border-gray-700/30 pb-4">
-                  <h3 className={`${DS.text.h3}`}>Strategies</h3>
-                  <p className={`${DS.text.descriptionSmall} mt-1`}>Active and upcoming yield strategies</p>
-                </div>
-                  <div className="space-y-8">
-                    {/* All 5 Strategies as Expandable Rows */}
-                    <div className="space-y-5">
-                      {[
-                        {
-                          id: 1,
-                          name: 'Charm USD1/WLFI Alpha Vault',
-                          protocol: 'Charm Finance',
-                          pool: 'USD1/WLFI',
-                          feeTier: '1%',
-                          allocation: '100%',
-                          status: 'active',
-                          description: 'Actively managed concentrated liquidity position on Uniswap V3, optimized for the USD1/WLFI 1% fee tier pool.',
-                          analytics: 'https://alpha.charm.fi/vault/1/0x47b2f57fb48177c02e9e219ad4f4e42d5f4f1a0c',
-                          revertAnalytics: 'https://revert.finance/#/pool/mainnet/uniswapv3/0xf9f5e6f7a44ee10c72e67bded6654afaf4d0c85d',
-                          contract: CONTRACTS.STRATEGY
-                        },
-                        {
-                          id: 2,
-                          name: 'Strategy 2',
-                          protocol: 'TBD',
-                          description: 'Additional yield strategy coming soon. Protocol and implementation details to be announced.',
-                          status: 'coming-soon',
-                          allocation: '0%'
-                        },
-                        {
-                          id: 3,
-                          name: 'Strategy 3',
-                          protocol: 'TBD',
-                          description: 'Additional yield strategy coming soon. Protocol and implementation details to be announced.',
-                          status: 'coming-soon',
-                          allocation: '0%'
-                        },
-                        {
-                          id: 4,
-                          name: 'Strategy 4',
-                          protocol: 'TBD',
-                          description: 'Additional yield strategy coming soon. Protocol and implementation details to be announced.',
-                          status: 'coming-soon',
-                          allocation: '0%'
-                        },
-                        {
-                          id: 5,
-                          name: 'Strategy 5',
-                          protocol: 'TBD',
-                          description: 'Additional yield strategy coming soon. Protocol and implementation details to be announced.',
-                          status: 'coming-soon',
-                          allocation: '0%'
-                        }
-                      ].map((strategy) => (
-                        <StrategyRow 
-                          key={strategy.id} 
-                          strategy={strategy} 
-                          wlfiPrice={data.wlfiPrice} 
-                          revertData={revertData}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </NeoCard>
-            </div>
-          </div>
         </div>
       </div>
+    </div>
   );
 }
