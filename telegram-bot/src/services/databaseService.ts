@@ -24,7 +24,7 @@ export class DatabaseService {
       if (!settings) {
         await this.prisma.alertSettings.create({
           data: {
-            minThreshold: 100,
+            minThreshold: 1,
             showSmallTrades: true,
             enableSmartMoneyAlerts: true,
             enableWhaleAlerts: true,

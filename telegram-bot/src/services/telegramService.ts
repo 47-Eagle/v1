@@ -1032,7 +1032,7 @@ export class TelegramService {
     const etherscanWalletUrl = `https://etherscan.io/address/${swap.actualTrader}`;
     const debankWalletUrl = `https://debank.com/profile/${swap.actualTrader}`;
     const uniswapUrl = `https://app.uniswap.org/swap?chain=mainnet&inputCurrency=${token0Address}&outputCurrency=${token1Address}`;
-    const dextoolsUrl = `https://www.dextools.io/app/en/ether/pair-explorer/${token1Address}`;
+    const dexscreenerUrl = `https://dexscreener.com/ethereum/${token1Address}`;
     const geckoTerminalUrl = `https://www.geckoterminal.com/eth/pools/${swap.poolId}`;
     const etherscanTokenUrl = `https://etherscan.io/token/${token1Address}`;
     
@@ -1042,7 +1042,7 @@ export class TelegramService {
     return {
       inline_keyboard: [
         [
-          { text: '📊 Chart', url: dextoolsUrl },
+          { text: '📊 Chart', url: dexscreenerUrl },
           { text: '🔍 Token', url: etherscanTokenUrl },
           { text: '💦 Pool', url: geckoTerminalUrl },
         ],

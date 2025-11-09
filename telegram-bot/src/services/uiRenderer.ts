@@ -1,7 +1,9 @@
 import { ethers } from 'ethers';
 import { Markup } from 'telegraf';
+import axios from 'axios';
 import { ProcessedSwap } from './poolMonitor';
 import { DatabaseService } from './databaseService';
+import { config } from '../config';
 
 export type Theme = 'minimal' | 'compact' | 'rich';
 
@@ -19,7 +21,11 @@ export type Theme = 'minimal' | 'compact' | 'rich';
 export class UIRenderer {
   private db: DatabaseService;
   private theme: Theme;
-  
+  private marketCapCache: Map<string, { marketCap: number; timestamp: number }> = new Map();
+  private readonly MARKET_CAP_CACHE_DURATION = 300000; // 5 minutes cache
+  private totalSupplyCache: Map<string, { totalSupply: bigint; timestamp: number }> = new Map();
+  private readonly TOTAL_SUPPLY_CACHE_DURATION = 3600000; // 1 hour cache
+
   // Design tokens
   private divider = '────────────────────────';
   private compactDivider = '─────────────';
@@ -51,6 +57,86 @@ export class UIRenderer {
    */
   formatMarketCap(value: number): string {
     return `$${this.formatNumber(value)}`;
+  }
+
+  /**
+   * Fetch comprehensive token data from DexScreener API
+   */
+  async getTokenData(tokenAddress: string): Promise<{
+    marketCap: number | null;
+    price: number | null;
+    priceChange24h: number | null;
+    volume24h: number | null;
+    liquidity: number | null;
+  }> {
+    try {
+      const response = await axios.get(
+        `https://api.dexscreener.com/latest/dex/tokens/${tokenAddress}`,
+        { timeout: 5000 } // 5 second timeout
+      );
+
+      const pairs = response.data?.pairs;
+      if (pairs && pairs.length > 0) {
+        // Find the pair with the highest liquidity (most reliable data)
+        const bestPair = pairs.reduce((best: any, current: any) => {
+          return (current.liquidity?.usd || 0) > (best.liquidity?.usd || 0) ? current : best;
+        });
+
+        return {
+          marketCap: bestPair.marketCap || null,
+          price: bestPair.priceUsd ? parseFloat(bestPair.priceUsd) : null,
+          priceChange24h: bestPair.priceChange?.h24 ? parseFloat(bestPair.priceChange.h24) : null,
+          volume24h: bestPair.volume?.h24 ? parseFloat(bestPair.volume.h24) : null,
+          liquidity: bestPair.liquidity?.usd ? parseFloat(bestPair.liquidity.usd) : null,
+        };
+      }
+    } catch (error) {
+      console.warn(`Failed to fetch token data for ${tokenAddress}:`, error instanceof Error ? error.message : String(error));
+    }
+
+    // Fallback: return null values if API fails
+    return {
+      marketCap: null,
+      price: null,
+      priceChange24h: null,
+      volume24h: null,
+      liquidity: null,
+    };
+  }
+
+  /**
+   * Get total supply from blockchain
+   */
+  async getTotalSupply(tokenAddress: string): Promise<bigint | null> {
+    // Check cache first
+    const cached = this.totalSupplyCache.get(tokenAddress.toLowerCase());
+    if (cached && Date.now() - cached.timestamp < this.TOTAL_SUPPLY_CACHE_DURATION) {
+      return cached.totalSupply;
+    }
+
+    try {
+      const provider = new ethers.JsonRpcProvider(config.ethereum.rpcUrl);
+      const tokenContract = new ethers.Contract(
+        tokenAddress,
+        ['function totalSupply() view returns (uint256)'],
+        provider
+      );
+
+      const totalSupply = await tokenContract.totalSupply();
+      const totalSupplyBigInt = BigInt(totalSupply.toString());
+
+      // Cache the result
+      this.totalSupplyCache.set(tokenAddress.toLowerCase(), {
+        totalSupply: totalSupplyBigInt,
+        timestamp: Date.now(),
+      });
+
+      return totalSupplyBigInt;
+    } catch (error) {
+      console.warn(`Failed to fetch total supply for ${tokenAddress}:`, error instanceof Error ? error.message : String(error));
+      // Fallback to hardcoded value if blockchain call fails
+      return 50000000n * (10n ** 18n); // 50M tokens with 18 decimals
+    }
   }
 
   /**
@@ -123,26 +209,33 @@ export class UIRenderer {
         swapCount, avgBuy, timeStr, swap.blockNumber
       );
     } else {
-      // Minimal theme (default) - oooOOO style
-      const marketCap = swap.valueUSD ? this.formatMarketCap(swap.valueUSD) : 'N/A';
-      const traderLink = `https://etherscan.io/address/${swap.actualTrader}`;
+      // Minimal theme (default) - EAGLE style
+      // Get comprehensive token data from DexScreener
+      const tokenData = await this.getTokenData(swap.token1Info?.address || '');
+      const marketCap = tokenData.marketCap ? this.formatMarketCap(tokenData.marketCap) : '$0';
+      const traderProfileLink = `https://etherscan.io/address/${swap.actualTrader}`;
       const txLink = `https://etherscan.io/tx/${swap.txHash}`;
       const traderLabel = direction === 'BUY' ? 'Buyer' : 'Seller';
+      const tokenAddress = swap.token1Info?.address || '';
       
-      message = 
+      // Calculate emoji count based on dollar value (1 emoji per $1, no upper limit)
+      const usdValue = parseFloat(valueUSD.replace(/[$,]/g, ''));
+      const emojiCount = Math.max(1, Math.floor(usdValue));
+      const emojiPattern = '💎🦅';
+      const repeatedEmojis = emojiPattern.repeat(Math.ceil(emojiCount / 2)).substring(0, emojiCount * 2);
+
+      message =
 `EAGLE ${direction}!
 
-
-
-🦅🦅🦅🦅🦅🦅🦅
+${repeatedEmojis}
 
 💵 ${ethAmount} ${tokenIn} (${valueUSD})
-
 🪙 ${tokenAmount} ${tokenOut}
+👤 <a href="${traderProfileLink}">${traderLabel}</a> | <a href="${txLink}">Txn</a>
+🔼 Market Cap: ${marketCap}
 
-👤 <a href="${traderLink}">${traderLabel}</a> | <a href="${txLink}">Txn</a>
-
-🔼 Market Cap: ${marketCap}`;
+📈 Chart (https://dexscreener.com/ethereum/${tokenAddress}) 🔄 Buy (https://app.uniswap.org/swap?chain=mainnet&inputCurrency=ETH&outputCurrency=${tokenAddress}) 🟦 Trending (https://www.geckoterminal.com/eth/pools/${swap.poolId})
+📱 47Eagle (https://47eagle.com)`;
     }
 
     const keyboard = this.createTradeKeyboard(swap);
@@ -214,25 +307,11 @@ ${this.divider}`
   }
 
   /**
-   * Create inline keyboard for trade actions - oooOOO style
+   * Create inline keyboard for trade actions - EAGLE style (links now embedded in message)
    */
   private createTradeKeyboard(swap: ProcessedSwap) {
-    const tokenAddress = swap.token1Info?.address || '';
-    const poolId = swap.poolId || '';
-    const walletAddr = swap.actualTrader;
-    const token0Addr = swap.token0Info?.address || 'ETH';
-    const token1Addr = swap.token1Info?.address || '';
-
-    return Markup.inlineKeyboard([
-      [
-        Markup.button.url('📈 Chart', `https://www.dextools.io/app/en/ether/pair-explorer/${tokenAddress}`),
-        Markup.button.url('🔄 Buy', `https://app.uniswap.org/#/swap?chain=mainnet&inputCurrency=${token0Addr}&outputCurrency=${token1Addr}`),
-        Markup.button.url('🟦 Trending', `https://www.geckoterminal.com/eth/pools/${poolId}`),
-      ],
-      [
-        Markup.button.url('📱 EAGLE App', `https://www.47eagle.com`),
-      ],
-    ]);
+    // Links are now embedded in the message text, so we use an empty keyboard
+    return Markup.inlineKeyboard([]);
   }
 
   /**

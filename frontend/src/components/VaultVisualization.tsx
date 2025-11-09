@@ -16,7 +16,7 @@ const POOL_ADDRESS = '0xf9f5e6f7a44ee10c72e67bded6654afaf4d0c85d'
 const fetchRevertFinanceData = async () => {
   try {
     const response = await fetch(
-      `https://api.revert.finance/v1/discover-pools/daily?pool=${POOL_ADDRESS}&days=30&network=mainnet`
+      `/api/revert-finance?pool=${POOL_ADDRESS}&days=30&network=mainnet`
     );
     const result = await response.json();
     

@@ -25,9 +25,9 @@ export function useRevertFinanceData(): RevertFinanceData {
   useEffect(() => {
     async function fetchData() {
       try {
-        console.log('[useRevertFinanceData] Fetching from API...');
+        console.log('[useRevertFinanceData] Fetching from API proxy...');
         const response = await fetch(
-          `https://api.revert.finance/v1/discover-pools/daily?pool=${POOL_ADDRESS}&days=30&network=mainnet`
+          `/api/revert-finance?pool=${POOL_ADDRESS}&days=30&network=mainnet`
         );
         
         console.log('[useRevertFinanceData] Response status:', response.status);
