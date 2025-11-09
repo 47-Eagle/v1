@@ -221,8 +221,14 @@ export class UIRenderer {
       // Calculate emoji count based on dollar value (1 emoji per $1, no upper limit)
       const usdValue = parseFloat(valueUSD.replace(/[$,]/g, ''));
       const emojiCount = Math.max(1, Math.floor(usdValue));
-      const emojiPattern = '💎🦅';
-      const repeatedEmojis = emojiPattern.repeat(Math.ceil(emojiCount / 2)).substring(0, emojiCount * 2);
+      // Use custom eagle emoji from 47 Eagle pack (ID: 5145476085961459815)
+      const customEagle = '<tg-emoji emoji-id="5145476085961459815">🦅</tg-emoji>';
+      const diamond = '💎';
+      const emojiPattern = diamond + customEagle;
+      let repeatedEmojis = '';
+      for (let i = 0; i < emojiCount; i++) {
+        repeatedEmojis += i % 2 === 0 ? diamond : customEagle;
+      }
 
       message =
 `EAGLE ${direction}!
