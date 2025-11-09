@@ -47,6 +47,13 @@ export class UIRenderer {
   }
 
   /**
+   * Format market cap with $ prefix
+   */
+  formatMarketCap(value: number): string {
+    return `$${this.formatNumber(value)}`;
+  }
+
+  /**
    * Main trade card renderer - Bloomberg-style minimal design
    */
   async renderTradeCard(swap: ProcessedSwap): Promise<{ text: string; keyboard: any }> {
@@ -116,21 +123,26 @@ export class UIRenderer {
         swapCount, avgBuy, timeStr, swap.blockNumber
       );
     } else {
-      // Minimal theme (default)
+      // Minimal theme (default) - oooOOO style
+      const marketCap = swap.valueUSD ? this.formatMarketCap(swap.valueUSD) : 'N/A';
+      const traderLink = `https://etherscan.io/address/${swap.actualTrader}`;
+      const txLink = `https://etherscan.io/tx/${swap.txHash}`;
+      const traderLabel = direction === 'BUY' ? 'Buyer' : 'Seller';
+      
       message = 
-`${direction} ${directionIcon} ${tokenOut}
-${this.divider}
+`EAGLE ${direction}!
 
-${tokenAmount} ${tokenOut}  ≈  ${ethAmount} ${tokenIn}
-Est. Value:  ${valueUSD}  ${pricePerToken ? `(${pricePerToken})` : ''}
 
-Trader: <code>${swap.actualTrader.slice(0, 8)}...${swap.actualTrader.slice(-6)}</code>
-Tier: ${tier} ${tierIcon} Confidence: ${confidence}
 
-${this.divider}
-Pool: Uniswap V4 Mainnet
-Time: ${timeStr} ▪ Block: ${swap.blockNumber}
-${this.divider}`;
+🦅🦅🦅🦅🦅🦅🦅
+
+💵 ${ethAmount} ${tokenIn} (${valueUSD})
+
+🪙 ${tokenAmount} ${tokenOut}
+
+👤 <a href="${traderLink}">${traderLabel}</a> | <a href="${txLink}">Txn</a>
+
+🔼 Market Cap: ${marketCap}`;
     }
 
     const keyboard = this.createTradeKeyboard(swap);
@@ -202,7 +214,7 @@ ${this.divider}`
   }
 
   /**
-   * Create inline keyboard for trade actions
+   * Create inline keyboard for trade actions - oooOOO style
    */
   private createTradeKeyboard(swap: ProcessedSwap) {
     const tokenAddress = swap.token1Info?.address || '';
@@ -213,24 +225,12 @@ ${this.divider}`
 
     return Markup.inlineKeyboard([
       [
-        Markup.button.url('Chart', `https://www.dextools.io/app/en/ether/pair-explorer/${tokenAddress}`),
-        Markup.button.url('Token', `https://etherscan.io/token/${tokenAddress}`),
-        Markup.button.url('Pool', `https://www.geckoterminal.com/eth/pools/${poolId}`),
+        Markup.button.url('📈 Chart', `https://www.dextools.io/app/en/ether/pair-explorer/${tokenAddress}`),
+        Markup.button.url('🔄 Buy', `https://app.uniswap.org/#/swap?chain=mainnet&inputCurrency=${token0Addr}&outputCurrency=${token1Addr}`),
+        Markup.button.url('🟦 Trending', `https://www.geckoterminal.com/eth/pools/${poolId}`),
       ],
       [
-        Markup.button.url('TX', `https://etherscan.io/tx/${swap.txHash}`),
-        Markup.button.url('Wallet', `https://etherscan.io/address/${walletAddr}`),
-        Markup.button.url('DeBank', `https://debank.com/profile/${walletAddr}`),
-      ],
-      [
-        Markup.button.url(
-          'Trade on Uniswap',
-          `https://app.uniswap.org/#/swap?chain=mainnet&inputCurrency=${token0Addr}&outputCurrency=${token1Addr}`
-        ),
-      ],
-      [
-        Markup.button.callback('⭐ Track', `track_${walletAddr}`),
-        Markup.button.callback('🔇 Mute', `mute_${walletAddr}`),
+        Markup.button.url('📱 EAGLE App', `https://www.47eagle.com`),
       ],
     ]);
   }
