@@ -258,6 +258,22 @@ export default function AssetAllocationSunburst({
       <div className="absolute top-0 right-0 w-32 h-32 sm:w-48 sm:h-48 md:w-64 md:h-64 bg-gradient-to-br from-yellow-500/5 to-transparent rounded-full blur-2xl sm:blur-3xl animate-pulse"></div>
       
       <div className="relative">
+        {/* ERC-4626 Vault Description */}
+        <div className="mb-5 sm:mb-6 md:mb-8">
+          <h3 className="text-gray-900 dark:text-gray-100 font-bold text-xl sm:text-2xl mb-3">ERC-4626 Tokenized Vault</h3>
+          <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300 leading-relaxed">
+            A standardized vault accepting{' '}
+            <a href="https://worldlibertyfinancial.com/" target="_blank" rel="noopener noreferrer" className="text-yellow-600 dark:text-yellow-400 font-bold hover:text-yellow-700 dark:hover:text-yellow-300 transition-colors">
+              WLFI
+            </a>
+            {' '}and{' '}
+            <a href="https://worldlibertyfinancial.com/usd1" target="_blank" rel="noopener noreferrer" className="text-yellow-600 dark:text-yellow-400 font-bold hover:text-yellow-700 dark:hover:text-yellow-300 transition-colors">
+              USD1
+            </a>
+            , issuing vEAGLE shares that represent proportional ownership and automatically compound yields.
+          </p>
+        </div>
+
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-5 md:mb-6">
           <div>
             <h3 className="text-gray-900 dark:text-gray-100 font-bold text-lg sm:text-xl mb-1">Asset Allocation</h3>

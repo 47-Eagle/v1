@@ -1735,22 +1735,9 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
                           </div>
                         </div>
 
-                    {/* Asset Allocation with ERC-4626 Info */}
+                    {/* Asset Allocation */}
                     <div>
-                      <h3 className={`${DS.text.h3} mb-3`}>ERC-4626 Tokenized Vault</h3>
-                      <p className={`${DS.text.body} leading-relaxed mb-4`}>
-                        A standardized vault accepting{' '}
-                        <a href="https://worldlibertyfinancial.com/" target="_blank" rel="noopener noreferrer" className={`${DS.text.highlightBold} hover:text-yellow-800 dark:hover:text-yellow-300 ${DS.transitions.fast}`}>
-                          WLFI
-                        </a>
-                        {' '}and{' '}
-                        <a href="https://worldlibertyfinancial.com/usd1" target="_blank" rel="noopener noreferrer" className={`${DS.text.highlightBold} hover:text-yellow-800 dark:hover:text-yellow-300 ${DS.transitions.fast}`}>
-                          USD1
-                        </a>
-                        , issuing vEAGLE shares that represent proportional ownership and automatically compound yields.
-                      </p>
-                      
-                      <h4 className={`${DS.text.h4} mb-4 mt-6`}>Asset Allocation</h4>
+                      <h4 className={`${DS.text.h4} mb-4`}>Asset Allocation</h4>
                       <div className="space-y-3">
                         {/* Strategy 1 - Active */}
                         <div className={`${DS.backgrounds.card} ${DS.shadows.raised} ${DS.radius.md} p-4 ${DS.borders.subtle}`}>
