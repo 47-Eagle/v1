@@ -92,7 +92,7 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
           )}
           
           {/* POOL ANALYTICS - Comprehensive */}
-          {strategy.id === 1 && strategy.status === 'active' && !revertData.loading && !revertData.error && (
+          {strategy.id === 1 && strategy.status === 'active' && !revertData.loading && (
             <div className="flex-1 min-w-0 max-w-2xl">
               <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-zinc-800/50 dark:to-zinc-900/50 rounded-xl p-3 border border-gray-200/50 dark:border-zinc-700/30">
                 <div className="flex items-center justify-between mb-2">
@@ -101,35 +101,43 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
                   </div>
                   <div className="text-[9px] text-gray-500 dark:text-gray-600">Last 7 days</div>
                 </div>
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-                  <div className="bg-white/60 dark:bg-black/20 rounded-lg p-2 border border-white/50 dark:border-white/5">
-                    <div className="text-[9px] text-gray-500 dark:text-gray-600 mb-0.5 uppercase tracking-wide">TVL</div>
-                    <div className="text-sm font-bold text-gray-900 dark:text-white">
-                      ${revertData.tvl.toFixed(2)}
-                    </div>
+                {revertData.error ? (
+                  <div className="text-center py-4 text-xs text-gray-500 dark:text-gray-600">
+                    Pool data temporarily unavailable
                   </div>
-                  <div className="bg-white/60 dark:bg-black/20 rounded-lg p-2 border border-white/50 dark:border-white/5">
-                    <div className="text-[9px] text-gray-500 dark:text-gray-600 mb-0.5 uppercase tracking-wide">7d Avg APR</div>
-                    <div className="text-sm font-bold text-gray-900 dark:text-white">
-                      {revertData.avgAPR.toFixed(1)}%
+                ) : (
+                  <>
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                      <div className="bg-white/60 dark:bg-black/20 rounded-lg p-2 border border-white/50 dark:border-white/5">
+                        <div className="text-[9px] text-gray-500 dark:text-gray-600 mb-0.5 uppercase tracking-wide">TVL</div>
+                        <div className="text-sm font-bold text-gray-900 dark:text-white">
+                          ${revertData.tvl.toFixed(2)}
+                        </div>
+                      </div>
+                      <div className="bg-white/60 dark:bg-black/20 rounded-lg p-2 border border-white/50 dark:border-white/5">
+                        <div className="text-[9px] text-gray-500 dark:text-gray-600 mb-0.5 uppercase tracking-wide">7d Avg APR</div>
+                        <div className="text-sm font-bold text-gray-900 dark:text-white">
+                          {revertData.avgAPR.toFixed(1)}%
+                        </div>
+                      </div>
+                      <div className="bg-white/60 dark:bg-black/20 rounded-lg p-2 border border-white/50 dark:border-white/5">
+                        <div className="text-[9px] text-gray-500 dark:text-gray-600 mb-0.5 uppercase tracking-wide">Max APR</div>
+                        <div className="text-sm font-bold text-gray-900 dark:text-white">
+                          {revertData.maxAPR.toFixed(1)}%
+                        </div>
+                      </div>
+                      <div className="bg-white/60 dark:bg-black/20 rounded-lg p-2 border border-white/50 dark:border-white/5">
+                        <div className="text-[9px] text-gray-500 dark:text-gray-600 mb-0.5 uppercase tracking-wide">Avg Vol</div>
+                        <div className="text-sm font-bold text-gray-900 dark:text-white">
+                          ${revertData.avgVolume.toFixed(0)}/day
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <div className="bg-white/60 dark:bg-black/20 rounded-lg p-2 border border-white/50 dark:border-white/5">
-                    <div className="text-[9px] text-gray-500 dark:text-gray-600 mb-0.5 uppercase tracking-wide">Max APR</div>
-                    <div className="text-sm font-bold text-gray-900 dark:text-white">
-                      {revertData.maxAPR.toFixed(1)}%
+                    <div className="text-[9px] text-gray-500 dark:text-gray-600 mt-2 text-center">
+                      via Revert Finance
                     </div>
-                  </div>
-                  <div className="bg-white/60 dark:bg-black/20 rounded-lg p-2 border border-white/50 dark:border-white/5">
-                    <div className="text-[9px] text-gray-500 dark:text-gray-600 mb-0.5 uppercase tracking-wide">Avg Vol</div>
-                    <div className="text-sm font-bold text-gray-900 dark:text-white">
-                      ${revertData.avgVolume.toFixed(0)}/day
-                    </div>
-                  </div>
-                </div>
-                <div className="text-[9px] text-gray-500 dark:text-gray-600 mt-2 text-center">
-                  via Revert Finance
-                </div>
+                  </>
+                )}
               </div>
             </div>
           )}
