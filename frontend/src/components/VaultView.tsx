@@ -1309,108 +1309,102 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
               {/* Tab Content */}
               <div className="p-4 sm:p-6">
                 {infoTab === 'vault' && (
-                  <div className="space-y-6">
-                    {/* ERC-4626 Vault Description */}
-                    <div>
-                      <h3 className={`${DS.text.h3} mb-3`}>ERC-4626 Tokenized Vault</h3>
-                      <p className={`${DS.text.body} leading-relaxed`}>
-                        A standardized vault accepting{' '}
-                        <a href="https://worldlibertyfinancial.com/" target="_blank" rel="noopener noreferrer" className={`${DS.text.highlightBold} hover:text-yellow-800 dark:hover:text-yellow-300 ${DS.transitions.fast}`}>
-                          WLFI
-                        </a>
-                        {' '}and{' '}
-                        <a href="https://worldlibertyfinancial.com/usd1" target="_blank" rel="noopener noreferrer" className={`${DS.text.highlightBold} hover:text-yellow-800 dark:hover:text-yellow-300 ${DS.transitions.fast}`}>
-                          USD1
-                        </a>
-                        , issuing vEAGLE shares that represent proportional ownership and automatically compound yields.
-                      </p>
-                    </div>
-                    
-                    {/* Bootstrapping Notice */}
-                    <div className={`${DS.backgrounds.info} ${DS.borders.info} ${DS.radius.md} ${DS.spacing.cardPadding} ${DS.shadows.raised}`}>
-                      <div className="flex items-start gap-2 sm:gap-3">
-                        <div className={`flex-shrink-0 w-5 h-5 sm:w-6 sm:h-6 bg-blue-500 dark:bg-blue-600 ${DS.radius.full} flex items-center justify-center mt-0.5`}>
-                          <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                        </div>
+                  <div className="space-y-4">
+                    {/* Compact Header: ERC-4626 + Bootstrapping Notice */}
+                    <div className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-800/50 dark:to-gray-900/30 rounded-xl p-4 border border-gray-200/50 dark:border-gray-700/30">
+                      <div className="flex items-start justify-between gap-3 mb-3">
                         <div className="flex-1 min-w-0">
-                          <h4 className="text-blue-900 dark:text-blue-200 font-bold mb-2 text-base sm:text-lg">Bootstrapping Phase</h4>
-                          <p className="text-xs sm:text-sm text-blue-800 dark:text-blue-300 leading-relaxed">
-                            We are currently in the bootstrapping phase and have temporarily disabled deposits and withdrawals. 
-                            We are carefully easing capital into strategies as a safety precaution to ensure optimal performance and security. 
-                            Thank you for your patience.
+                          <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-1">ERC-4626 Tokenized Vault</h3>
+                          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 leading-snug">
+                            Standardized vault accepting{' '}
+                            <a href="https://worldlibertyfinancial.com/" target="_blank" rel="noopener noreferrer" className="text-yellow-600 dark:text-yellow-400 font-semibold hover:underline">
+                              WLFI
+                            </a>
+                            {' '}and{' '}
+                            <a href="https://worldlibertyfinancial.com/usd1" target="_blank" rel="noopener noreferrer" className="text-yellow-600 dark:text-yellow-400 font-semibold hover:underline">
+                              USD1
+                            </a>
+                            , issuing vEAGLE shares with auto-compounding yields.
                           </p>
                         </div>
-                      </div>
-                    </div>
-
-                    {/* Fee Structure */}
-                    <div>
-                      <h4 className={`${DS.text.h4} mb-3 sm:mb-4`}>Fee Structure</h4>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-                        <div className={`${DS.backgrounds.card} ${DS.shadows.raised} ${DS.radius.md} p-4 sm:p-6 ${DS.borders.subtle} ${DS.shadows.raisedHover} ${DS.transitions.default}`}>
-                          <div className={`${DS.text.labelSmall} mb-2 sm:mb-3`}>Deposit</div>
-                          <div className={`${DS.text.valueMedium} text-xl sm:text-2xl`}>1%</div>
-                        </div>
-                        <div className={`${DS.backgrounds.card} ${DS.shadows.raised} ${DS.radius.md} p-4 sm:p-6 ${DS.borders.subtle} ${DS.shadows.raisedHover} ${DS.transitions.default}`}>
-                          <div className={`${DS.text.labelSmall} mb-2 sm:mb-3`}>Withdrawal</div>
-                          <div className={`${DS.text.valueMedium} text-xl sm:text-2xl`}>2%</div>
-                        </div>
-                        <div className={`${DS.backgrounds.highlight} ${DS.shadows.raised} ${DS.radius.md} p-4 sm:p-6 ${DS.borders.highlight} ${DS.shadows.raisedHover} ${DS.transitions.default}`}>
-                          <div className="text-xs text-gray-700 dark:text-yellow-200 font-bold uppercase tracking-wider mb-2 sm:mb-3">Performance</div>
-                          <div className="text-xl sm:text-2xl font-bold text-yellow-700 dark:text-yellow-300">4.7%</div>
-                          <div className="text-xs text-gray-600 dark:text-yellow-200/70 mt-1 sm:mt-2">On profits only</div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Accepted Assets */}
-                    <div>
-                      <h4 className={`${DS.text.h4} mb-4`}>Accepted Assets</h4>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                        <div className={`${DS.backgrounds.card} ${DS.shadows.raised} ${DS.radius.md} ${DS.spacing.cardPadding} ${DS.borders.subtle} ${DS.shadows.raisedHover} ${DS.transitions.default}`}>
-                          <div className="flex items-center gap-4">
-                            <img src={ICONS.WLFI} alt="WLFI" className={`w-14 h-14 ${DS.radius.full} border-2 border-white dark:border-gray-600 shadow-lg flex-shrink-0`} />
-                            <div className="flex-1">
-                              <div className={`${DS.text.h4} mb-1`}>WLFI</div>
-                              <div className={`${DS.text.highlight} font-bold text-lg`}>${data.wlfiPrice}</div>
-                              <div className={DS.text.descriptionSmall}>World Liberty Financial</div>
-                            </div>
-                          </div>
-                        </div>
-                        <div className={`${DS.backgrounds.card} ${DS.shadows.raised} ${DS.radius.md} ${DS.spacing.cardPadding} ${DS.borders.subtle} ${DS.shadows.raisedHover} ${DS.transitions.default}`}>
-                          <div className="flex items-center gap-4">
-                            <img src={ICONS.USD1} alt="USD1" className={`w-14 h-14 ${DS.radius.full} border-2 border-white dark:border-gray-600 shadow-lg flex-shrink-0`} />
-                            <div className="flex-1">
-                              <div className={`${DS.text.h4} mb-1`}>USD1</div>
-                              <div className={`${DS.text.highlight} font-bold text-lg`}>${data.usd1Price}</div>
-                              <div className={DS.text.descriptionSmall}>Stablecoin</div>
-                            </div>
+                        <div className="flex-shrink-0">
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 dark:from-yellow-500 dark:to-yellow-700 flex items-center justify-center">
+                            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
                           </div>
                         </div>
                       </div>
+                      <div className="flex items-center gap-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg px-3 py-2 border border-blue-200/50 dark:border-blue-700/30">
+                        <svg className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <p className="text-xs text-blue-800 dark:text-blue-300">
+                          <span className="font-bold">Bootstrapping:</span> Deposits & withdrawals temporarily disabled while easing capital into strategies.
+                        </p>
+                      </div>
                     </div>
 
-                    {/* Vault Contract */}
-                    <div>
-                      <h4 className={`${DS.text.h4} mb-4`}>Vault Contract</h4>
-                      <div className={`${DS.backgrounds.card} ${DS.shadows.raised} ${DS.radius.md} ${DS.spacing.cardPadding} ${DS.borders.subtle} ${DS.shadows.raisedHover} ${DS.transitions.default}`}>
+                    {/* Compact Fee Grid + Assets + Contract */}
+                    <div className="bg-white dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200/50 dark:border-gray-700/30 space-y-3">
+                      {/* Fees - Single Row */}
+                      <div>
+                        <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Fees</div>
+                        <div className="flex gap-2">
+                          <div className="flex-1 bg-gray-50 dark:bg-gray-900/30 rounded-lg px-3 py-2 border border-gray-200/50 dark:border-gray-700/30">
+                            <div className="text-[10px] text-gray-500 dark:text-gray-400 uppercase mb-0.5">Deposit</div>
+                            <div className="text-lg font-bold text-gray-900 dark:text-white">1%</div>
+                          </div>
+                          <div className="flex-1 bg-gray-50 dark:bg-gray-900/30 rounded-lg px-3 py-2 border border-gray-200/50 dark:border-gray-700/30">
+                            <div className="text-[10px] text-gray-500 dark:text-gray-400 uppercase mb-0.5">Withdraw</div>
+                            <div className="text-lg font-bold text-gray-900 dark:text-white">2%</div>
+                          </div>
+                          <div className="flex-1 bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 rounded-lg px-3 py-2 border border-yellow-200 dark:border-yellow-600/30">
+                            <div className="text-[10px] text-yellow-700 dark:text-yellow-400 uppercase mb-0.5 font-bold">Performance</div>
+                            <div className="text-lg font-bold text-yellow-700 dark:text-yellow-300">4.7%</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Assets - Inline */}
+                      <div>
+                        <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Assets</div>
+                        <div className="flex gap-2">
+                          <div className="flex-1 flex items-center gap-2 bg-gray-50 dark:bg-gray-900/30 rounded-lg px-3 py-2 border border-gray-200/50 dark:border-gray-700/30">
+                            <img src={ICONS.WLFI} alt="WLFI" className="w-8 h-8 rounded-full flex-shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <div className="text-xs font-bold text-gray-900 dark:text-white">WLFI</div>
+                              <div className="text-xs font-semibold text-yellow-600 dark:text-yellow-400">${data.wlfiPrice}</div>
+                            </div>
+                          </div>
+                          <div className="flex-1 flex items-center gap-2 bg-gray-50 dark:bg-gray-900/30 rounded-lg px-3 py-2 border border-gray-200/50 dark:border-gray-700/30">
+                            <img src={ICONS.USD1} alt="USD1" className="w-8 h-8 rounded-full flex-shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <div className="text-xs font-bold text-gray-900 dark:text-white">USD1</div>
+                              <div className="text-xs font-semibold text-yellow-600 dark:text-yellow-400">${data.usd1Price}</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Contract - Compact */}
+                      <div>
+                        <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Contract</div>
                         <a 
                           href={`https://etherscan.io/address/${CONTRACTS.VAULT}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex justify-between items-center group"
+                          className="flex items-center justify-between gap-2 bg-gray-50 dark:bg-gray-900/30 rounded-lg px-3 py-2 border border-gray-200/50 dark:border-gray-700/30 hover:border-yellow-400 dark:hover:border-yellow-600 transition-colors group"
                         >
-                          <span className={`${DS.text.label} font-bold`}>ERC-4626 Vault</span>
-                          <div className={`flex items-center gap-2 ${DS.text.highlight} hover:text-yellow-700 dark:hover:text-yellow-300 ${DS.transitions.fast}`}>
-                            <code className="text-xs font-mono font-semibold break-all">
-                              {CONTRACTS.VAULT}
-                            </code>
-                            <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                          <div className="flex items-center gap-2 min-w-0 flex-1">
+                            <svg className="w-4 h-4 text-gray-400 dark:text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                             </svg>
+                            <code className="text-xs font-mono text-gray-600 dark:text-gray-400 truncate">{CONTRACTS.VAULT}</code>
                           </div>
+                          <svg className="w-4 h-4 text-gray-400 group-hover:text-yellow-600 dark:group-hover:text-yellow-400 flex-shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                          </svg>
                         </a>
                       </div>
                     </div>
@@ -1824,3 +1818,4 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
     </div>
   );
 }
+
