@@ -127,6 +127,9 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
                     </div>
                   </div>
                 </div>
+                <div className="text-[9px] text-gray-500 dark:text-gray-600 mt-2 text-center">
+                  via Revert Finance
+                </div>
               </div>
             </div>
           )}
