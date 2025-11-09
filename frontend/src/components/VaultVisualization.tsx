@@ -473,32 +473,32 @@ export default function VaultVisualization({ currentPrice = WLFI_PRICE_USD }: Va
           {revertData && (
             <div className="pt-3 sm:pt-4 border-t border-white/5">
               <div className="text-xs sm:text-sm text-gray-300">
-                <div className="text-blue-400 font-semibold text-sm sm:text-base mb-2">
+                <div className="text-gray-300 font-semibold text-sm sm:text-base mb-2">
                   POOL ANALYTICS
                   <span className="text-[10px] sm:text-xs text-gray-500 font-normal ml-2">(Last 7 days)</span>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
                   <div className="bg-black/30 rounded-lg p-2 sm:p-3 border border-white/5">
                     <div className="text-[10px] sm:text-xs text-gray-500 mb-1">TVL</div>
-                    <div className="text-sm sm:text-base font-bold text-cyan-400">
+                    <div className="text-sm sm:text-base font-bold text-white">
                       ${revertData.latest?.tvl_usd.toFixed(2) || '0'}
                     </div>
                   </div>
                   <div className="bg-black/30 rounded-lg p-2 sm:p-3 border border-white/5">
                     <div className="text-[10px] sm:text-xs text-gray-500 mb-1">7d Avg APR</div>
-                    <div className="text-sm sm:text-base font-bold text-green-400">
+                    <div className="text-sm sm:text-base font-bold text-white">
                       {revertData.avgAPR?.toFixed(1) || '0'}%
                     </div>
                   </div>
                   <div className="bg-black/30 rounded-lg p-2 sm:p-3 border border-white/5">
                     <div className="text-[10px] sm:text-xs text-gray-500 mb-1">Max APR</div>
-                    <div className="text-sm sm:text-base font-bold text-yellow-400">
+                    <div className="text-sm sm:text-base font-bold text-white">
                       {revertData.maxAPR?.toFixed(1) || '0'}%
                     </div>
                   </div>
                   <div className="bg-black/30 rounded-lg p-2 sm:p-3 border border-white/5">
                     <div className="text-[10px] sm:text-xs text-gray-500 mb-1">Avg Vol</div>
-                    <div className="text-sm sm:text-base font-bold text-purple-400">
+                    <div className="text-sm sm:text-base font-bold text-white">
                       ${revertData.avgVolume?.toFixed(0) || '0'}/day
                     </div>
                   </div>

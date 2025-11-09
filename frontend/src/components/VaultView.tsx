@@ -94,9 +94,9 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
           {/* POOL ANALYTICS - Comprehensive */}
           {strategy.id === 1 && strategy.status === 'active' && !revertData.loading && !revertData.error && (
             <div className="flex-1 min-w-0 max-w-2xl">
-              <div className="bg-gradient-to-br from-blue-50/50 to-cyan-50/50 dark:from-blue-950/30 dark:to-cyan-950/30 rounded-xl p-3 border border-blue-200/50 dark:border-blue-800/30">
+              <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-zinc-800/50 dark:to-zinc-900/50 rounded-xl p-3 border border-gray-200/50 dark:border-zinc-700/30">
                 <div className="flex items-center justify-between mb-2">
-                  <div className="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
+                  <div className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                     Pool Analytics
                   </div>
                   <div className="text-[9px] text-gray-500 dark:text-gray-600">Last 7 days</div>
@@ -104,25 +104,25 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
                   <div className="bg-white/60 dark:bg-black/20 rounded-lg p-2 border border-white/50 dark:border-white/5">
                     <div className="text-[9px] text-gray-500 dark:text-gray-600 mb-0.5 uppercase tracking-wide">TVL</div>
-                    <div className="text-sm font-bold text-cyan-600 dark:text-cyan-400">
+                    <div className="text-sm font-bold text-gray-900 dark:text-white">
                       ${revertData.tvl.toFixed(2)}
                     </div>
                   </div>
                   <div className="bg-white/60 dark:bg-black/20 rounded-lg p-2 border border-white/50 dark:border-white/5">
                     <div className="text-[9px] text-gray-500 dark:text-gray-600 mb-0.5 uppercase tracking-wide">7d Avg APR</div>
-                    <div className="text-sm font-bold text-green-600 dark:text-green-400">
+                    <div className="text-sm font-bold text-gray-900 dark:text-white">
                       {revertData.avgAPR.toFixed(1)}%
                     </div>
                   </div>
                   <div className="bg-white/60 dark:bg-black/20 rounded-lg p-2 border border-white/50 dark:border-white/5">
                     <div className="text-[9px] text-gray-500 dark:text-gray-600 mb-0.5 uppercase tracking-wide">Max APR</div>
-                    <div className="text-sm font-bold text-yellow-600 dark:text-yellow-400">
+                    <div className="text-sm font-bold text-gray-900 dark:text-white">
                       {revertData.maxAPR.toFixed(1)}%
                     </div>
                   </div>
                   <div className="bg-white/60 dark:bg-black/20 rounded-lg p-2 border border-white/50 dark:border-white/5">
                     <div className="text-[9px] text-gray-500 dark:text-gray-600 mb-0.5 uppercase tracking-wide">Avg Vol</div>
-                    <div className="text-sm font-bold text-purple-600 dark:text-purple-400">
+                    <div className="text-sm font-bold text-gray-900 dark:text-white">
                       ${revertData.avgVolume.toFixed(0)}/day
                     </div>
                   </div>
