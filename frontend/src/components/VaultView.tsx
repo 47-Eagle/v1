@@ -1328,10 +1328,29 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
                   </div>
                 </div>
 
+                {/* Fees Section - Above Tabs */}
+                <div className="bg-white dark:bg-gray-800/50 rounded-xl p-3 sm:p-4 border border-gray-200/50 dark:border-gray-700/30 mb-4">
+                  <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Fees</div>
+                  <div className="flex gap-2">
+                    <div className="flex-1 bg-gray-50 dark:bg-gray-900/30 rounded-lg px-3 py-2 border border-gray-200/50 dark:border-gray-700/30">
+                      <div className="text-[10px] text-gray-500 dark:text-gray-400 uppercase mb-0.5">Deposit</div>
+                      <div className="text-lg font-bold text-gray-900 dark:text-white">1%</div>
+                    </div>
+                    <div className="flex-1 bg-gray-50 dark:bg-gray-900/30 rounded-lg px-3 py-2 border border-gray-200/50 dark:border-gray-700/30">
+                      <div className="text-[10px] text-gray-500 dark:text-gray-400 uppercase mb-0.5">Withdraw</div>
+                      <div className="text-lg font-bold text-gray-900 dark:text-white">2%</div>
+                    </div>
+                    <div className="flex-1 bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 rounded-lg px-3 py-2 border border-yellow-200 dark:border-yellow-600/30">
+                      <div className="text-[10px] text-yellow-700 dark:text-yellow-400 uppercase mb-0.5 font-bold">Performance</div>
+                      <div className="text-lg font-bold text-yellow-700 dark:text-yellow-300">4.7%</div>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Tab Headers */}
                 <NeoTabs
                   tabs={[
-                    { id: 'vault', label: 'Vault' },
+                    { id: 'vault', label: 'Assets' },
                     { id: 'strategies', label: 'Strategies' },
                   ]}
                   defaultTab={infoTab}
@@ -1343,28 +1362,6 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
               <div className="p-4 sm:p-6">
                 {infoTab === 'vault' && (
                   <div className="space-y-4">
-                    {/* Compact Fee Grid */}
-                    <div className="bg-white dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200/50 dark:border-gray-700/30 space-y-3">
-                      {/* Fees - Single Row */}
-                      <div>
-                        <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Fees</div>
-                        <div className="flex gap-2">
-                          <div className="flex-1 bg-gray-50 dark:bg-gray-900/30 rounded-lg px-3 py-2 border border-gray-200/50 dark:border-gray-700/30">
-                            <div className="text-[10px] text-gray-500 dark:text-gray-400 uppercase mb-0.5">Deposit</div>
-                            <div className="text-lg font-bold text-gray-900 dark:text-white">1%</div>
-                          </div>
-                          <div className="flex-1 bg-gray-50 dark:bg-gray-900/30 rounded-lg px-3 py-2 border border-gray-200/50 dark:border-gray-700/30">
-                            <div className="text-[10px] text-gray-500 dark:text-gray-400 uppercase mb-0.5">Withdraw</div>
-                            <div className="text-lg font-bold text-gray-900 dark:text-white">2%</div>
-                          </div>
-                          <div className="flex-1 bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 rounded-lg px-3 py-2 border border-yellow-200 dark:border-yellow-600/30">
-                            <div className="text-[10px] text-yellow-700 dark:text-yellow-400 uppercase mb-0.5 font-bold">Performance</div>
-                            <div className="text-lg font-bold text-yellow-700 dark:text-yellow-300">4.7%</div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
                     {/* Asset Deployment Sunburst Chart */}
                     <div className="space-y-3">
                       {/* Assets Display */}
