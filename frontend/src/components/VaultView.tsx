@@ -1458,32 +1458,20 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
           {/* User/Admin Controls - Should be SECOND */}
           <div>
             <NeoCard className="!p-0 overflow-hidden relative">
-              {/* Mode Toggle Button */}
+              {/* Mode Toggle Button - Elegant Switch */}
               {isAdmin && (
-                <div className="absolute top-2 right-2 z-20">
+                <div className="absolute top-3 right-3 z-20">
                   <button
                     onClick={() => setControlMode(controlMode === 'user' ? 'admin' : 'user')}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200
-                      bg-gradient-to-br from-gray-100 to-gray-200 dark:from-zinc-700 dark:to-zinc-800
-                      hover:from-gray-200 hover:to-gray-300 dark:hover:from-zinc-600 dark:hover:to-zinc-700
-                      border border-gray-300 dark:border-zinc-600 shadow-sm hover:shadow-md
-                      text-gray-700 dark:text-gray-300"
+                    className="group relative flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold transition-all duration-300
+                      bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700
+                      text-white shadow-lg hover:shadow-xl transform hover:scale-105"
+                    title={`Switch to ${controlMode === 'user' ? 'Admin' : 'User'} Mode`}
                   >
-                    {controlMode === 'user' ? (
-                      <>
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-                        </svg>
-                        Admin
-                      </>
-                    ) : (
-                      <>
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                        User
-                      </>
-                    )}
+                    <svg className="w-4 h-4 transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                    </svg>
+                    <span>{controlMode === 'user' ? 'Switch to Admin' : 'Switch to User'}</span>
                   </button>
                 </div>
               )}
@@ -1505,17 +1493,42 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
                 </div>
               )}
               
-              {/* Tabs - User Mode */}
+              {/* Header - User Mode */}
               {controlMode === 'user' && (
-                <div className="p-1.5 sm:p-2">
-                  <NeoTabs
-                    tabs={[
-                      { id: 'deposit', label: 'Deposit' },
-                      { id: 'withdraw', label: 'Withdraw' },
-                    ]}
-                    defaultTab={activeTab}
-                    onChange={(tabId) => setActiveTab(tabId as 'deposit' | 'withdraw')}
-                  />
+                <div className="px-3 sm:px-4 py-2 sm:py-2.5 border-b border-gray-300/50 dark:border-gray-700/30">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 sm:w-7 sm:h-7 bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 rounded-full flex items-center justify-center shrink-0">
+                        <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                      </div>
+                      <h3 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white leading-tight">User Controls</h3>
+                    </div>
+                    {/* Tab Toggle */}
+                    <div className="flex gap-1 bg-gray-200/50 dark:bg-gray-800/50 rounded-lg p-0.5">
+                      <button
+                        onClick={() => setActiveTab('deposit')}
+                        className={`px-3 py-1 rounded text-xs font-semibold transition-all ${
+                          activeTab === 'deposit'
+                            ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                        }`}
+                      >
+                        Deposit
+                      </button>
+                      <button
+                        onClick={() => setActiveTab('withdraw')}
+                        className={`px-3 py-1 rounded text-xs font-semibold transition-all ${
+                          activeTab === 'withdraw'
+                            ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                        }`}
+                      >
+                        Withdraw
+                      </button>
+                    </div>
+                  </div>
                 </div>
               )}
 
@@ -1640,14 +1653,7 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
               {/* Content - Admin Mode */}
               {controlMode === 'admin' && (
                 <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
-                  {/* Description */}
-                  <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700/30 rounded-xl p-2.5 sm:p-3">
-                    <p className="text-xs text-yellow-800 dark:text-yellow-300">
-                      <strong>⚡ Admin Functions:</strong> Inject capital to boost share value, or deploy idle assets to active strategies.
-                    </p>
-                  </div>
-
-                  {/* Admin Notice */}
+                  {/* Admin Notice - Only for non-admins */}
                   {!isActualAdmin && (
                     <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/30 rounded-xl p-2.5 sm:p-3">
                       <p className="text-xs text-blue-800 dark:text-blue-300">
@@ -1658,7 +1664,21 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
 
                   {/* Capital Injection Section */}
                   <div className="space-y-3">
-                    <h4 className="text-sm font-semibold text-gray-900 dark:text-white">Capital Injection</h4>
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-sm font-semibold text-gray-900 dark:text-white">Capital Injection</h4>
+                      <div className="group relative">
+                        <svg className="w-4 h-4 text-gray-400 dark:text-gray-500 hover:text-yellow-600 dark:hover:text-yellow-400 cursor-help transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block z-50 w-64">
+                          <div className="bg-gray-900 dark:bg-gray-700 text-white text-xs rounded-lg p-3 shadow-xl">
+                            <p className="font-semibold mb-1">⚡ Capital Injection</p>
+                            <p>Inject capital to boost share value without minting new shares. Increases value for all existing holders.</p>
+                            <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900 dark:border-t-gray-700"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                     
                     {/* WLFI Input */}
                     <NeoInput
@@ -1721,12 +1741,20 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
 
                   {/* Deploy to Strategy Section */}
                   <div className="space-y-3">
-                    <h4 className="text-sm font-semibold text-gray-900 dark:text-white">Deploy Assets</h4>
-                    
-                    <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700/30 rounded-xl p-2.5 sm:p-3">
-                      <p className="text-xs text-purple-800 dark:text-purple-300">
-                        <strong>🚀 Deploy:</strong> Force deploy idle vault assets to active strategies. Use when vault has undeployed capital.
-                      </p>
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-sm font-semibold text-gray-900 dark:text-white">Deploy Assets</h4>
+                      <div className="group relative">
+                        <svg className="w-4 h-4 text-gray-400 dark:text-gray-500 hover:text-purple-600 dark:hover:text-purple-400 cursor-help transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block z-50 w-64">
+                          <div className="bg-gray-900 dark:bg-gray-700 text-white text-xs rounded-lg p-3 shadow-xl">
+                            <p className="font-semibold mb-1">🚀 Deploy Assets</p>
+                            <p>Force deploy idle vault assets to active strategies. Use when vault has undeployed capital waiting to be put to work.</p>
+                            <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900 dark:border-t-gray-700"></div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
 
                     {/* Deploy Button */}
