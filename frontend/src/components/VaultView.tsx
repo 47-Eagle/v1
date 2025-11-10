@@ -1293,42 +1293,42 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
         {/* Stacked Layout: Vault/Strategies on top, Controls below */}
         <div className="flex flex-col gap-4 sm:gap-6">
           {/* START_SECTION_TABS */}
-          {/* ERC-4626 Vault Header - Above tabs */}
-          <div className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-800/50 dark:to-gray-900/30 rounded-lg p-4 border border-gray-200/50 dark:border-gray-700/30">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 dark:from-yellow-500 dark:to-yellow-700 flex items-center justify-center flex-shrink-0">
-                <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-              </div>
-              <h3 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white">ERC-4626 Vault</h3>
-            </div>
-            <p className="text-xs text-gray-600 dark:text-gray-400 leading-snug mb-2">
-              Deposit{' '}
-              <a href="https://worldlibertyfinancial.com/" target="_blank" rel="noopener noreferrer" className="text-yellow-600 dark:text-yellow-400 font-semibold hover:underline">
-                WLFI
-              </a>
-              {' '}or{' '}
-              <a href="https://worldlibertyfinancial.com/usd1" target="_blank" rel="noopener noreferrer" className="text-yellow-600 dark:text-yellow-400 font-semibold hover:underline">
-                USD1
-              </a>
-              , get vEAGLE shares with auto-compounding yield.
-            </p>
-            <div className="flex items-center gap-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg px-2.5 py-1.5 border border-blue-200/50 dark:border-blue-700/30">
-              <svg className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <p className="text-xs text-blue-800 dark:text-blue-300">
-                <span className="font-semibold">Bootstrapping:</span> Currently easing capital into strategies
-              </p>
-            </div>
-          </div>
-
           {/* Tabbed Vault Info & Strategies */}
           <div>
             <NeoCard className="!p-0">
-              {/* Tab Headers */}
+              {/* ERC-4626 Vault Header - Inside card, above tabs */}
               <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b border-gray-300/50 dark:border-gray-700/30">
+                <div className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-800/50 dark:to-gray-900/30 rounded-lg p-3 sm:p-4 border border-gray-200/50 dark:border-gray-700/30 mb-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 dark:from-yellow-500 dark:to-yellow-700 flex items-center justify-center flex-shrink-0">
+                      <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white">ERC-4626 Vault</h3>
+                  </div>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 leading-snug mb-2">
+                    Deposit{' '}
+                    <a href="https://worldlibertyfinancial.com/" target="_blank" rel="noopener noreferrer" className="text-yellow-600 dark:text-yellow-400 font-semibold hover:underline">
+                      WLFI
+                    </a>
+                    {' '}or{' '}
+                    <a href="https://worldlibertyfinancial.com/usd1" target="_blank" rel="noopener noreferrer" className="text-yellow-600 dark:text-yellow-400 font-semibold hover:underline">
+                      USD1
+                    </a>
+                    , get vEAGLE shares with auto-compounding yield.
+                  </p>
+                  <div className="flex items-center gap-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg px-2.5 py-1.5 border border-blue-200/50 dark:border-blue-700/30">
+                    <svg className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p className="text-xs text-blue-800 dark:text-blue-300">
+                      <span className="font-semibold">Bootstrapping:</span> Currently easing capital into strategies
+                    </p>
+                  </div>
+                </div>
+
+                {/* Tab Headers */}
                 <NeoTabs
                   tabs={[
                     { id: 'vault', label: 'Vault' },
