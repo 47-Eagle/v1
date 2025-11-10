@@ -1362,8 +1362,11 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
                           </div>
                         </div>
                       </div>
+                    </div>
 
-                      {/* Assets - Inline */}
+                    {/* Asset Deployment Sunburst Chart */}
+                    <div className="space-y-3">
+                      {/* Assets Display */}
                       <div>
                         <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Assets</div>
                         <div className="flex gap-2">
@@ -1377,10 +1380,8 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
                           </div>
                         </div>
                       </div>
-                    </div>
-
-                    {/* Asset Deployment Sunburst Chart */}
-                    <div>
+                      
+                      {/* Sunburst Chart */}
                       <AssetAllocationSunburst
                         vaultWLFI={Number(data.vaultLiquidWLFI)}
                         vaultUSD1={Number(data.vaultLiquidUSD1)}
@@ -1647,20 +1648,35 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
                     </div>
                   </div>
                 )}
+                
+                {/* Wrap Shares Button - Always available in User mode */}
+                {onNavigateToWrapper && (
+                  <button
+                    onClick={onNavigateToWrapper}
+                    className="w-full mt-2 px-4 sm:px-6 py-3 sm:py-4 rounded-xl flex items-center justify-center gap-2 sm:gap-3 font-semibold text-sm sm:text-base bg-gradient-to-r from-purple-500 via-purple-600 to-blue-500 hover:from-purple-600 hover:via-purple-700 hover:to-blue-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]"
+                  >
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                    </svg>
+                    <span className="hidden sm:inline">Wrap Shares to EAGLE</span>
+                    <span className="sm:hidden">Wrap to EAGLE</span>
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                )}
                 </div>
               )}
 
               {/* Content - Admin Mode */}
               {controlMode === 'admin' && (
                 <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
-                  {/* Admin Notice - Only for non-admins */}
-                  {!isActualAdmin && (
-                    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/30 rounded-xl p-2.5 sm:p-3">
-                      <p className="text-xs text-blue-800 dark:text-blue-300">
-                        <strong>ℹ️ Info:</strong> Visible to all for transparency. Only multisig admin can execute. Open from Safe wallet to use.
-                      </p>
-                    </div>
-                  )}
+                  {/* Admin Notice - Always visible */}
+                  <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/30 rounded-xl p-2.5 sm:p-3">
+                    <p className="text-xs text-blue-800 dark:text-blue-300">
+                      <strong>ℹ️ Info:</strong> Visible to all for transparency. Only multisig admin ({CONTRACTS.MULTISIG.slice(0, 6)}...{CONTRACTS.MULTISIG.slice(-4)}) can execute. Open from Safe wallet to use.
+                    </p>
+                  </div>
 
                   {/* Capital Injection Section */}
                   <div className="space-y-3">
@@ -1777,40 +1793,17 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
                     />
                   </div>
 
-                  {/* Warning */}
-                  {isActualAdmin ? (
+                  {/* Warning - Only for actual admins */}
+                  {isActualAdmin && (
                     <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700/30 rounded-xl p-2.5 sm:p-3">
                       <p className="text-xs text-red-800 dark:text-red-300">
                         <strong>⚠️ Admin only:</strong> These actions execute immediately. Verify amounts before confirming.
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="bg-gray-50 dark:bg-gray-900/20 border border-gray-200 dark:border-gray-700/30 rounded-xl p-3">
-                      <p className="text-xs text-gray-600 dark:text-gray-400">
-                        <strong>🔒 Restricted:</strong> Open from Safe multisig ({CONTRACTS.MULTISIG.slice(0, 6)}...{CONTRACTS.MULTISIG.slice(-4)}) to execute.
                       </p>
                     </div>
                   )}
                 </div>
               )}
             </NeoCard>
-            
-            {/* Wrap Shares Button */}
-            {onNavigateToWrapper && (
-              <button
-                onClick={onNavigateToWrapper}
-                className="w-full mt-4 px-4 sm:px-6 py-3 sm:py-4 rounded-xl flex items-center justify-center gap-2 sm:gap-3 font-semibold text-sm sm:text-base bg-gradient-to-r from-purple-500 via-purple-600 to-blue-500 hover:from-purple-600 hover:via-purple-700 hover:to-blue-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]"
-              >
-                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                </svg>
-                <span className="hidden sm:inline">Wrap Shares to EAGLE</span>
-                <span className="sm:hidden">Wrap to EAGLE</span>
-                <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-            )}
           </div>
           {/* END_SECTION_CONTROLS */}
         </div>
