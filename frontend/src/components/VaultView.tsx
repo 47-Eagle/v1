@@ -1202,7 +1202,17 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
                   <img src={ICONS.USD1} alt="USD1" className="w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 border-white dark:border-gray-700 shadow-lg" />
                 </div>
               </div>
-              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-mono truncate">{CONTRACTS.VAULT}</p>
+              <a 
+                href={`https://etherscan.io/address/${CONTRACTS.VAULT}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 hover:text-yellow-600 dark:hover:text-yellow-400 font-mono truncate transition-colors inline-flex items-center gap-1"
+              >
+                {CONTRACTS.VAULT}
+                <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </a>
             </div>
           </div>
           <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap sm:flex-nowrap">
@@ -1234,15 +1244,6 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
                 className="w-4 h-4 sm:w-5 sm:h-5"
               />
               <span className={`text-xs sm:text-sm ${DS.text.label}`}>vEAGLE</span>
-            </div>
-            <div className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-gray-800 dark:to-gray-850 ${DS.radius.full} ${DS.shadows.raised} border border-emerald-200/70 dark:border-emerald-700/50`}>
-              <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-              <img 
-                src={ICONS.ETHEREUM}
-                alt="Ethereum"
-                className="w-4 h-4 sm:w-5 sm:h-5 rounded-full"
-              />
-              <span className="text-xs sm:text-sm text-gray-800 dark:text-gray-200 font-semibold">Ethereum</span>
             </div>
           </div>
         </div>
@@ -1311,36 +1312,32 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
                 {infoTab === 'vault' && (
                   <div className="space-y-4">
                     {/* Compact Header: ERC-4626 + Bootstrapping Notice */}
-                    <div className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-800/50 dark:to-gray-900/30 rounded-xl p-4 border border-gray-200/50 dark:border-gray-700/30">
-                      <div className="flex items-start justify-between gap-3 mb-3">
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-1">ERC-4626 Tokenized Vault</h3>
-                          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 leading-snug">
-                            Standardized vault accepting{' '}
-                            <a href="https://worldlibertyfinancial.com/" target="_blank" rel="noopener noreferrer" className="text-yellow-600 dark:text-yellow-400 font-semibold hover:underline">
-                              WLFI
-                            </a>
-                            {' '}and{' '}
-                            <a href="https://worldlibertyfinancial.com/usd1" target="_blank" rel="noopener noreferrer" className="text-yellow-600 dark:text-yellow-400 font-semibold hover:underline">
-                              USD1
-                            </a>
-                            , issuing vEAGLE shares with auto-compounding yields.
-                          </p>
+                    <div className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-800/50 dark:to-gray-900/30 rounded-lg p-3 border border-gray-200/50 dark:border-gray-700/30">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 dark:from-yellow-500 dark:to-yellow-700 flex items-center justify-center flex-shrink-0">
+                          <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                          </svg>
                         </div>
-                        <div className="flex-shrink-0">
-                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 dark:from-yellow-500 dark:to-yellow-700 flex items-center justify-center">
-                            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                            </svg>
-                          </div>
-                        </div>
+                        <h3 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white">ERC-4626 Vault</h3>
                       </div>
-                      <div className="flex items-center gap-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg px-3 py-2 border border-blue-200/50 dark:border-blue-700/30">
-                        <svg className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <p className="text-xs text-gray-600 dark:text-gray-400 leading-snug mb-2">
+                        Deposit{' '}
+                        <a href="https://worldlibertyfinancial.com/" target="_blank" rel="noopener noreferrer" className="text-yellow-600 dark:text-yellow-400 font-semibold hover:underline">
+                          WLFI
+                        </a>
+                        {' '}or{' '}
+                        <a href="https://worldlibertyfinancial.com/usd1" target="_blank" rel="noopener noreferrer" className="text-yellow-600 dark:text-yellow-400 font-semibold hover:underline">
+                          USD1
+                        </a>
+                        , get vEAGLE shares with auto-compounding yield.
+                      </p>
+                      <div className="flex items-center gap-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg px-2.5 py-1.5 border border-blue-200/50 dark:border-blue-700/30">
+                        <svg className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         <p className="text-xs text-blue-800 dark:text-blue-300">
-                          <span className="font-bold">Bootstrapping:</span> Deposits & withdrawals temporarily disabled while easing capital into strategies.
+                          <span className="font-semibold">Bootstrapping:</span> Currently easing capital into strategies
                         </p>
                       </div>
                     </div>
@@ -1372,40 +1369,13 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
                         <div className="flex gap-2">
                           <div className="flex-1 flex items-center gap-2 bg-gray-50 dark:bg-gray-900/30 rounded-lg px-3 py-2 border border-gray-200/50 dark:border-gray-700/30">
                             <img src={ICONS.WLFI} alt="WLFI" className="w-8 h-8 rounded-full flex-shrink-0" />
-                            <div className="flex-1 min-w-0">
-                              <div className="text-xs font-bold text-gray-900 dark:text-white">WLFI</div>
-                              <div className="text-xs font-semibold text-yellow-600 dark:text-yellow-400">${data.wlfiPrice}</div>
-                            </div>
+                            <div className="text-sm font-bold text-gray-900 dark:text-white">WLFI</div>
                           </div>
                           <div className="flex-1 flex items-center gap-2 bg-gray-50 dark:bg-gray-900/30 rounded-lg px-3 py-2 border border-gray-200/50 dark:border-gray-700/30">
                             <img src={ICONS.USD1} alt="USD1" className="w-8 h-8 rounded-full flex-shrink-0" />
-                            <div className="flex-1 min-w-0">
-                              <div className="text-xs font-bold text-gray-900 dark:text-white">USD1</div>
-                              <div className="text-xs font-semibold text-yellow-600 dark:text-yellow-400">${data.usd1Price}</div>
-                            </div>
+                            <div className="text-sm font-bold text-gray-900 dark:text-white">USD1</div>
                           </div>
                         </div>
-                      </div>
-
-                      {/* Contract - Compact */}
-                      <div>
-                        <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Contract</div>
-                        <a 
-                          href={`https://etherscan.io/address/${CONTRACTS.VAULT}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center justify-between gap-2 bg-gray-50 dark:bg-gray-900/30 rounded-lg px-3 py-2 border border-gray-200/50 dark:border-gray-700/30 hover:border-yellow-400 dark:hover:border-yellow-600 transition-colors group"
-                        >
-                          <div className="flex items-center gap-2 min-w-0 flex-1">
-                            <svg className="w-4 h-4 text-gray-400 dark:text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                            <code className="text-xs font-mono text-gray-600 dark:text-gray-400 truncate">{CONTRACTS.VAULT}</code>
-                          </div>
-                          <svg className="w-4 h-4 text-gray-400 group-hover:text-yellow-600 dark:group-hover:text-yellow-400 flex-shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                          </svg>
-                        </a>
                       </div>
                     </div>
 
@@ -1551,19 +1521,21 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
 
               {/* Header - Admin Mode */}
               {controlMode === 'admin' && (
-                <div className="p-3 sm:p-4 border-b border-gray-300/50 dark:border-gray-700/30">
-                  <div className="flex items-center gap-2 sm:gap-3">
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-red-500 to-red-600 dark:from-red-600 dark:to-red-700 rounded-full flex items-center justify-center shadow-neo-raised dark:shadow-neo-raised-dark shrink-0">
-                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="px-3 sm:px-4 py-2 sm:py-2.5 border-b border-gray-300/50 dark:border-gray-700/30">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 sm:w-7 sm:h-7 bg-gradient-to-br from-red-500 to-red-600 dark:from-red-600 dark:to-red-700 rounded-full flex items-center justify-center shrink-0">
+                      <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
                       </svg>
                     </div>
-                    <div className="min-w-0">
-                      <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">Admin Controls</h3>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
-                        {isActualAdmin ? 'You are Admin' : 'View Only'}
-                      </p>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white leading-tight">Admin Controls</h3>
                     </div>
+                    {isActualAdmin && (
+                      <div className="px-2 py-0.5 bg-green-100 dark:bg-green-900/30 rounded text-[10px] font-semibold text-green-700 dark:text-green-400 shrink-0">
+                        ADMIN
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -1818,4 +1790,5 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
     </div>
   );
 }
+
 
