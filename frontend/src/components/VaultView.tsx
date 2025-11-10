@@ -1332,16 +1332,61 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
                 <div className="bg-white dark:bg-gray-800/50 rounded-xl p-3 sm:p-4 border border-gray-200/50 dark:border-gray-700/30 mb-4">
                   <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Fees</div>
                   <div className="flex gap-2">
+                    {/* Deposit Fee */}
                     <div className="flex-1 bg-gray-50 dark:bg-gray-900/30 rounded-lg px-3 py-2 border border-gray-200/50 dark:border-gray-700/30">
-                      <div className="text-[10px] text-gray-500 dark:text-gray-400 uppercase mb-0.5">Deposit</div>
+                      <div className="flex items-center gap-1 mb-0.5">
+                        <div className="text-[10px] text-gray-500 dark:text-gray-400 uppercase">Deposit</div>
+                        <div className="group relative">
+                          <svg className="w-3 h-3 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 cursor-help transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block z-50 w-48">
+                            <div className="bg-gray-900 dark:bg-gray-700 text-white text-xs rounded-lg p-2.5 shadow-xl">
+                              <p>1% fee charged when depositing WLFI or USD1 into the vault.</p>
+                              <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900 dark:border-t-gray-700"></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                       <div className="text-lg font-bold text-gray-900 dark:text-white">1%</div>
                     </div>
+                    
+                    {/* Withdraw Fee */}
                     <div className="flex-1 bg-gray-50 dark:bg-gray-900/30 rounded-lg px-3 py-2 border border-gray-200/50 dark:border-gray-700/30">
-                      <div className="text-[10px] text-gray-500 dark:text-gray-400 uppercase mb-0.5">Withdraw</div>
+                      <div className="flex items-center gap-1 mb-0.5">
+                        <div className="text-[10px] text-gray-500 dark:text-gray-400 uppercase">Withdraw</div>
+                        <div className="group relative">
+                          <svg className="w-3 h-3 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 cursor-help transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block z-50 w-48">
+                            <div className="bg-gray-900 dark:bg-gray-700 text-white text-xs rounded-lg p-2.5 shadow-xl">
+                              <p>2% fee charged when withdrawing your vEAGLE shares back to WLFI or USD1.</p>
+                              <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900 dark:border-t-gray-700"></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                       <div className="text-lg font-bold text-gray-900 dark:text-white">2%</div>
                     </div>
+                    
+                    {/* Performance Fee */}
                     <div className="flex-1 bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 rounded-lg px-3 py-2 border border-yellow-200 dark:border-yellow-600/30">
-                      <div className="text-[10px] text-yellow-700 dark:text-yellow-400 uppercase mb-0.5 font-bold">Performance</div>
+                      <div className="flex items-center gap-1 mb-0.5">
+                        <div className="text-[10px] text-yellow-700 dark:text-yellow-400 uppercase font-bold">Performance</div>
+                        <div className="group relative">
+                          <svg className="w-3 h-3 text-yellow-600 dark:text-yellow-500 hover:text-yellow-700 dark:hover:text-yellow-300 cursor-help transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block z-50 w-56">
+                            <div className="bg-gray-900 dark:bg-gray-700 text-white text-xs rounded-lg p-2.5 shadow-xl">
+                              <p className="font-semibold mb-1">💰 Performance Fee</p>
+                              <p>4.7% fee charged on profits generated by the vault's strategies. Only paid when the vault earns yield.</p>
+                              <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900 dark:border-t-gray-700"></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                       <div className="text-lg font-bold text-yellow-700 dark:text-yellow-300">4.7%</div>
                     </div>
                   </div>
