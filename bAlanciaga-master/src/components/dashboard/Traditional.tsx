@@ -15,10 +15,8 @@ import FALLBACK_TOKEN from "/token-placeholder.svg";
 import { TokenList } from "../../utils/tokenList";
 import { computeV2PairAddress } from "../../utils/graphQueries";
 import SelectTokenModal from "../utilities/SelectTokenModal";
-import PreviewModal from "../utilities/PreviewModal";
 import Loader from "../utilities/Loader";
 import ChainSelector from "../utilities/ChainSelector";
-import InteractiveLiquidityVisualization from "../utilities/Motion";
 import { truncateString, URL } from "../../utils/setting";
 import { Icon } from "../../utils/setting";
 import { MainTokens } from "../../utils/setting";
@@ -53,7 +51,7 @@ function Traditional() {
     primaryWallet: DynamicWallet | null;
   };
   const [isSelectChain, setSelectChain] = useState(false);
-  const [chain, setChain] = useState<number | undefined>(undefined);
+  const [chain, setChain] = useState<number | undefined>(0); // Default to Ethereum (index 0 in Icon array)
   const [myTokenList, setMyTokenList] = useState<any>(null);
   const [selectedToken, setSelectedToken] = useState<SelectedTokenType | null>(
     null
@@ -104,16 +102,8 @@ function Traditional() {
   const [issend, setisSend] = useState<boolean>(false);
 
   const getButtonStyle = () => {
-    if (chain === undefined || !selectedToken || (!amount && !isApprove)) {
-      return "bg-[#1B1B1B] text-gray-400 cursor-not-allowed";
-    }
-    if (isLoading) {
-      return "bg-blue-500/90 text-white hover:bg-blue-500";
-    }
-    if (isApprove || (amount && !isButtonDisabled)) {
-      return "bg-[#FFE804] text-black hover:bg-[#FFE804]/90";
-    }
-    return "bg-[#1B1B1B] text-gray-400 cursor-not-allowed";
+    // Neumorphic styles are applied via className, just return empty string
+    return "";
   };
 
   // const getButtonContent = () => {
@@ -151,23 +141,41 @@ function Traditional() {
       setIsSuccess(false);
     }
   };
-  const handleButtonClick = () => {
+  const handleButtonClick = async () => {
     if (chain === undefined) {
       setSelectChain(true);
     } else if (!selectedToken) {
       setShow(true);
     } else if (amount) {
-      setPreviewShow(true);
+      // Direct flow: Approve if needed, then create position
+      if (!isApprove && approvedAmount < Number(amount)) {
+        console.log("🔐 Approval needed. Current allowance:", approvedAmount, "Required:", amount);
+        await handleApprove();
+        // After approval, automatically create position
+        if (approvedAmount >= Number(amount)) {
+          await handleAddLiquidity();
+        }
+      } else {
+        console.log("✅ Already approved. Creating position...");
+        await handleAddLiquidity();
+      }
     }
   };
 
   const getButtonText = () => {
-    if (chain === undefined) return "Select Chain";
     if (!selectedToken) return "Select Token";
     if (amount === "") return "Enter Amount";
     if (isLoading) return <Loader />;
-    if (amount) return "Preview";
-    return "Approve";
+    
+    // Show simple, clear text
+    if (amount) {
+      if (isApprove || approvedAmount >= Number(amount)) {
+        return "Create Position";
+      } else {
+        return `Approve & Create Position`;
+      }
+    }
+    return "Create Position";
   };
 
   const handleNextStep = async (step: string) => {
@@ -284,6 +292,11 @@ function Traditional() {
   };
 
   const handleRebalnance = async () => {
+    // Skip if agent API is not configured
+    if (!URL || URL === "") {
+      toast("Agent rebalancing not available");
+      return;
+    }
     if (!vaultAddresses) {
       toast.error("Please create vault first");
       return;
@@ -376,7 +389,7 @@ function Traditional() {
 
   const switchNetwork = async () => {
     try {
-      if (!primaryWallet || chain === undefined) return;
+      if (!primaryWallet || chain === undefined || !Icon[chain]) return;
       if (primaryWallet?.connector.supportsNetworkSwitching()) {
         await primaryWallet.switchNetwork(Icon[chain].chainId);
         setSelectedToken(null);
@@ -403,14 +416,16 @@ function Traditional() {
     tokenB: string,
     fee: number
   ) => {
-    if (chain === undefined) return false;
-    const signer = await getSigner(primaryWallet as any);
-    const factoryContract = new ethers.Contract(
-      Icon[chain].factoryAddress,
-      factoryABI,
-      signer
-    );
+    if (chain === undefined || !Icon[chain] || !primaryWallet) return false;
+    
     try {
+      const signer = await getSigner(primaryWallet as any);
+      const factoryContract = new ethers.Contract(
+        Icon[chain].factoryAddress,
+        factoryABI,
+        signer
+      );
+      
       const poolAddress = await factoryContract.getPool(tokenA, tokenB, fee);
       if (poolAddress === ethers.ZeroAddress) {
         return false;
@@ -419,7 +434,7 @@ function Traditional() {
       }
     } catch (error) {
       console.error("Error checking pool:", error);
-      return true;
+      return false;
     }
   };
 
@@ -438,6 +453,10 @@ function Traditional() {
     setIsLoading(true);
     if (primaryWallet) {
       try {
+        console.log("🔐 Starting approval process...");
+        console.log("Token:", selectedToken.symbol, selectedToken.address);
+        console.log("Amount:", amount);
+        
         const signer = await getSigner(primaryWallet as any);
         const selectedTokenContract = new ethers.Contract(
           selectedToken.address,
@@ -445,28 +464,85 @@ function Traditional() {
           signer
         );
         const _decimal = await selectedTokenContract.decimals();
-        let targetAddress = Icon[chain].routerAddress;
-        if (poolAddress) targetAddress = vaultAddresses;
+        
+        // Debug chain and Icon array
+        console.log("Chain index:", chain);
+        console.log("Icon array:", Icon);
+        console.log("Icon[chain]:", Icon[chain]);
+        
+        // Get the correct spender address
+        let targetAddress = "";
+        
+        // Check if we're depositing to an existing vault
+        if (isDeposit && vaultAddresses && vaultAddresses !== "") {
+          targetAddress = vaultAddresses;
+          console.log("Using vault address for deposit:", targetAddress);
+        } else if (Icon[chain] && Icon[chain].routerAddress) {
+          // Use NonfungiblePositionManager for creating LP positions
+          targetAddress = Icon[chain].routerAddress;
+          console.log("Using NonfungiblePositionManager:", targetAddress);
+        } else {
+          // Fallback to hardcoded Uniswap V3 NonfungiblePositionManager
+          targetAddress = "0xC36442b4a4522E871399CD717aBDD847Ab11FE88";
+          console.log("Using fallback NonfungiblePositionManager:", targetAddress);
+        }
+        
+        if (!targetAddress || targetAddress === "") {
+          console.error("Approval configuration error:", {
+            isDeposit,
+            vaultAddresses,
+            chain,
+            hasIcon: !!Icon[chain],
+            routerAddress: Icon[chain]?.routerAddress
+          });
+          throw new Error("Approval target address is not configured");
+        }
+        
+        console.log("Final approving spender:", targetAddress);
+        console.log("Amount in wei:", ethers.parseUnits(amount, _decimal).toString());
+        
         const tx = await selectedTokenContract.approve(
           targetAddress,
           ethers.parseUnits(amount, _decimal)
         );
-        await tx.wait();
-        toast.success("Successfully approved!");
+        
+        console.log("Approval tx sent:", tx.hash);
+        toast.loading("Approving token...", { id: "approval" });
+        
+        const receipt = await tx.wait();
+        console.log("Approval confirmed! Block:", receipt.blockNumber);
+        
+        toast.dismiss("approval");
+        toast.success("Token approved successfully!");
+        
+        // Update approval state
+        setIsApprove(true);
+        
+        // Refresh the allowance to confirm
+        await getApprovedAmountOfSelectedToken();
+        
         setProgressState({ ...progressState, [currentStep]: true });
         if (poolAddress) setCurrentStep("maxDeposit");
         setIsLoading(false);
+        
+        // Auto-create position after approval if in simple flow
         if (currentStep == "") {
-          setIsApprove(true);
-          handleAddLiquidity();
+          console.log("✅ Approval complete. Auto-creating position...");
+          await handleAddLiquidity();
         }
-      } catch (err) {
+      } catch (err: any) {
         setIsLoading(false);
         setIsApprove(false);
-        if (String(err).includes("Error: user rejected action")) {
-          toast.error(`User rejected!`);
+        console.error("❌ Approval error:", err);
+        
+        if (String(err).includes("user rejected") || err.code === "ACTION_REJECTED") {
+          toast.error("Transaction cancelled by user");
+        } else if (err.reason) {
+          toast.error(`Approval failed: ${err.reason}`);
+        } else if (err.message) {
+          toast.error(`Approval failed: ${err.message}`);
         } else {
-          toast.error(`Approve failed!`);
+          toast.error("Approval failed. Please try again.");
         }
       }
     }
@@ -673,18 +749,24 @@ function Traditional() {
         return;
       }
 
-      // Check if pool exists and initialize if needed
-      const poolExists = await checkPoolExists(token0, token1, Number(fee));
-      if (poolExists) {
-        toast.error("The position already exist!");
+      // Get current prices for tick calculations
+      const [price1, price2] = await calculateTokenPrices(token0, token1);
+      if (!price1 || !price2) {
+        toast.error("Failed to fetch token prices");
         setIsLoading(false);
         return;
       }
-      const [price1, price2] = await calculateTokenPrices(token0, token1);
       let currentPrice = Number(price1) / Number(price2);
-      const createFunctionSignature =
-        "createAndInitializePoolIfNecessary(address,address,uint24,uint160)";
-      // Calculate initial sqrt price based on current price
+      
+      console.log("🔍 Position Parameters:");
+      console.log("Token0 (EAGLE):", token0);
+      console.log("Token1 (WLFI):", token1);
+      console.log("Current Price:", currentPrice);
+      console.log("Your Balance:", ethers.formatUnits(balance, _decimal));
+      console.log("Desired Amount:", ethers.formatUnits(desiredAmount, _decimal));
+      console.log("Your Allowance:", ethers.formatUnits(allowance, _decimal));
+      
+      // Calculate price ranges and ticks
       const lowerPrice = isToken0
         ? currentPrice * lowRange
         : currentPrice / lowRange;
@@ -695,10 +777,85 @@ function Traditional() {
       const resUpper = getPriceAndTickFromValues(upperPrice);
       const tickLower = isToken0 ? resLower.tick + 200 : resUpper.tick;
       const tickUpper = isToken0 ? resUpper.tick : resLower.tick - 200;
-      const sqrtPrice = resLower.price;
+      
+      console.log("📊 Tick Range:");
+      console.log("Lower Tick:", tickLower);
+      console.log("Upper Tick:", tickUpper);
+      console.log("Tick Spacing Valid:", (tickLower % 200 === 0 && tickUpper % 200 === 0));
+      
+      // Check if pool exists - if not, we'll create it first
+      const poolExists = await checkPoolExists(token0, token1, Number(fee));
+      console.log("🏊 Pool Status:", poolExists ? `Exists at ${poolExists}` : "Does not exist - will create");
+      
+      // If pool exists, we need to query its current price for accurate tick range
+      let actualPoolPrice = currentPrice;
+      if (poolExists && poolExists !== false) {
+        try {
+          const poolABI = [
+            "function slot0() external view returns (uint160 sqrtPriceX96, int24 tick, uint16 observationIndex, uint16 observationCardinality, uint16 observationCardinalityNext, uint8 feeProtocol, bool unlocked)"
+          ];
+          const poolContract = new ethers.Contract(poolExists, poolABI, signer);
+          const slot0 = await poolContract.slot0();
+          const poolTick = slot0[1]; // tick is the second element
+          const poolPriceFromTick = Math.pow(1.0001, Number(poolTick));
+          actualPoolPrice = poolPriceFromTick;
+          console.log("✅ Pool exists - using pool's current price:", actualPoolPrice);
+          console.log("   Pool tick:", Number(poolTick));
+          console.log("   Market price was:", currentPrice);
+          console.log("   Difference:", ((actualPoolPrice / currentPrice - 1) * 100).toFixed(2) + "%");
+        } catch (error) {
+          console.warn("⚠️ Could not fetch pool price, using market price:", error);
+        }
+      }
+      
       const iface = new ethers.Interface(nonfungiblePositionManagerABI);
-      const params1 = [token0, token1, fee, BigInt(sqrtPrice)];
-      const data1 = iface.encodeFunctionData(createFunctionSignature, params1);
+      
+      let txData = [];
+      
+      // Only create pool if it doesn't exist
+      if (!poolExists || poolExists === false) {
+        // SINGLE-SIDED LP STRATEGY (NEW POOL): Initialize pool 6.942% ABOVE market price
+        // For 100% token1 (WLFI) deposit, price must be ABOVE the range!
+        // The 6.942% gap creates a strong arbitrage incentive!
+        console.log("🆕 NEW POOL STRATEGY: Creating pool with controlled initialization price");
+        
+        // Calculate initialization price: market * 1.06942
+        const initPrice = currentPrice * 1.06942;
+        const initSqrtPrice = getPriceAndTickFromValues(initPrice);
+        const sqrtPrice = initSqrtPrice.price;
+        const initTick = initSqrtPrice.tick;
+        
+        // Ensure init price is above upper tick (required for 100% WLFI)
+        if (initTick <= tickUpper) {
+          console.warn("⚠️ Init price too low, adjusting to be above upper tick");
+          const adjustedInitTick = tickUpper + 200;
+          console.log("   Adjusted to tick:", adjustedInitTick);
+        }
+        
+        const gapPercent = ((initPrice / currentPrice - 1) * 100).toFixed(3);
+        
+        console.log("🆕 Creating pool ABOVE market (single-sided WLFI strategy)");
+        console.log("   Market price:", currentPrice);
+        console.log("   Init price:", initPrice, `(+${gapPercent}%)`);
+        console.log("   Init tick:", initTick);
+        console.log("   Range: [", tickLower, "to", tickUpper, "]");
+        console.log("   Init sqrtPrice:", sqrtPrice.toString());
+        console.log("   ⚡ 6.942% gap = strong arb opportunity!");
+        
+        const createFunctionSignature =
+          "createAndInitializePoolIfNecessary(address,address,uint24,uint160)";
+        const params1 = [token0, token1, fee, BigInt(sqrtPrice)];
+        const data1 = iface.encodeFunctionData(createFunctionSignature, params1);
+        txData.push(data1);
+      } else {
+        // Pool exists - creating position at current pool price
+        console.log("♻️ EXISTING POOL: Position will be created at pool's current price");
+        console.log("   Note: Tick range may need adjustment based on actual pool price");
+        console.log("   Pool price:", actualPoolPrice);
+        console.log("   Your range:", `[${tickLower}, ${tickUpper}]`);
+      }
+      
+      // Mint the position (works whether pool exists or not)
       const mintFunctionSignature =
         "mint((address,address,uint24,int24,int24,uint256,uint256,uint256,uint256,address,uint256))";
       const params2 = [
@@ -717,7 +874,11 @@ function Traditional() {
         },
       ];
       const data2 = iface.encodeFunctionData(mintFunctionSignature, params2);
-      const txData = [data1, data2];
+      txData.push(data2);
+      
+      console.log("📝 Transaction calls:", txData.length);
+      console.log("Attempting to execute multicall...");
+      
       const tx = await nonfungiblePositionManager.multicall(txData);
       toast.loading("Transaction pending...", { id: "tx-pending" });
       const receipt = await tx.wait();
@@ -807,6 +968,11 @@ function Traditional() {
   };
 
   const handleAgent = async () => {
+    // Skip if agent API is not configured
+    if (!URL || URL === "") {
+      toast("Agent creation not available");
+      return;
+    }
     if (agentAddress) {
       toast.error("Already exist");
       return;
@@ -836,8 +1002,11 @@ function Traditional() {
   };
 
   const fetchAgent = async () => {
+    // Skip if agent API is not configured
+    if (!URL || URL === "") return;
     if (!primaryWallet?.address) return;
     if (chain === undefined) return;
+    
     await axios
       .post(`${URL}/agent/getagent`, {
         address: primaryWallet?.address,
@@ -983,12 +1152,9 @@ function Traditional() {
   }, [primaryWallet?.address, chain]);
 
   return (
-    <div className="w-full h-screen overflow-auto hide-scrollbar bg-[#0A0A0A] text-white">
+    <div className="w-full min-h-screen bg-gradient-to-br from-[#0A0A0A] via-[#0F0F0F] to-[#0A0A0A] text-white">
       <Toaster />
-      {/* Title Section with Logo and Wallet */}
       <Header
-        // agentAddress={agentAddress}
-        // agentBalance={agentBalance}
         handleAgent={handleAgent}
         handleSendToAgent={handleSendToAgent}
         isLoading={isLoading}
@@ -996,162 +1162,127 @@ function Traditional() {
       />
 
       {/* Main Content */}
-      <div className="mt-4 flex items-center justify-center">
-        <div className="w-full max-w-2xl mx-auto px-6">
-          {/* {createdPosition ? 
-          (
-            <AnalyticsDashboard
-              poolAddress={createdPosition.poolAddress}
-              positionId={createdPosition.positionId}
-              chainId={chain || 0}
-              walletAddress={primaryWallet?.address || ""}
-            />
-          ) : ( */}
-          <div className="bg-[#111111] rounded-2xl border border-gray-800/30 shadow-xl">
-            {/* Header with Uniswap branding and chain selector */}
-            <div className="p-3 border-b border-gray-800/30 flex justify-between items-center">
-              <div className="flex items-center">
-                <img src={Uniswap_LOGO} alt="Uniswap" className="h-5 w-5" />
-                <span className="text-xs text-gray-400">
-                  Powered by Uniswap V3
-                </span>
-              </div>
-              {/* <div className="relative flex">
-                <ChainSelector
-                  chain={chain}
-                  isOpen={isSelectChain}
-                  setIsOpen={setSelectChain}
-                  chains={Icon}
-                  onChainSelect={setChain}
-                  modalName="Select Chain"
-                  page="home"
-                />
-              </div> */}
-            </div>
+      <div className="py-8 px-4">
+        <div className="max-w-2xl mx-auto">
+          {/* Page Title */}
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
+              Create Liquidity Position
+            </h1>
+          </div>
 
-            {/* Token Input */}
-            <div className="p-3">
-              <div className="bg-[#0A0A0A] rounded-xl p-3">
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="text-xs text-gray-400 mb-1">Deposit</div>
-                    <input
-                      type="text"
-                      className="w-full text-4xl bg-transparent outline-none font-medium"
-                      placeholder="0"
-                      value={amount}
-                      onChange={handleInputChange}
-                    />
-                    <div className="text-xs text-gray-400 mt-1">
-                      ~${(parseFloat(amount || "0") * tokenPrice).toFixed(2)}
-                    </div>
-                  </div>
-                  <div
-                    className={`flex items-center gap-2 px-3 py-2 rounded-xl cursor-pointer transition-all duration-200 min-w-[120px] h-[40px] ${
-                      selectedToken
-                        ? "bg-[#1B1B1B] hover:bg-[#2D2D2D]"
-                        : chain === 1
-                        ? "bg-[#FFE804] text-black hover:bg-[#FFE804]/90"
-                        : chain === 0
-                        ? "bg-purple-500 hover:bg-purple-600"
-                        : "bg-[#1B1B1B] hover:bg-[#2D2D2D]"
-                    }`}
-                    onClick={() => {
-                      if (chain === undefined) {
-                        toast.error("Please Select Chain");
-                        return;
-                      }
-                      setShow(true);
-                    }}
-                  >
-                    {selectedToken ? (
-                      <>
-                        <div className="flex items-center gap-2">
-                          <div
-                            className={`w-6 h-6 rounded-full bg-[#2D2D2D] flex items-center justify-center overflow-hidden`}
-                          >
-                            <img
-                              src={selectedToken.logoURI || FALLBACK_TOKEN}
-                              alt={selectedToken.symbol}
-                              className="w-full h-full object-cover"
-                              onError={handleImageError}
-                            />
-                          </div>
-                          <span className="font-medium">
-                            {selectedToken.symbol}
-                          </span>
-                        </div>
-                      </>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">Select Token</span>
-                      </div>
-                    )}
-                    <ChevronDown
-                      className={`h-4 w-4 ml-auto ${
-                        selectedToken
-                          ? "text-gray-400"
-                          : chain !== undefined
-                          ? "text-black"
-                          : "text-gray-400"
-                      }`}
-                    />
-                  </div>
+          {/* Main Card with subtle neumorphic shadow */}
+          <div className="bg-[#111111] rounded-3xl border border-gray-800/40 shadow-2xl shadow-black/50 backdrop-blur-sm">
+            
+            {/* Step 1: Token Selection */}
+            <div className="p-6 border-b border-gray-800/40">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-sm font-bold shadow-lg shadow-blue-500/30">
+                  1
                 </div>
-                <div className="flex justify-end mt-1.5 text-xs text-gray-400">
-                  <div className="flex items-center gap-2">
-                    <span>Balance: {selectedTokenBalance}</span>
-                    <button
-                      onClick={handleRangeClick}
-                      disabled={!selectedToken || maxClicked}
-                      className={`px-2 py-0.5 text-xs rounded transition-colors ${
-                        !selectedToken || maxClicked
-                          ? "bg-[#2D2D2D] text-gray-500 cursor-not-allowed"
-                          : "bg-[#FFE804] text-black hover:bg-[#FFE804]/90"
-                      }`}
-                    >
-                      Max
-                    </button>
-                  </div>
-                </div>
+                <h2 className="text-lg font-semibold">Select Token</h2>
               </div>
-            </div>
-
-            {/* Action Button */}
-            <div className="px-3 pb-3">
+              
               <button
-                className={`w-full py-3 rounded-xl font-medium transition-all duration-200 ${getButtonStyle()}`}
+                className={`w-full p-4 rounded-2xl transition-all duration-300 ${
+                  selectedToken
+                    ? "bg-[#1a1a1a] hover:bg-[#202020] border border-gray-800/50"
+                    : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 shadow-lg shadow-blue-500/20"
+                }`}
+                onClick={() => setShow(true)}
+              >
+                {selectedToken ? (
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-[#0A0A0A] flex items-center justify-center overflow-hidden border border-gray-700/50">
+                        <img
+                          src={selectedToken.logoURI || FALLBACK_TOKEN}
+                          alt={selectedToken.symbol}
+                          className="w-full h-full object-cover"
+                          onError={handleImageError}
+                        />
+                      </div>
+                      <div className="text-left">
+                        <div className="font-bold text-lg">{selectedToken.symbol}</div>
+                        <div className="text-xs text-gray-400">{selectedToken.name}</div>
+                      </div>
+                    </div>
+                    <ChevronDown className="h-5 w-5 text-gray-400" />
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center gap-2 text-white font-semibold">
+                    <span>Choose Token</span>
+                    <ChevronDown className="h-5 w-5" />
+                  </div>
+                )}
+              </button>
+
+              {selectedToken && (
+                <div className="mt-3 flex items-center justify-between text-sm">
+                  <span className="text-gray-400">
+                    Balance: <span className="text-white font-medium">{parseFloat(selectedTokenBalance || "0").toFixed(4)}</span>
+                  </span>
+                  <button
+                    onClick={handleRangeClick}
+                    disabled={maxClicked}
+                    className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
+                      maxClicked
+                        ? "bg-gray-800 text-gray-600 cursor-not-allowed"
+                        : "bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 border border-blue-500/30"
+                    }`}
+                  >
+                    Use Max
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Step 2: Amount Input */}
+            {selectedToken && (
+              <div className="p-6 border-b border-gray-800/40">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-sm font-bold shadow-lg shadow-blue-500/30">
+                    2
+                  </div>
+                  <h2 className="text-lg font-semibold">Enter Amount</h2>
+                </div>
+
+                <div className="bg-[#0A0A0A] rounded-2xl p-5 border border-gray-800/50">
+                  <input
+                    type="text"
+                    className="w-full text-4xl bg-transparent outline-none font-bold text-white placeholder-gray-700"
+                    placeholder="0.0"
+                    value={amount}
+                    onChange={handleInputChange}
+                  />
+                  <div className="text-sm text-gray-500 mt-2">
+                    ≈ ${(parseFloat(amount || "0") * tokenPrice).toFixed(2)} USD
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Step 3: Action */}
+            <div className="p-6">
+              <button
+                className={`w-full py-4 rounded-2xl font-bold text-lg transition-all duration-300 ${
+                  isButtonDisabled1()
+                    ? "bg-gray-800 text-gray-600 cursor-not-allowed"
+                    : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 transform hover:scale-[1.02]"
+                }`}
                 onClick={handleButtonClick}
                 disabled={isButtonDisabled1()}
               >
                 {getButtonText()}
               </button>
-            </div>
 
-            {/* Liquidity Visualization */}
-            <div className="p-3 border-t border-gray-800/30">
-              <InteractiveLiquidityVisualization
-                currentTick={currentTick}
-                lowerTick={lowerTick}
-                upperTick={upperTick}
-                amount={amount}
-                initialUsdValue={parseFloat(amount || "0") * tokenPrice}
-                calculatedAPR={selectedToken ? calculateAPR() : "0%"}
-                selectedToken={selectedToken}
-                chainId={chain || 0}
-                v2PairAddress={
-                  selectedToken && chain !== undefined
-                    ? computeV2PairAddress(
-                        Icon[chain].factoryAddress,
-                        selectedToken.address,
-                        MainTokens[chain]
-                      )
-                    : undefined
-                }
-              />
+              <div className="mt-4 flex items-center justify-center gap-2 text-xs text-gray-500">
+                <img src={Uniswap_LOGO} alt="Uniswap" className="h-4 w-4 opacity-50" />
+                <span>Powered by Uniswap V3</span>
+              </div>
             </div>
           </div>
-          {/* )} */}
+
         </div>
       </div>
 
@@ -1175,37 +1306,6 @@ function Traditional() {
         />
       )}
 
-      {/* Preview Modal */}
-      {previewShow && selectedToken && (
-        <PreviewModal
-          open={previewShow}
-          onClose={() => {
-            closePreviewModal();
-          }}
-          selectToken={selectedToken}
-          progressState={progressState}
-          tokenAmount={amount}
-          isLoading={isLoading}
-          setIsLoading={setIsLoading}
-          isSuccess={isSuccess}
-          setProgressState={setProgressState}
-          isAgent={isAgent}
-          setAgent={setAgent}
-          CreateVault={CreateVault}
-          setCurrentStep={setCurrentStep}
-          handleAddLiquidity={handleAddLiquidity}
-          chainId={chain}
-          positionId={createdPosition?.positionId}
-          isDeposit={isDeposit}
-          isApprove={isApprove}
-          poolAddress={poolAddress}
-          setAddress={setAddress}
-          handleApprove={handleApprove}
-          agentAddress={agentAddress}
-          handleSendToAgent={handleSendToAgent}
-          setAgentAddress={setAgentAddress}
-        />
-      )}
 
       {/* Add tooltips */}
       <Tooltip id="fee-tooltip" className="max-w-xs">

@@ -242,27 +242,27 @@ const AxisIndicators = React.memo<AxisIndicatorsProps>(({ size }) => {
         lineWidth={1.5}
       />
 
-      {/* Axis labels */}
+      {/* Axis labels - More friendly */}
       <Text 
         position={[110, -1, 0]}
-        color="white" 
-        fontSize={1.8}
+        color="#60A5FA" 
+        fontSize={2.2}
         anchorX="right" 
         anchorY="top"
         rotation={[0, -Math.PI, 0]}
       >
-        Price
+        Price Range →
       </Text>
 
       <Text
         position={[-2, size * 0.7, 0]}
-        color="white"
-        fontSize={1.8}
+        color="#10B981"
+        fontSize={2.2}
         anchorY="middle"
         anchorX="right"
         rotation={[0, -Math.PI, -Math.PI / 2]}
       >
-        Liquidity
+        ↑ Amount
       </Text>
     </group>
   );
@@ -368,41 +368,12 @@ class ErrorBoundary extends React.Component<
 
 // Export the main visualization component
 export default function InteractiveLiquidityVisualization(props: MainProps) {
-  const { currentTick, lowerTick, upperTick, amount, calculatedAPR, initialUsdValue, selectedToken } = props;
+  const { currentTick, lowerTick, upperTick, amount, calculatedAPR, selectedToken } = props;
   const [mounted, setMounted] = useState(false);
   const [simulatedTick, setSimulatedTick] = useState(lowerTick);
   const [tokenRatios, setTokenRatios] = useState({ depositedToken: 100, hermes: 0 });
 
-  // Memoize expensive calculations
-  const liquidityHeight = useMemo(() => calculateHeight(amount), [amount]);
-  
-  const positionValue = useMemo(() => {
-    if (!amount || !initialUsdValue || lowerTick === undefined || upperTick === undefined) {
-      return '$0.00';
-    }
-    return calculatePositionValue(
-      amount,
-      simulatedTick,
-      lowerTick,
-      upperTick,
-      initialUsdValue
-    );
-  }, [amount, simulatedTick, lowerTick, upperTick, initialUsdValue]);
-
-  const liquidityRange = useMemo(() => {
-    if (lowerTick === undefined || upperTick === undefined) {
-      return 0;
-    }
-    return calculateLiquidityRange(lowerTick, upperTick);
-  }, [lowerTick, upperTick]);
-
-  const currentPricePosition = useMemo(() => {
-    if (!upperTick || !lowerTick || upperTick === lowerTick) {
-      return 0;
-    }
-    const progress = ((simulatedTick - lowerTick) / (upperTick - lowerTick));
-    return isNaN(progress) ? 0 : Math.max(0, Math.min(1, progress));
-  }, [simulatedTick, lowerTick, upperTick]);
+  // Simple calculations only
 
   useEffect(() => {
     setMounted(true);
@@ -449,147 +420,179 @@ export default function InteractiveLiquidityVisualization(props: MainProps) {
     );
   }
 
+  // Calculate arbitrage flow direction
+  const arbDirection = tokenRatios.hermes > 50 ? 'right' : tokenRatios.hermes > 0 ? 'center' : 'left';
+
   return (
-    <div className="relative flex flex-col gap-4 bg-[#1B1B1B] rounded-lg p-6">
-      {/* Position Info Display */}
-      <div className="flex  justify-between items-stretch p-4 bg-[#1F1F1F] rounded-lg">
-        <div className="text-center flex-1 px-2 sm:px-[0px]">
-          <div className="text-xs sm:text-[10px] text-gray-500 uppercase tracking-wider mb-2">
-            LIQUIDITY DETAILS
-          </div>
-          <div className="flex flex-col gap-1">
-            <div className="text-2xl sm:text-lg font-medium text-gray-200 truncate">
-              {liquidityRange.toFixed(0)}%
-              <span className="text-sm sm:text-xs text-gray-400 ml-1">Range</span>
+    <div className="relative bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] rounded-2xl p-8 border border-gray-800/50 shadow-2xl">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h3 className="text-lg font-bold text-white">Triangular Arbitrage Strategy</h3>
+          <p className="text-xs text-gray-500 mt-1">{amount || '0'} {selectedToken?.symbol || ''} → {calculatedAPR}% APR</p>
+        </div>
+        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center animate-pulse">
+          <span className="text-xl">⚡</span>
+        </div>
+      </div>
+
+      {/* Triangular Diagram */}
+      <div className="mb-8 relative">
+        <div className="text-xs font-medium text-gray-400 mb-4 text-center">
+          How Your Position Hedges Impermanent Loss
+        </div>
+
+        <div className="relative h-64 flex items-center justify-center">
+          {/* Triangle points */}
+          <svg className="absolute inset-0 w-full h-full" viewBox="0 0 400 300">
+            {/* Connecting lines */}
+            <line x1="200" y1="40" x2="100" y2="220" 
+              stroke="url(#gradient1)" strokeWidth="2" strokeDasharray="5,5" 
+              className="animate-pulse" opacity="0.6"/>
+            <line x1="200" y1="40" x2="300" y2="220" 
+              stroke="url(#gradient2)" strokeWidth="2" strokeDasharray="5,5" 
+              className="animate-pulse" opacity="0.6"/>
+            <line x1="100" y1="220" x2="300" y2="220" 
+              stroke="url(#gradient3)" strokeWidth="2" strokeDasharray="5,5" 
+              className="animate-pulse" opacity="0.6"/>
+
+            {/* Gradients */}
+            <defs>
+              <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#3B82F6" />
+                <stop offset="100%" stopColor="#10B981" />
+              </linearGradient>
+              <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#10B981" />
+                <stop offset="100%" stopColor="#F59E0B" />
+              </linearGradient>
+              <linearGradient id="gradient3" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#3B82F6" />
+                <stop offset="100%" stopColor="#F59E0B" />
+              </linearGradient>
+            </defs>
+
+            {/* Animated arrows showing flow */}
+            {arbDirection === 'right' && (
+              <>
+                <path d="M 200 40 L 290 210" fill="none" stroke="#10B981" strokeWidth="3" opacity="0.8">
+                  <animate attributeName="stroke-dasharray" from="0,10" to="10,0" dur="1s" repeatCount="indefinite"/>
+                </path>
+                <polygon points="290,210 285,200 295,200" fill="#10B981"/>
+              </>
+            )}
+            {arbDirection === 'left' && (
+              <>
+                <path d="M 200 40 L 110 210" fill="none" stroke="#3B82F6" strokeWidth="3" opacity="0.8">
+                  <animate attributeName="stroke-dasharray" from="0,10" to="10,0" dur="1s" repeatCount="indefinite"/>
+                </path>
+                <polygon points="110,210 105,200 115,200" fill="#3B82F6"/>
+              </>
+            )}
+          </svg>
+
+          {/* Top: Your Deposit */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl p-4 shadow-lg border border-purple-500/30 z-10 w-32">
+            <div className="text-center">
+              <div className="text-xs text-purple-200 mb-1">You Deposit</div>
+              <div className="text-sm font-bold text-white">{selectedToken?.symbol || 'Token'}</div>
             </div>
-            {/* <div className="text-2xl sm:text-lg sm:p-2 font-medium text-gray-200 truncate">
-              {Math.abs(upperTick - lowerTick).toLocaleString()}
-              <span className="text-sm sm:text-xs text-gray-400 ml-1">Ticks</span>
-            </div> */}
+          </div>
+
+          {/* Bottom Left: V3 Position */}
+          <div className="absolute bottom-0 left-8 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-4 shadow-lg border border-blue-500/30 z-10 w-32">
+            <div className="text-center">
+              <div className="text-xs text-blue-200 mb-1">Uniswap V3</div>
+              <div className="text-lg font-bold text-white">{simulatedTick === lowerTick ? "100" : tokenRatios.depositedToken}%</div>
+              <div className="text-xs text-blue-100 mt-1">Concentrated</div>
+            </div>
+          </div>
+
+          {/* Bottom Right: V2 Hedge */}
+          <div className="absolute bottom-0 right-8 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl p-4 shadow-lg border border-yellow-400/30 z-10 w-32">
+            <div className="text-center">
+              <div className="text-xs text-yellow-100 mb-1">Uniswap V2</div>
+              <div className="text-lg font-bold text-white">{simulatedTick === lowerTick ? "0" : tokenRatios.hermes}%</div>
+              <div className="text-xs text-yellow-100 mt-1">Hedge</div>
+            </div>
+          </div>
+
+          {/* Center: Arbitrage indicator */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-green-600 rounded-full p-3 shadow-lg border-2 border-green-400 z-20 animate-pulse">
+            <div className="text-center">
+              <div className="text-2xl">🔄</div>
+            </div>
           </div>
         </div>
-        <div className="h-20 w-[1px] bg-gray-800 mx-2 sm:mx-1"></div>
-        <div className="text-center flex-1 px-2">
-          <div className="text-xs sm:text-[10px] text-gray-500 uppercase tracking-wider mb-2">
-            POSITION VALUE
+
+        {/* Explanation boxes */}
+        <div className="grid grid-cols-3 gap-2 mt-6">
+          <div className="bg-purple-500/10 border border-purple-500/20 rounded-lg p-2">
+            <div className="text-xs text-purple-300 font-semibold">1. Deposit</div>
+            <div className="text-xs text-gray-400 mt-1">Single token in</div>
           </div>
-          <div className="text-3xl sm:text-lg font-medium text-gray-200 truncate mt-3">
-            {positionValue}
+          <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-2">
+            <div className="text-xs text-blue-300 font-semibold">2. V3 LP</div>
+            <div className="text-xs text-gray-400 mt-1">Earn fees</div>
           </div>
-        </div>
-        <div className="h-20 w-[1px] bg-gray-800 mx-2 sm:mx-1"></div>
-        <div className="text-center flex-1 px-2 sm:px-[0px]">
-          <div className="text-xs sm:text-[10px] text-gray-500 uppercase tracking-wider mb-2">
-            ESTIMATED APR
-          </div>
-          <div className="flex items-baseline justify-center mt-3">
-            <span className="text-3xl sm:text-lg font-bold text-green-400 leading-none">
-              {calculatedAPR}
-            </span>  
-            {selectedToken && <span className="text-xl sm:text-xs font-bold text-green-400 leading-none ml-1">%</span>}
+          <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-2">
+            <div className="text-xs text-yellow-300 font-semibold">3. V2 Hedge</div>
+            <div className="text-xs text-gray-400 mt-1">Reduce IL</div>
           </div>
         </div>
       </div>
 
-      {/* Token Ratio Display */}
-      <div className="flex justify-center items-center gap-4 p-4 sm:p-1 bg-[#1F1F1F] rounded-lg relative">
-        <div className="text-xs text-gray-500 uppercase tracking-wider absolute -top-2 left-1/2 -translate-x-1/2 bg-[#1B1B1B] px-2">
-          TOKEN RATIO
-        </div>
-        <div className="flex-1 text-center pt-4 sm:pt-0">
-          <div className="text-5xl sm:text-2xl font-bold text-blue-400 leading-tight">
-            {simulatedTick === lowerTick ? "100" : tokenRatios.depositedToken}%
-          </div>
-          <div className="text-sm text-blue-400 uppercase tracking-wider mt-2">
-            {selectedToken ? selectedToken.name : 'DEPOSITED TOKEN'}
-          </div>
-        </div>
-        <div className="h-24 w-px bg-gray-800"></div>
-        <div className="flex-1 text-center pt-4 sm:pt-0">
-          <div className={`text-5xl sm:text-2xl font-bold ${props.chainId?"text-yellow-400":"text-purple-500"} leading-tight`}>
-            {simulatedTick === lowerTick ? "0" : tokenRatios.hermes}%
-          </div>
-          <div className={`text-sm ${props.chainId?"text-yellow-400":"text-purple-500"} uppercase tracking-wider mt-2`}>
-            {MAINSYMBOLS[props.chainId]}
-          </div>
-        </div>
-      </div>
-
-      {/* 3D Visualization */}
-      <div className="aspect-[1] w-full relative bg-[#111111] rounded-lg overflow-hidden">
-        <ErrorBoundary>
-          <Canvas
-            gl={{ antialias: true, alpha: true }}
-            camera={{ position: [-100, 69, -100], fov: 30 }}
-            shadows
-          >
-            <ambientLight intensity={0.7} />
-            <pointLight position={[10, 10, 10]} intensity={1} />
-            <directionalLight position={[-5, 5, -5]} intensity={0.7} />
-            <hemisphereLight intensity={0.4} />
-            
-            <OrbitControls
-              enableDamping
-              dampingFactor={0.05}
-              rotateSpeed={0.5}
-              minDistance={10}
-              maxDistance={400}
-              target={[40, 30, 0]}
-              enableRotate={true}
-              enableZoom={true}
-              enablePan={true}
-            />
-            
-            <GridFloor />
-            <AxisIndicators size={60} />
-            
-            {/* Position liquidity pool at origin */}
-            <group>
-              <LiquidityPosition
-                position={[0, 0, 0]}
-                width={60}
-                height={liquidityHeight}
-                depth={60}
-                color="#3B82F6"
-                index={0}
-                currentPricePosition={currentPricePosition}
-              />
-            </group>
-          </Canvas>
-        </ErrorBoundary>
-      </div>
-
-      {/* Price Simulation Slider */}
-      <div className="mt-4 relative h-8">
+      {/* Interactive Slider */}
+      <div className="relative mb-6">
+        <div className="text-xs text-gray-500 mb-2 text-center">Drag to simulate price movement →</div>
         <input
           type="range"
           min="0"
           max="100"
           value={sliderValue}
           onChange={handleSliderChange}
-          className={`w-full h-2 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-[#FFE804]
+          className={`w-full h-3 bg-gradient-to-r from-blue-500/20 via-green-500/20 to-yellow-500/20 rounded-full appearance-none cursor-pointer backdrop-blur-sm
           [&::-webkit-slider-thumb]:appearance-none
-          [&::-webkit-slider-thumb]:w-4
-          [&::-webkit-slider-thumb]:h-4
+          [&::-webkit-slider-thumb]:w-6
+          [&::-webkit-slider-thumb]:h-6
           [&::-webkit-slider-thumb]:rounded-full
-          ${props.chainId === 0 ? '[&::-webkit-slider-thumb]:bg-purple-500' : '[&::-webkit-slider-thumb]:bg-yellow-400'}
-          ${props.chainId === 0 ? '[&::-moz-range-thumb]:bg-purple-500' : '[&::-moz-range-thumb]:bg-yellow-400'}
-          [&::-webkit-slider-thumb]:transition-all
+          [&::-webkit-slider-thumb]:bg-white
+          [&::-webkit-slider-thumb]:shadow-lg
+          [&::-webkit-slider-thumb]:shadow-blue-500/50
+          [&::-webkit-slider-thumb]:border-2
+          [&::-webkit-slider-thumb]:border-gray-800
+          [&::-webkit-slider-thumb]:cursor-grab
+          [&::-webkit-slider-thumb]:active:cursor-grabbing
           [&::-webkit-slider-thumb]:hover:scale-110
-          [&::-moz-range-thumb]:w-4
-          [&::-moz-range-thumb]:h-4
+          [&::-webkit-slider-thumb]:transition-transform
+          [&::-moz-range-thumb]:w-6
+          [&::-moz-range-thumb]:h-6
           [&::-moz-range-thumb]:rounded-full
-          [&::-moz-range-thumb]:bg-[#FFE804]
-          [&::-moz-range-thumb]:border-0
-          [&::-moz-range-thumb]:cursor-pointer
-          [&::-moz-range-thumb]:transition-all
-          [&::-moz-range-thumb]:hover:scale-110`}
+          [&::-moz-range-thumb]:bg-white
+          [&::-moz-range-thumb]:border-2
+          [&::-moz-range-thumb]:border-gray-800
+          [&::-moz-range-thumb]:cursor-grab
+          [&::-moz-range-thumb]:shadow-lg`}
         />
-        <div className="absolute inset-x-0 top-6 text-white text-center text-sm">
-          Simulated Price: {formatTickPrice(simulatedTick)} {MAINSYMBOLS[props.chainId]} per {selectedToken?.symbol || 'token'}
+        <div className="flex justify-between mt-2 px-1">
+          <span className="text-xs text-gray-500">Price ↓</span>
+          <span className="text-xs text-gray-400 font-semibold">Current</span>
+          <span className="text-xs text-gray-500">Price ↑</span>
+        </div>
+      </div>
+
+      {/* Bottom insight */}
+      <div className="flex items-start gap-3 p-4 bg-green-500/5 border border-green-500/10 rounded-xl">
+        <span className="text-lg">⚡</span>
+        <div className="flex-1">
+          <p className="text-xs font-semibold text-green-400 mb-1">The Magic</p>
+          <p className="text-xs text-gray-400 leading-relaxed">
+            When price moves, arbitrageurs trade between V2 and V3, reducing your impermanent loss while you earn fees from both pools.
+          </p>
         </div>
       </div>
     </div>
   );
 }
+
 

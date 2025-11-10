@@ -5,15 +5,14 @@ import {
   MainTokens,
   minLimitBalance,
   truncateString,
+  URL,
 } from "../../utils/setting";
 import { DynamicWidget, useDynamicContext } from "@dynamic-labs/sdk-react-core";
 import Loader from "../utilities/Loader";
-import ChainSelector from "../utilities/ChainSelector";
 import { useEffect, useState } from "react";
 import { DynamicWallet, SelectedTokenType } from "../../types/types";
 import axios from "axios";
 import { toast } from "react-hot-toast";
-import { calculateTokenPrices } from "../../utils/price";
 import univ3prices from "@thanpolas/univ3prices";
 
 const Header = ({
@@ -35,8 +34,7 @@ const Header = ({
   const { primaryWallet } = useDynamicContext() as {
     primaryWallet: DynamicWallet | null;
   };
-  const [chain, setChain] = useState<number | undefined>(undefined);
-  const [isSelectChain, setSelectChain] = useState(false);
+  const [chain] = useState<number>(0); // Fixed to Ethereum (index 0)
   const [agentBalance, setBalance] = useState<number>(0);
   const [agentAddress, setAgentAddress] = useState<string>("");
   const [selectedToken, setSelectedToken] = useState<SelectedTokenType | null>(
@@ -51,8 +49,11 @@ const Header = ({
   const [selectedTokenBalance, setSelectedTokenBalance] = useState("");
 
   const fetchAgent = async () => {
+    // Skip if agent API is not configured
+    if (!URL || URL === "") return;
     if (!primaryWallet?.address) return;
     if (chain === undefined) return;
+    
     await axios
       .post(`${URL}/agent/getagent`, {
         address: primaryWallet?.address,
@@ -190,44 +191,18 @@ const Header = ({
   }, [primaryWallet?.address, chain]);
   return (
     <div className="relative flex items-center justify-between p-4 border-b border-gray-800/30">
-      <div className="flex gap-8 md:gap-1 items-center md:flex-col font-medium text-sm">
+      <div className="flex gap-3 items-center">
         <button
           onClick={() => navigate("/")}
           className="flex items-center gap-2 hover:opacity-80 transition-opacity"
         >
-          <img src={LOGO} alt="Logo" className="h-8 w-8" />
-          <span className="font-medium text-lg">EAGLE</span>
-        </button>
-        <button className="text-lg" onClick={() => navigate("view")}>
-          View Vault
+          <img src={LOGO} alt="Eagle" className="h-10 w-10 rounded-full" />
+          <span className="font-bold text-xl bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
+            EAGLE
+          </span>
         </button>
       </div>
       <div className="flex sm:flex-col gap-2 font-medium text-sm  items-center">
-        {/* <button
-          className={`bg-slate-500 rounded-lg w-28 truncate ${
-            isLoading && !agentAddress ? "p-0.5" : "p-2"
-          }`}
-          onClick={handleAgent}
-        >
-          {isLoading && !agentAddress ? (
-            <Loader />
-          ) : (
-            <span>
-              {agentAddress ? truncateString(agentAddress) : "Create Agent"}
-            </span>
-          )}
-        </button> */}
-        <div className="relative flex">
-          <ChainSelector
-            chain={chain}
-            isOpen={isSelectChain}
-            setIsOpen={setSelectChain}
-            chains={Icon}
-            onChainSelect={setChain}
-            modalName="Select Chain"
-            page="home"
-          />
-        </div>
         {agentAddress && (
           <button
             className={`bg--slate-500 rounded-lg w-28 truncate ${

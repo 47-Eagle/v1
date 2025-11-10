@@ -2,7 +2,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Traditional from "./components/dashboard/Traditional";
 import {
   DynamicContextProvider,
-  useIsLoggedIn,
 } from "@dynamic-labs/sdk-react-core";
 import { EthereumWalletConnectors } from "@dynamic-labs/ethereum";
 import { mainnet } from "viem/chains";
@@ -12,6 +11,8 @@ import View from "./components/view/View";
 import Deposit from "./components/Deposit/Deposit";
 import HomePage from "./components/dashboard/HomePage";
 import Agent from "./components/dashboard/Agent";
+import VaultPage from "./components/dashboard/VaultPage";
+import LPPage from "./components/dashboard/LPPage";
 function App() {
   const dynamicSettings = {
     environmentId: "1817ad15-5595-4a39-8b12-4893dfda3282",
@@ -46,9 +47,11 @@ function App() {
       <DynamicContextProvider settings={dynamicSettings}>
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<HomePage />} />
+            <Route path="/" element={<Traditional />} />
+            <Route path="/home" element={<HomePage />} />
             <Route path="/agent" element={<Agent />} />
-            <Route path="/traditional" element={<Traditional />} />
+            <Route path="/vault" element={<VaultPage />} />
+            <Route path="/lp" element={<LPPage />} />
             <Route path="/view" element={<View />} />
             <Route path={`/vault/:vaultaddress`} element={<Deposit />} />
             <Route path="*" element={<div>not found</div>} />

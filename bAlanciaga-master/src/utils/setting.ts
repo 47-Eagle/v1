@@ -1,6 +1,6 @@
 import { mainnet } from "viem/chains";
 
-export const URL = "https://informed-bullfrog-guided.ngrok-free.app/api"
+export const URL = import.meta.env.VITE_API_URL || ""
 
 export const managerAddress: string = "0xB05Cf01231cF2fF99499682E64D3780d57c80FdD";
 
@@ -51,12 +51,13 @@ export const chainIDS = [
   "ethereum",
 ]
 
-export const LOGO = "https://ivory-accurate-pig-375.mypinata.cloud/ipfs/QmNxKrGR1ZJ3bKYdyYXf8tuTtKF3zaDShmmFdFABfXFdJQ?pinataGatewayToken=Yn-z4l06l9aFDk0xk-gQmyfHbcCrqKcsqSbuEqjtGUOHqRX5DEWFe-t-7SxbqmMf";
+export const LOGO = "https://tomato-abundant-urial-204.mypinata.cloud/ipfs/bafybeigzyatm2pgrkqbnskyvflnagtqli6rgh7wv7t2znaywkm2pixmkxy";
 export const Icon = [
   {
     name: "Ethereum",
     chainId: mainnet.id,
-    routerAddress: "0xE592427A0AEce92De3Edee1F18E0157C05861564", // Uniswap V3 Router
+    routerAddress: "0xC36442b4a4522E871399CD717aBDD847Ab11FE88", // Uniswap V3 NonfungiblePositionManager (for LP positions!)
+    swapRouterAddress: "0xE592427A0AEce92De3Edee1F18E0157C05861564", // Uniswap V3 SwapRouter (for swaps)
     factoryAddress: "0x1F98431c8aD98523631AE4a59f267346ea31F984", // Uniswap V3 Factory
     EagleTokenAddress: "0x474eD38C256A7FA0f3B8c48496CE1102ab0eA91E", // Eagle Token (EagleShareOFT)
     vaultAddress: "0x47b3ef629D9cB8DFcF8A6c61058338f4e99d7953", // EagleOVault
