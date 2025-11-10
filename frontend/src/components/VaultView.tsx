@@ -332,9 +332,6 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
 
   const [refreshing, setRefreshing] = useState(false);
   
-  // EAGLE market price from DexScreener
-  const [eaglePrice, setEaglePrice] = useState<string>('0.00');
-  
   // Admin injection state
   const [injectWlfi, setInjectWlfi] = useState('');
   const [injectUsd1, setInjectUsd1] = useState('');
@@ -467,19 +464,6 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
       console.error('Error fetching Charm stats:', error);
     }
     return null;
-  }, []);
-
-  // Fetch EAGLE market price from DexScreener
-  const fetchEaglePrice = useCallback(async () => {
-    try {
-      const response = await fetch('https://api.dexscreener.com/latest/dex/pairs/ethereum/0xcf728b099b672c72d61f6ec4c4928c2f2a96cefdfd518c3470519d76545ed333');
-      const data = await response.json();
-      if (data?.pair?.priceUsd) {
-        setEaglePrice(parseFloat(data.pair.priceUsd).toFixed(6));
-      }
-    } catch (error) {
-      console.error('Error fetching EAGLE price:', error);
-    }
   }, []);
 
   const fetchData = useCallback(async () => {
@@ -632,13 +616,6 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
     const interval = setInterval(fetchData, 15000);
     return () => clearInterval(interval);
   }, [fetchData]);
-
-  // Fetch EAGLE price on mount and every 30 seconds
-  useEffect(() => {
-    fetchEaglePrice();
-    const interval = setInterval(fetchEaglePrice, 30000);
-    return () => clearInterval(interval);
-  }, [fetchEaglePrice]);
 
   // Memoize calculated values (for potential future use)
   // const calculatedMetrics = useMemo(() => {
@@ -1260,28 +1237,15 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
               }
               className="!px-2 sm:!px-3 !py-1.5 sm:!py-2 !w-auto !rounded-full"
             />
-            <a
-              href="https://dexscreener.com/ethereum/0xcf728b099b672c72d61f6ec4c4928c2f2a96cefdfd518c3470519d76545ed333"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-br from-yellow-50 to-yellow-100/50 dark:from-yellow-900/20 dark:to-yellow-800/20 hover:from-yellow-100 hover:to-yellow-200/50 dark:hover:from-yellow-800/30 dark:hover:to-yellow-700/30 ${DS.radius.full} ${DS.shadows.raised} border border-yellow-200/70 dark:border-yellow-600/30 transition-all cursor-pointer`}
-              title="View on DexScreener"
-            >
+            <div className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-gray-800 dark:to-gray-850 ${DS.radius.full} ${DS.shadows.raised} border border-emerald-200/70 dark:border-emerald-700/50`}>
+              <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-emerald-500 rounded-full animate-pulse"></div>
               <img 
-                src="https://tomato-abundant-urial-204.mypinata.cloud/ipfs/bafybeigzyatm2pgrkqbnskyvflnagtqli6rgh7wv7t2znaywkm2pixmkxy"
-                alt="EAGLE"
-                className="w-4 h-4 sm:w-5 sm:h-5"
+                src={ICONS.ETHEREUM}
+                alt="Ethereum"
+                className="w-4 h-4 sm:w-5 sm:h-5 rounded-full"
               />
-              <div className="flex flex-col">
-                <span className="text-[10px] text-yellow-700 dark:text-yellow-400 font-semibold uppercase leading-none">EAGLE</span>
-                <span className="text-xs sm:text-sm text-gray-900 dark:text-white font-bold leading-tight">
-                  ${eaglePrice}
-                </span>
-              </div>
-              <svg className="w-3 h-3 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
-            </a>
+              <span className="text-xs sm:text-sm text-gray-800 dark:text-gray-200 font-semibold">Ethereum</span>
+            </div>
           </div>
         </div>
 
@@ -1329,7 +1293,38 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
         {/* Stacked Layout: Vault/Strategies on top, Controls below */}
         <div className="flex flex-col gap-4 sm:gap-6">
           {/* START_SECTION_TABS */}
-          {/* Tabbed Vault Info & Strategies - Currently BELOW controls, should be ABOVE */}
+          {/* ERC-4626 Vault Header - Above tabs */}
+          <div className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-800/50 dark:to-gray-900/30 rounded-lg p-4 border border-gray-200/50 dark:border-gray-700/30">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 dark:from-yellow-500 dark:to-yellow-700 flex items-center justify-center flex-shrink-0">
+                <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </div>
+              <h3 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white">ERC-4626 Vault</h3>
+            </div>
+            <p className="text-xs text-gray-600 dark:text-gray-400 leading-snug mb-2">
+              Deposit{' '}
+              <a href="https://worldlibertyfinancial.com/" target="_blank" rel="noopener noreferrer" className="text-yellow-600 dark:text-yellow-400 font-semibold hover:underline">
+                WLFI
+              </a>
+              {' '}or{' '}
+              <a href="https://worldlibertyfinancial.com/usd1" target="_blank" rel="noopener noreferrer" className="text-yellow-600 dark:text-yellow-400 font-semibold hover:underline">
+                USD1
+              </a>
+              , get vEAGLE shares with auto-compounding yield.
+            </p>
+            <div className="flex items-center gap-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg px-2.5 py-1.5 border border-blue-200/50 dark:border-blue-700/30">
+              <svg className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p className="text-xs text-blue-800 dark:text-blue-300">
+                <span className="font-semibold">Bootstrapping:</span> Currently easing capital into strategies
+              </p>
+            </div>
+          </div>
+
+          {/* Tabbed Vault Info & Strategies */}
           <div>
             <NeoCard className="!p-0">
               {/* Tab Headers */}
@@ -1348,38 +1343,7 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
               <div className="p-4 sm:p-6">
                 {infoTab === 'vault' && (
                   <div className="space-y-4">
-                    {/* Compact Header: ERC-4626 + Bootstrapping Notice */}
-                    <div className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-800/50 dark:to-gray-900/30 rounded-lg p-3 border border-gray-200/50 dark:border-gray-700/30">
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 dark:from-yellow-500 dark:to-yellow-700 flex items-center justify-center flex-shrink-0">
-                          <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                          </svg>
-                        </div>
-                        <h3 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white">ERC-4626 Vault</h3>
-                      </div>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 leading-snug mb-2">
-                        Deposit{' '}
-                        <a href="https://worldlibertyfinancial.com/" target="_blank" rel="noopener noreferrer" className="text-yellow-600 dark:text-yellow-400 font-semibold hover:underline">
-                          WLFI
-                        </a>
-                        {' '}or{' '}
-                        <a href="https://worldlibertyfinancial.com/usd1" target="_blank" rel="noopener noreferrer" className="text-yellow-600 dark:text-yellow-400 font-semibold hover:underline">
-                          USD1
-                        </a>
-                        , get vEAGLE shares with auto-compounding yield.
-                      </p>
-                      <div className="flex items-center gap-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg px-2.5 py-1.5 border border-blue-200/50 dark:border-blue-700/30">
-                        <svg className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <p className="text-xs text-blue-800 dark:text-blue-300">
-                          <span className="font-semibold">Bootstrapping:</span> Currently easing capital into strategies
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Compact Fee Grid + Assets + Contract */}
+                    {/* Compact Fee Grid */}
                     <div className="bg-white dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200/50 dark:border-gray-700/30 space-y-3">
                       {/* Fees - Single Row */}
                       <div>
