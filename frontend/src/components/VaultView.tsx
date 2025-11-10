@@ -332,6 +332,9 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
 
   const [refreshing, setRefreshing] = useState(false);
   
+  // EAGLE market price from DexScreener
+  const [eaglePrice, setEaglePrice] = useState<string>('0.00');
+  
   // Admin injection state
   const [injectWlfi, setInjectWlfi] = useState('');
   const [injectUsd1, setInjectUsd1] = useState('');
@@ -464,6 +467,19 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
       console.error('Error fetching Charm stats:', error);
     }
     return null;
+  }, []);
+
+  // Fetch EAGLE market price from DexScreener
+  const fetchEaglePrice = useCallback(async () => {
+    try {
+      const response = await fetch('https://api.dexscreener.com/latest/dex/pairs/ethereum/0xcf728b099b672c72d61f6ec4c4928c2f2a96cefdfd518c3470519d76545ed333');
+      const data = await response.json();
+      if (data?.pair?.priceUsd) {
+        setEaglePrice(parseFloat(data.pair.priceUsd).toFixed(6));
+      }
+    } catch (error) {
+      console.error('Error fetching EAGLE price:', error);
+    }
   }, []);
 
   const fetchData = useCallback(async () => {
@@ -616,6 +632,13 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
     const interval = setInterval(fetchData, 15000);
     return () => clearInterval(interval);
   }, [fetchData]);
+
+  // Fetch EAGLE price on mount and every 30 seconds
+  useEffect(() => {
+    fetchEaglePrice();
+    const interval = setInterval(fetchEaglePrice, 30000);
+    return () => clearInterval(interval);
+  }, [fetchEaglePrice]);
 
   // Memoize calculated values (for potential future use)
   // const calculatedMetrics = useMemo(() => {
@@ -1237,7 +1260,13 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
               }
               className="!px-2 sm:!px-3 !py-1.5 sm:!py-2 !w-auto !rounded-full"
             />
-            <div className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-br from-yellow-50 to-yellow-100/50 dark:from-yellow-900/20 dark:to-yellow-800/20 ${DS.radius.full} ${DS.shadows.raised} border border-yellow-200/70 dark:border-yellow-600/30`}>
+            <a
+              href="https://dexscreener.com/ethereum/0xcf728b099b672c72d61f6ec4c4928c2f2a96cefdfd518c3470519d76545ed333"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-br from-yellow-50 to-yellow-100/50 dark:from-yellow-900/20 dark:to-yellow-800/20 hover:from-yellow-100 hover:to-yellow-200/50 dark:hover:from-yellow-800/30 dark:hover:to-yellow-700/30 ${DS.radius.full} ${DS.shadows.raised} border border-yellow-200/70 dark:border-yellow-600/30 transition-all cursor-pointer`}
+              title="View on DexScreener"
+            >
               <img 
                 src="https://tomato-abundant-urial-204.mypinata.cloud/ipfs/bafybeigzyatm2pgrkqbnskyvflnagtqli6rgh7wv7t2znaywkm2pixmkxy"
                 alt="EAGLE"
@@ -1246,12 +1275,13 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
               <div className="flex flex-col">
                 <span className="text-[10px] text-yellow-700 dark:text-yellow-400 font-semibold uppercase leading-none">EAGLE</span>
                 <span className="text-xs sm:text-sm text-gray-900 dark:text-white font-bold leading-tight">
-                  ${Number(data.totalSupply) > 0 
-                    ? (Number(data.totalAssets) / Number(data.totalSupply)).toFixed(3)
-                    : '1.000'}
+                  ${eaglePrice}
                 </span>
               </div>
-            </div>
+              <svg className="w-3 h-3 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+            </a>
           </div>
         </div>
 
