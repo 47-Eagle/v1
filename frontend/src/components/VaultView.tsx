@@ -24,8 +24,8 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
     <div className={`
       group relative rounded-3xl overflow-hidden transition-all duration-500 transform
       ${strategy.status === 'active' 
-        ? 'bg-gradient-to-br from-white via-yellow-50/30 to-amber-50/50 dark:from-zinc-900 dark:via-yellow-900/10 dark:to-amber-900/10 border-2 border-yellow-400/60 dark:border-yellow-500/40 shadow-neo-raised dark:shadow-[0_8px_30px_rgba(234,179,8,0.2),inset_0_2px_0_rgba(255,255,255,0.1)] hover:shadow-neo-raised-lift dark:hover:shadow-[0_12px_40px_rgba(234,179,8,0.3),inset_0_2px_0_rgba(255,255,255,0.15)] hover:scale-[1.02]' 
-        : 'bg-gradient-to-br from-gray-100 to-gray-200 dark:from-zinc-800 dark:to-zinc-900 border-2 border-gray-300/50 dark:border-zinc-700/50 shadow-neo-inset dark:shadow-[inset_0_2px_8px_rgba(0,0,0,0.3)] hover:border-gray-400/70 dark:hover:border-zinc-600 opacity-60'
+        ? 'bg-[#1a1f2e] border border-yellow-500/20 shadow-[0_8px_32px_-4px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.05)] hover:shadow-[0_12px_48px_-4px_rgba(234,179,8,0.2),0_8px_32px_-4px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.08)] hover:border-yellow-500/30 hover:translate-y-[-2px]' 
+        : 'bg-[#13161f] border border-zinc-800/50 shadow-[inset_0_2px_8px_rgba(0,0,0,0.5),0_4px_16px_rgba(0,0,0,0.3)] opacity-50 hover:opacity-60'
       }
     `}>
       {/* Header - Always Visible */}
@@ -36,31 +36,28 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
         <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-4 lg:gap-6">
           {/* Strategy Number Badge */}
           <div className={`
-            relative px-5 py-2 rounded-xl text-sm font-black tracking-wider shrink-0 transition-all duration-300
+            relative px-5 py-2.5 rounded-xl text-sm font-black tracking-wider shrink-0 transition-all duration-300
             ${strategy.status === 'active'
-              ? 'bg-gradient-to-br from-yellow-400 via-yellow-500 to-amber-600 dark:from-yellow-500 dark:via-yellow-600 dark:to-amber-700 text-white shadow-[0_4px_12px_rgba(234,179,8,0.4),inset_0_2px_0_rgba(255,255,255,0.3)] group-hover:shadow-[0_6px_16px_rgba(234,179,8,0.6),inset_0_2px_0_rgba(255,255,255,0.4)] group-hover:scale-110'
-              : 'bg-gradient-to-br from-gray-300 to-gray-400 dark:from-zinc-700 dark:to-zinc-800 text-gray-600 dark:text-zinc-400 shadow-neo-inset'
+              ? 'bg-gradient-to-br from-yellow-500 to-yellow-600 text-white shadow-[0_4px_16px_rgba(234,179,8,0.4),inset_0_1px_0_rgba(255,255,255,0.2)] group-hover:shadow-[0_6px_24px_rgba(234,179,8,0.5),inset_0_1px_0_rgba(255,255,255,0.3)] group-hover:scale-105'
+              : 'bg-[#0f1117] border border-zinc-800/80 text-zinc-600 shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)]'
             }
           `}>
             <span className="relative z-10">#{strategy.id}</span>
-            {strategy.status === 'active' && (
-              <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-white/20 to-transparent"></div>
-            )}
           </div>
           
           {/* Status Indicator */}
           {strategy.status === 'active' ? (
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-500/20 dark:bg-green-500/10 border border-green-400/30 dark:border-green-500/20 shrink-0 shadow-neo-inset">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0f1e1a] border border-green-500/30 shrink-0 shadow-[inset_0_1px_2px_rgba(0,0,0,0.5),0_0_12px_rgba(34,197,94,0.15)]">
               <div className="relative">
-                <div className="w-2.5 h-2.5 bg-green-500 rounded-full shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>
+                <div className="w-2.5 h-2.5 bg-green-500 rounded-full shadow-[0_0_8px_rgba(34,197,94,0.8)]"></div>
                 <div className="absolute inset-0 w-2.5 h-2.5 bg-green-400 rounded-full animate-ping"></div>
               </div>
-              <span className="text-xs text-green-600 dark:text-green-400 font-bold uppercase tracking-wider">Active</span>
+              <span className="text-xs text-green-400 font-bold uppercase tracking-wider">ACTIVE</span>
             </div>
           ) : (
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-400/20 dark:bg-gray-600/10 border border-gray-400/30 dark:border-gray-600/20 shrink-0">
-              <div className="w-2.5 h-2.5 bg-gray-500 dark:bg-gray-600 rounded-full"></div>
-              <span className="text-xs text-gray-600 dark:text-gray-500 font-bold uppercase tracking-wider">Soon</span>
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0f1117] border border-zinc-800/80 shrink-0 shadow-[inset_0_1px_2px_rgba(0,0,0,0.5)]">
+              <div className="w-2.5 h-2.5 bg-zinc-700 rounded-full"></div>
+              <span className="text-xs text-zinc-600 font-bold uppercase tracking-wider">SOON</span>
             </div>
           )}
           
@@ -172,10 +169,10 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
           {/* Allocation Badge */}
           {strategy.allocation && strategy.status === 'active' && (
             <div className="relative shrink-0 mr-2">
-              <div className="px-4 py-2 rounded-xl bg-gradient-to-br from-yellow-400 via-yellow-500 to-amber-500 dark:from-yellow-500 dark:via-yellow-600 dark:to-amber-600 shadow-neo-raised border-2 border-yellow-300/50 dark:border-yellow-400/30">
+              <div className="px-5 py-2.5 rounded-xl bg-gradient-to-br from-yellow-500 to-yellow-600 shadow-[0_4px_16px_rgba(234,179,8,0.3),inset_0_1px_0_rgba(255,255,255,0.2)] border border-yellow-400/20">
                 <div className="text-center">
-                  <div className="text-2xl font-black text-white leading-none mb-0.5 drop-shadow-md">{strategy.allocation}</div>
-                  <div className="text-[9px] text-yellow-100 dark:text-yellow-200 font-bold uppercase tracking-widest">Weight</div>
+                  <div className="text-2xl font-black text-white leading-none mb-0.5">{strategy.allocation}</div>
+                  <div className="text-[9px] text-yellow-100 font-bold uppercase tracking-widest">WEIGHT</div>
                 </div>
               </div>
             </div>
@@ -183,26 +180,26 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
           
           {/* Expand Button - Neumorphic */}
           <div className={`
-            relative w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 shrink-0
+            relative w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 shrink-0 cursor-pointer
             ${strategy.status === 'active'
-              ? 'bg-gradient-to-br from-yellow-100 to-yellow-200 dark:from-yellow-900/30 dark:to-amber-900/30 border-2 border-yellow-300/50 dark:border-yellow-600/30 shadow-neo-inset group-hover:shadow-neo-pressed'
-              : 'bg-gradient-to-br from-gray-200 to-gray-300 dark:from-zinc-700 dark:to-zinc-800 border-2 border-gray-300/50 dark:border-zinc-600/30 shadow-neo-inset'
+              ? 'bg-[#161b28] border border-yellow-500/20 shadow-[inset_0_2px_4px_rgba(0,0,0,0.5),0_1px_0_rgba(255,255,255,0.05)] group-hover:shadow-[inset_0_3px_6px_rgba(0,0,0,0.6),0_0_12px_rgba(234,179,8,0.2)]'
+              : 'bg-[#0f1117] border border-zinc-800/80 shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)]'
             }
-            ${isExpanded ? 'shadow-neo-pressed' : ''}
+            ${isExpanded ? 'shadow-[inset_0_3px_6px_rgba(0,0,0,0.6)]' : ''}
           `}>
             <svg 
               className={`
                 w-6 h-6 transition-all duration-500
                 ${strategy.status === 'active'
-                  ? 'text-yellow-600 dark:text-yellow-400 group-hover:text-yellow-700 dark:group-hover:text-yellow-300'
-                  : 'text-gray-600 dark:text-zinc-400'
+                  ? 'text-yellow-500 group-hover:text-yellow-400'
+                  : 'text-zinc-700'
                 }
                 ${isExpanded ? 'rotate-180' : ''}
               `}
               fill="none" 
               stroke="currentColor" 
               viewBox="0 0 24 24"
-              strokeWidth={3}
+              strokeWidth={2.5}
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
             </svg>
@@ -213,10 +210,10 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
       {/* Expanded Content */}
       {isExpanded && (
         <div className={`
-          px-6 sm:px-8 pb-6 sm:pb-8 pt-6 border-t-2 animate-fadeIn
+          px-6 sm:px-8 pb-6 sm:pb-8 pt-6 border-t animate-fadeIn
           ${strategy.status === 'active'
-            ? 'border-yellow-300/40 dark:border-yellow-600/20 bg-gradient-to-b from-yellow-50/40 via-amber-50/30 to-white/50 dark:from-yellow-900/5 dark:via-amber-900/5 dark:to-black/20'
-            : 'border-gray-300/40 dark:border-zinc-700/30 bg-gradient-to-b from-gray-100/60 to-gray-200/40 dark:from-zinc-800/40 dark:to-zinc-900/60'
+            ? 'border-yellow-500/10 bg-gradient-to-b from-[#141824] to-[#0f1319]'
+            : 'border-zinc-800/30 bg-gradient-to-b from-[#0f1117] to-[#0a0c10]'
           }
         `}>
           {/* 3D Visualization for Strategy 1 */}
@@ -297,20 +294,20 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
               {strategy.contract && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
                   {/* Strategy Contract Card */}
-                  <div className="group rounded-2xl bg-gradient-to-br from-white to-gray-50 dark:from-zinc-800 dark:to-zinc-900 p-5 border-2 border-gray-200/50 dark:border-zinc-700/30 shadow-neo-raised hover:shadow-neo-raised-lift transition-all duration-300">
+                  <div className="group rounded-2xl bg-[#161b28] p-5 border border-zinc-800/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.03),0_4px_16px_rgba(0,0,0,0.4)] hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_6px_24px_rgba(0,0,0,0.5),0_0_16px_rgba(234,179,8,0.1)] hover:border-yellow-500/20 transition-all duration-300">
                     <div className="flex items-center gap-2 mb-3">
-                      <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-neo-raised">
+                      <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-[0_4px_12px_rgba(59,130,246,0.3),inset_0_1px_0_rgba(255,255,255,0.2)]">
                         <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                       </div>
-                      <span className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Strategy Contract</span>
+                      <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Strategy Contract</span>
                     </div>
                     <a 
                       href={`https://etherscan.io/address/${strategy.contract}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-yellow-600 dark:text-yellow-400 hover:text-yellow-700 dark:hover:text-yellow-300 transition-colors group"
+                      className="flex items-center gap-2 text-yellow-500 hover:text-yellow-400 transition-colors group"
                     >
                       <code className="text-xs font-mono break-all font-semibold">
                         {strategy.contract}
@@ -323,16 +320,16 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
 
                   {/* Charm Vault Card (if exists) */}
                   {strategy.charmVault && (
-                    <div className="group rounded-2xl bg-gradient-to-br from-white to-gray-50 dark:from-zinc-800 dark:to-zinc-900 p-5 border-2 border-gray-200/50 dark:border-zinc-700/30 shadow-neo-raised hover:shadow-neo-raised-lift transition-all duration-300">
+                    <div className="group rounded-2xl bg-[#161b28] p-5 border border-zinc-800/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.03),0_4px_16px_rgba(0,0,0,0.4)] hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_6px_24px_rgba(0,0,0,0.5),0_0_16px_rgba(234,179,8,0.1)] hover:border-yellow-500/20 transition-all duration-300">
                       <div className="flex items-center gap-2 mb-3">
-                        <CharmBadge className="!w-8 !h-8 shadow-neo-raised" />
-                        <span className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Charm Vault</span>
+                        <CharmBadge className="!w-8 !h-8 shadow-[0_4px_12px_rgba(234,179,8,0.2)]" />
+                        <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Charm Vault</span>
                       </div>
                       <a 
                         href={`https://etherscan.io/address/${strategy.charmVault}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-yellow-600 dark:text-yellow-400 hover:text-yellow-700 dark:hover:text-yellow-300 transition-colors group"
+                        className="flex items-center gap-2 text-yellow-500 hover:text-yellow-400 transition-colors group"
                       >
                         <code className="text-xs font-mono break-all font-semibold">
                           {strategy.charmVault}
@@ -346,18 +343,18 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
 
                   {/* Deployed Amount Card (if exists) - Full Width */}
                   {strategy.deployed !== undefined && (
-                    <div className="col-span-1 sm:col-span-2 rounded-2xl bg-gradient-to-br from-yellow-400/10 via-yellow-500/10 to-amber-500/10 dark:from-yellow-500/5 dark:via-yellow-600/5 dark:to-amber-600/5 p-5 border-2 border-yellow-400/30 dark:border-yellow-500/20 shadow-neo-inset backdrop-blur-sm">
+                    <div className="col-span-1 sm:col-span-2 rounded-2xl bg-gradient-to-br from-yellow-500/5 to-amber-600/5 p-5 border border-yellow-500/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.03),0_0_24px_rgba(234,179,8,0.1)] backdrop-blur-sm">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-yellow-500 to-amber-600 flex items-center justify-center shadow-neo-raised">
+                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-yellow-500 to-yellow-600 flex items-center justify-center shadow-[0_4px_16px_rgba(234,179,8,0.4),inset_0_1px_0_rgba(255,255,255,0.2)]">
                             <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                           </div>
                           <div>
-                            <div className="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-1">Currently Deployed</div>
-                            <div className="text-2xl font-black text-yellow-700 dark:text-yellow-300">
-                              {Number(strategy.deployed).toFixed(2)} <span className="text-lg text-gray-600 dark:text-gray-400">Tokens</span>
+                            <div className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1">Currently Deployed</div>
+                            <div className="text-2xl font-black text-yellow-400">
+                              {Number(strategy.deployed).toFixed(2)} <span className="text-lg text-zinc-500">Tokens</span>
                             </div>
                           </div>
                         </div>
