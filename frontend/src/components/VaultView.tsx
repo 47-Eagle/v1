@@ -259,23 +259,60 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
               </div>
 
               {strategy.contract && (
-                <div className="bg-white/50 dark:bg-gray-800/50 rounded-lg p-4 border border-gray-200/50 dark:border-gray-700/50 mt-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-600 dark:text-gray-400 font-medium">Strategy Contract</span>
-                    <a 
-                      href={`https://etherscan.io/address/${strategy.contract}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-yellow-600 dark:text-yellow-400 hover:text-yellow-700 dark:hover:text-yellow-300 transition-colors"
-                    >
-                      <code className="text-xs font-mono break-all">
-                        {strategy.contract}
-                      </code>
-                      <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                      </svg>
-                    </a>
+                <div className="space-y-3 mt-4">
+                  {/* Strategy Contract */}
+                  <div className="bg-white/50 dark:bg-gray-800/50 rounded-lg p-4 border border-gray-200/50 dark:border-gray-700/50">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-600 dark:text-gray-400 font-medium">Strategy Contract</span>
+                      <a 
+                        href={`https://etherscan.io/address/${strategy.contract}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-yellow-600 dark:text-yellow-400 hover:text-yellow-700 dark:hover:text-yellow-300 transition-colors"
+                      >
+                        <code className="text-xs font-mono break-all">
+                          {strategy.contract}
+                        </code>
+                        <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                      </a>
+                    </div>
                   </div>
+
+                  {/* Charm Vault (if exists) */}
+                  {strategy.charmVault && (
+                    <div className="bg-white/50 dark:bg-gray-800/50 rounded-lg p-4 border border-gray-200/50 dark:border-gray-700/50">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-gray-600 dark:text-gray-400 font-medium">Charm Vault</span>
+                        <a 
+                          href={`https://etherscan.io/address/${strategy.charmVault}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 text-yellow-600 dark:text-yellow-400 hover:text-yellow-700 dark:hover:text-yellow-300 transition-colors"
+                        >
+                          <code className="text-xs font-mono break-all">
+                            {strategy.charmVault}
+                          </code>
+                          <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                          </svg>
+                        </a>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Deployed Amount (if exists) */}
+                  {strategy.deployed !== undefined && (
+                    <div className="bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 rounded-lg p-4 border border-yellow-200 dark:border-yellow-600/30">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-gray-600 dark:text-gray-400 font-medium">Currently Deployed</span>
+                        <span className="text-lg font-bold text-yellow-700 dark:text-yellow-300">
+                          {Number(strategy.deployed).toFixed(2)} Tokens
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </>
@@ -1438,114 +1475,6 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
 
                 {infoTab === 'strategies' && (
                   <div className="space-y-5">
-                    {/* Current Live Strategy Setup */}
-                    <div className="bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 border border-yellow-300 dark:border-yellow-600/30 rounded-2xl p-4 sm:p-6">
-                      <div className="flex items-center gap-2 mb-4">
-                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                        <h3 className="text-lg font-bold text-gray-900 dark:text-white">Active Strategy Allocation</h3>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                        {/* USD1 Strategy */}
-                        <div className="bg-white/60 dark:bg-black/20 rounded-xl p-4 border border-gray-200/50 dark:border-gray-700/30">
-                          <div className="flex items-center gap-2 mb-3">
-                            <img src={ICONS.USD1} alt="USD1" className="w-8 h-8 rounded-full" />
-                            <div className="flex-1">
-                              <h4 className="text-sm font-bold text-gray-900 dark:text-white">USD1/WLFI Strategy</h4>
-                              <p className="text-xs text-gray-600 dark:text-gray-400">Charm Finance</p>
-                            </div>
-                            <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">50%</div>
-                          </div>
-                          <div className="space-y-1.5 text-xs">
-                            <div className="flex justify-between">
-                              <span className="text-gray-600 dark:text-gray-400">Contract:</span>
-                              <a 
-                                href="https://etherscan.io/address/0x47B2659747d6A7E00c8251c3C3f7e92625a8cf6f"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="font-mono text-yellow-600 dark:text-yellow-400 hover:underline"
-                              >
-                                0x47B2...cf6f
-                              </a>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600 dark:text-gray-400">Charm Vault:</span>
-                              <a 
-                                href="https://etherscan.io/address/0x22828Dbf15f5FBa2394Ba7Cf8fA9A96BdB444B71"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="font-mono text-yellow-600 dark:text-yellow-400 hover:underline"
-                              >
-                                0x2282...4B71
-                              </a>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600 dark:text-gray-400">Deployed:</span>
-                              <span className="font-bold text-gray-900 dark:text-white">{Number(data.strategyUSD1).toFixed(2)} Tokens</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* WETH Strategy */}
-                        <div className="bg-white/60 dark:bg-black/20 rounded-xl p-4 border border-gray-200/50 dark:border-gray-700/30">
-                          <div className="flex items-center gap-2 mb-3">
-                            <img src={ICONS.WLFI} alt="WLFI" className="w-8 h-8 rounded-full" />
-                            <div className="flex-1">
-                              <h4 className="text-sm font-bold text-gray-900 dark:text-white">WETH/WLFI Strategy</h4>
-                              <p className="text-xs text-gray-600 dark:text-gray-400">Charm Finance</p>
-                            </div>
-                            <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">50%</div>
-                          </div>
-                          <div className="space-y-1.5 text-xs">
-                            <div className="flex justify-between">
-                              <span className="text-gray-600 dark:text-gray-400">Contract:</span>
-                              <a 
-                                href="https://etherscan.io/address/0x997feaa69a60c536F8449F0D5Adf997fD83aDf39"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="font-mono text-yellow-600 dark:text-yellow-400 hover:underline"
-                              >
-                                0x997f...Df39
-                              </a>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600 dark:text-gray-400">Charm Vault:</span>
-                              <a 
-                                href="https://etherscan.io/address/0x3314e248F3F752Cd16939773D83bEb3a362F0AEF"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="font-mono text-yellow-600 dark:text-yellow-400 hover:underline"
-                              >
-                                0x3314...0AEF
-                              </a>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600 dark:text-gray-400">Deployed:</span>
-                              <span className="font-bold text-gray-900 dark:text-white">{Number(data.strategyWLFI).toFixed(2)} Tokens</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Total Deployed Bar */}
-                      <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-900/30 rounded-xl border border-gray-200/50 dark:border-gray-700/30">
-                        <div className="flex justify-between items-center mb-2">
-                          <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">Total Deployed Across Strategies</span>
-                          <span className="text-lg font-bold text-gray-900 dark:text-white">{data.strategyTotal} Tokens</span>
-                        </div>
-                        <div className="w-full h-2 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
-                          <div 
-                            className="h-full bg-gradient-to-r from-yellow-400 via-yellow-500 to-amber-500 transition-all duration-500"
-                            style={{ width: `${(Number(data.strategyTotal) / (Number(data.strategyTotal) + Number(data.liquidTotal))) * 100}%` }}
-                          ></div>
-                        </div>
-                        <div className="flex justify-between text-xs text-gray-600 dark:text-gray-400 mt-1">
-                          <span>Deployed: {((Number(data.strategyTotal) / (Number(data.strategyTotal) + Number(data.liquidTotal))) * 100).toFixed(1)}%</span>
-                          <span>Idle: {data.liquidTotal} Tokens</span>
-                        </div>
-                      </div>
-                    </div>
-
                     {/* All 5 Strategies as Expandable Rows */}
                     {[
                       {
@@ -1554,20 +1483,28 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
                         protocol: 'Charm Finance',
                         pool: 'USD1/WLFI',
                         feeTier: '1%',
-                        allocation: '100%',
+                        allocation: '50%',
                         status: 'active',
                         description: 'Actively managed concentrated liquidity position on Uniswap V3, optimized for the USD1/WLFI 1% fee tier pool.',
                         analytics: 'https://alpha.charm.fi/vault/1/0x47b2f57fb48177c02e9e219ad4f4e42d5f4f1a0c',
                         revertAnalytics: 'https://revert.finance/#/pool/mainnet/uniswapv3/0xf9f5e6f7a44ee10c72e67bded6654afaf4d0c85d',
-                        contract: CONTRACTS.STRATEGY
+                        contract: '0x47B2659747d6A7E00c8251c3C3f7e92625a8cf6f',
+                        charmVault: '0x22828Dbf15f5FBa2394Ba7Cf8fA9A96BdB444B71',
+                        deployed: data.strategyUSD1
                       },
                       {
                         id: 2,
-                        name: 'Strategy 2',
-                        protocol: 'TBD',
-                        description: 'Additional yield strategy coming soon. Protocol and implementation details to be announced.',
-                        status: 'coming-soon',
-                        allocation: '0%'
+                        name: 'Charm WETH/WLFI Alpha Vault',
+                        protocol: 'Charm Finance',
+                        pool: 'WETH/WLFI',
+                        feeTier: '1%',
+                        allocation: '50%',
+                        status: 'active',
+                        description: 'Actively managed concentrated liquidity position on Uniswap V3, optimized for the WETH/WLFI 1% fee tier pool.',
+                        analytics: 'https://alpha.charm.fi/vault/1/0x3314e248F3F752Cd16939773D83bEb3a362F0AEF',
+                        contract: '0x997feaa69a60c536F8449F0D5Adf997fD83aDf39',
+                        charmVault: '0x3314e248F3F752Cd16939773D83bEb3a362F0AEF',
+                        deployed: data.strategyWLFI
                       },
                       {
                         id: 3,
