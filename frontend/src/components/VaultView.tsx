@@ -561,9 +561,14 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
   }, []);
 
   const fetchData = useCallback(async () => {
-    if (!provider) return;
+    console.log('[VaultView] fetchData called', { provider: !!provider, account });
+    if (!provider) {
+      console.warn('[VaultView] No provider available');
+      return;
+    }
 
     try {
+      console.log('[VaultView] Starting data fetch...');
       const vault = new Contract(CONTRACTS.VAULT, VAULT_ABI, provider);
       const wlfi = new Contract(CONTRACTS.WLFI, ERC20_ABI, provider);
       const usd1 = new Contract(CONTRACTS.USD1, ERC20_ABI, provider);
@@ -643,6 +648,15 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
       const liquidTotal = (Number(vaultLiquidWLFI) + Number(vaultLiquidUSD1)).toFixed(2);
       const strategyTotal = (Number(strategyWLFI) + Number(strategyUSD1)).toFixed(2);
 
+      console.log('[VaultView] Strategy balances fetched:', {
+        vaultLiquidWLFI,
+        vaultLiquidUSD1,
+        strategyUSD1,
+        strategyWLFI,
+        liquidTotal,
+        strategyTotal
+      });
+
       const charmStats = await charmStatsPromise;
 
       if (account) {
@@ -664,8 +678,8 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
         }
       }
 
-      setData(prev => ({
-        ...prev,
+      const newData = {
+        ...data,
         totalAssets: formatEther(totalAssets),
         totalSupply: formatEther(totalSupply),
         userBalance,
@@ -685,9 +699,13 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
         weeklyApy: charmStats?.weeklyApy || '0',
         monthlyApy: charmStats?.monthlyApy || '0',
         historicalSnapshots: charmStats?.historicalSnapshots || [],
-      }));
+      };
+      
+      console.log('[VaultView] Setting new data:', newData);
+      setData(newData);
+      console.log('[VaultView] Data fetch complete!');
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('[VaultView] Error fetching data:', error);
     }
   }, [provider, account, fetchCharmStats]);
 
