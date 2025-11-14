@@ -608,6 +608,8 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
       // USD1 Strategy: getTotalAmounts() returns (wlfiAmount, usd1Amount)
       let strategyUSD1InPool = '0';
       let strategyWLFIinUSD1Pool = '0';
+      console.log('[VaultView] ===== FETCHING USD1 STRATEGY DATA =====');
+      console.log('[VaultView] USD1 Strategy Address:', CONTRACTS.STRATEGY_USD1);
       try {
         const usd1Strategy = new Contract(
           CONTRACTS.STRATEGY_USD1,
@@ -636,6 +638,9 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
       // Since getTotalAmounts() reverts due to stale oracles, we'll query the Charm vault directly
       let strategyWETH = '0';
       let strategyWLFIinPool = '0';
+      console.log('[VaultView] ===== FETCHING WETH STRATEGY DATA =====');
+      console.log('[VaultView] WETH Strategy Address:', CONTRACTS.STRATEGY_WETH);
+      console.log('[VaultView] WETH Charm Vault Address:', CONTRACTS.CHARM_VAULT_WETH);
       try {
         // Get strategy's share balance in Charm vault
         const charmVault = new Contract(
