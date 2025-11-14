@@ -167,7 +167,7 @@ export default function ModernHeader() {
               href="https://dexscreener.com/ethereum/0xcf728b099b672c72d61f6ec4c4928c2f2a96cefdfd518c3470519d76545ed333"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-br from-yellow-50 to-yellow-100/50 dark:from-yellow-900/20 dark:to-yellow-800/20 rounded-full shadow-neo-raised dark:shadow-neo-raised-dark hover:shadow-neo-hover dark:hover:shadow-neo-hover-dark border border-yellow-200/70 dark:border-yellow-600/30 hover:border-yellow-300 dark:hover:border-yellow-500 transition-all duration-400 cursor-pointer"
+              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-br from-indigo-50 to-purple-100/50 dark:from-yellow-900/20 dark:to-yellow-800/20 rounded-full shadow-neo-raised dark:shadow-neo-raised-dark hover:shadow-neo-hover dark:hover:shadow-neo-hover-dark border border-indigo-200/70 dark:border-indigo-600/30 hover:border-indigo-300 dark:hover:border-indigo-500 transition-all duration-400 cursor-pointer"
               whileHover={{ scale: 1.05, y: -2 }}
               transition={{ type: "spring", stiffness: 500, damping: 20 }}
               animate={priceChanged === 'eagle' ? { scale: [1, 1.08, 1] } : {}}
@@ -253,7 +253,7 @@ export default function ModernHeader() {
             href="https://dexscreener.com/ethereum/0xcf728b099b672c72d61f6ec4c4928c2f2a96cefdfd518c3470519d76545ed333"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-br from-yellow-50 to-yellow-100/50 dark:from-yellow-900/20 dark:to-yellow-800/20 rounded-full shadow-neo-raised dark:shadow-neo-raised-dark border border-yellow-200/70 dark:border-yellow-600/30 whitespace-nowrap flex-shrink-0 cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-br from-indigo-50 to-purple-100/50 dark:from-yellow-900/20 dark:to-yellow-800/20 rounded-full shadow-neo-raised dark:shadow-neo-raised-dark border border-indigo-200/70 dark:border-indigo-600/30 whitespace-nowrap flex-shrink-0 cursor-pointer"
             animate={priceChanged === 'eagle' ? { scale: [1, 1.05, 1] } : {}}
             title="View on DexScreener"
           >

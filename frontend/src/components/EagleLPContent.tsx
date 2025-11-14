@@ -111,7 +111,7 @@ export default function EagleLPContent({ onNavigateDown }: Props) {
                 whileHover={{ scale: 1.05, rotate: 5 }}
                 transition={{ type: "spring", stiffness: 400, damping: 17 }}
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/20 to-orange-400/20 rounded-xl sm:rounded-2xl blur-lg sm:blur-xl"></div>
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-400/20 to-purple-400/20 rounded-xl sm:rounded-2xl blur-lg sm:blur-xl"></div>
                 <div className="relative bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 p-2 sm:p-2.5 md:p-3 rounded-xl sm:rounded-2xl shadow-neo-raised dark:shadow-neo-raised-dark border border-gray-200/50 dark:border-gray-600/50">
                   <img 
                     src={ICONS.EAGLE}
@@ -230,7 +230,7 @@ export default function EagleLPContent({ onNavigateDown }: Props) {
                 href="https://dexscreener.com/ethereum/0xcf728b099b672c72d61f6ec4c4928c2f2a96cefdfd518c3470519d76545ed333" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="flex-1 sm:flex-none px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 active:from-yellow-700 active:to-orange-800 text-white text-xs sm:text-sm font-semibold rounded-full shadow-neo-raised dark:shadow-neo-raised-dark transition-all duration-300 flex items-center justify-center gap-1.5 sm:gap-2 touch-manipulation"
+                className="flex-1 sm:flex-none px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 active:from-indigo-700 active:to-purple-800 text-white text-xs sm:text-sm font-semibold rounded-full shadow-neo-raised dark:shadow-neo-raised-dark transition-all duration-300 flex items-center justify-center gap-1.5 sm:gap-2 touch-manipulation"
               >
                 <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
@@ -264,7 +264,7 @@ export default function EagleLPContent({ onNavigateDown }: Props) {
           <NeoCard className="!p-0 overflow-hidden">
             <div className="p-3 sm:p-4 border-b border-gray-200 dark:border-gray-700">
               <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2 sm:gap-3">
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
                 Live Price Chart

@@ -5,10 +5,10 @@
 @tailwind utilities;
 
 :root {
-  /* Eagle Finance Colors */
-  --eagle-gold: #d4af37;
-  --eagle-gold-dark: #b8941f;
-  --eagle-gold-light: #e2c55f;
+  /* Eagle Finance Colors - Indigo Theme */
+  --eagle-gold: #6366f1;
+  --eagle-gold-dark: #4f46e5;
+  --eagle-gold-light: #818cf8;
   
   /* Light Mode (Default) */
   --bg-light: #e8ebef;

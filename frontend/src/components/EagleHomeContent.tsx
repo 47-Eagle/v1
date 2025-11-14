@@ -28,7 +28,7 @@ export default function EagleHomeContent({ onNavigateUp, onNavigateDown, provide
           />
           
           <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold mb-2 sm:mb-3 tracking-tight">
-            <span className="bg-gradient-to-r from-yellow-500 via-yellow-600 to-amber-700 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-indigo-500 via-purple-600 to-indigo-700 bg-clip-text text-transparent">
               EAGLE
             </span>
           </h1>
@@ -124,12 +124,12 @@ export default function EagleHomeContent({ onNavigateUp, onNavigateDown, provide
             </div>
             
             <div className="flex items-start justify-between mb-3 sm:mb-4 pr-16 sm:pr-32">
-              <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 group-hover:text-yellow-600 dark:group-hover:text-yellow-400 transition-colors">Vault Engine</h3>
+              <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Vault Engine</h3>
               <motion.div
                 animate={{ y: [0, 4, 0] }}
                 transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
               >
-                <ArrowDown className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 dark:text-gray-400 group-hover:text-yellow-600 dark:group-hover:text-yellow-400 transition-colors" />
+                <ArrowDown className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 dark:text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors" />
               </motion.div>
             </div>
             <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 font-medium">Deposit & earn yield</p>
@@ -149,7 +149,7 @@ export default function EagleHomeContent({ onNavigateUp, onNavigateDown, provide
             rel="noopener noreferrer" 
             whileHover={{ scale: 1.05, y: -2 }}
             transition={{ type: "spring", stiffness: 400, damping: 17 }}
-            className="px-3 sm:px-5 py-2 sm:py-2.5 bg-neo-bg-light dark:bg-neo-bg-dark shadow-neo-raised dark:shadow-neo-raised-dark hover:shadow-neo-raised-lift dark:hover:shadow-neo-raised-lift-dark rounded-full text-gray-700 dark:text-gray-300 hover:text-yellow-700 dark:hover:text-yellow-400 transition-all font-medium"
+            className="px-3 sm:px-5 py-2 sm:py-2.5 bg-neo-bg-light dark:bg-neo-bg-dark shadow-neo-raised dark:shadow-neo-raised-dark hover:shadow-neo-raised-lift dark:hover:shadow-neo-raised-lift-dark rounded-full text-gray-700 dark:text-gray-300 hover:text-indigo-700 dark:hover:text-indigo-400 transition-all font-medium"
           >
             Docs
           </motion.a>
@@ -157,7 +157,7 @@ export default function EagleHomeContent({ onNavigateUp, onNavigateDown, provide
             href="#" 
             whileHover={{ scale: 1.05, y: -2 }}
             transition={{ type: "spring", stiffness: 400, damping: 17 }}
-            className="px-3 sm:px-5 py-2 sm:py-2.5 bg-neo-bg-light dark:bg-neo-bg-dark shadow-neo-raised dark:shadow-neo-raised-dark hover:shadow-neo-raised-lift dark:hover:shadow-neo-raised-lift-dark rounded-full text-gray-700 dark:text-gray-300 hover:text-yellow-700 dark:hover:text-yellow-400 transition-all font-medium"
+            className="px-3 sm:px-5 py-2 sm:py-2.5 bg-neo-bg-light dark:bg-neo-bg-dark shadow-neo-raised dark:shadow-neo-raised-dark hover:shadow-neo-raised-lift dark:hover:shadow-neo-raised-lift-dark rounded-full text-gray-700 dark:text-gray-300 hover:text-indigo-700 dark:hover:text-indigo-400 transition-all font-medium"
           >
             Summary
           </motion.a>
@@ -167,7 +167,7 @@ export default function EagleHomeContent({ onNavigateUp, onNavigateDown, provide
             rel="noopener noreferrer" 
             whileHover={{ scale: 1.05, y: -2 }}
             transition={{ type: "spring", stiffness: 400, damping: 17 }}
-            className="px-3 sm:px-5 py-2 sm:py-2.5 bg-neo-bg-light dark:bg-neo-bg-dark shadow-neo-raised dark:shadow-neo-raised-dark hover:shadow-neo-raised-lift dark:hover:shadow-neo-raised-lift-dark rounded-full text-gray-700 dark:text-gray-300 hover:text-yellow-700 dark:hover:text-yellow-400 transition-all font-medium"
+            className="px-3 sm:px-5 py-2 sm:py-2.5 bg-neo-bg-light dark:bg-neo-bg-dark shadow-neo-raised dark:shadow-neo-raised-dark hover:shadow-neo-raised-lift dark:hover:shadow-neo-raised-lift-dark rounded-full text-gray-700 dark:text-gray-300 hover:text-indigo-700 dark:hover:text-indigo-400 transition-all font-medium"
           >
             Twitter
           </motion.a>
@@ -177,7 +177,7 @@ export default function EagleHomeContent({ onNavigateUp, onNavigateDown, provide
             rel="noopener noreferrer" 
             whileHover={{ scale: 1.05, y: -2 }}
             transition={{ type: "spring", stiffness: 400, damping: 17 }}
-            className="px-3 sm:px-5 py-2 sm:py-2.5 bg-neo-bg-light dark:bg-neo-bg-dark shadow-neo-raised dark:shadow-neo-raised-dark hover:shadow-neo-raised-lift dark:hover:shadow-neo-raised-lift-dark rounded-full text-gray-700 dark:text-gray-300 hover:text-yellow-700 dark:hover:text-yellow-400 transition-all font-medium"
+            className="px-3 sm:px-5 py-2 sm:py-2.5 bg-neo-bg-light dark:bg-neo-bg-dark shadow-neo-raised dark:shadow-neo-raised-dark hover:shadow-neo-raised-lift dark:hover:shadow-neo-raised-lift-dark rounded-full text-gray-700 dark:text-gray-300 hover:text-indigo-700 dark:hover:text-indigo-400 transition-all font-medium"
           >
             Telegram
           </motion.a>

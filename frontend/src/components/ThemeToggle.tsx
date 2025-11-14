@@ -46,7 +46,7 @@ export const ThemeToggle = () => {
           ? 'bg-neo-bg-dark shadow-neo-raised-dark hover:shadow-neo-raised-lift-dark'
           : 'bg-neo-bg-light shadow-neo-raised hover:shadow-neo-raised-lift'
         }
-        focus:outline-none focus:ring-2 focus:ring-eagle-gold focus:ring-opacity-50
+        focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50
       `}
       aria-label="Toggle theme"
     >
@@ -59,7 +59,7 @@ export const ThemeToggle = () => {
         transition={{ duration: 0.3 }}
         className="absolute"
       >
-        <Sun className={`w-5 h-5 sm:w-5.5 sm:h-5.5 md:w-6 md:h-6 ${isDark ? 'text-gray-500' : 'text-yellow-500'}`} />
+        <Sun className={`w-5 h-5 sm:w-5.5 sm:h-5.5 md:w-6 md:h-6 ${isDark ? 'text-gray-500' : 'text-indigo-400'}`} />
       </motion.div>
       
       <motion.div

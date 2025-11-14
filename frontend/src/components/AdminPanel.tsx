@@ -138,13 +138,13 @@ export default function AdminPanel({ onClose, provider }: AdminPanelProps) {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-eagle-gold to-yellow-600 rounded-xl flex items-center justify-center">
+            <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
               <svg className="w-7 h-7 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
             </div>
             <div>
-              <h2 className="text-2xl font-bold bg-gradient-to-r from-eagle-gold via-yellow-400 to-eagle-gold bg-clip-text text-transparent">
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-indigo-600 bg-clip-text text-transparent">
                 Admin Panel
               </h2>
               <p className="text-xs text-gray-500">🦅 Eagle Eyes Only</p>
