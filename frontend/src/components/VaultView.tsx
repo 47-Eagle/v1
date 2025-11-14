@@ -44,26 +44,39 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
         onClick={() => setIsExpanded(!isExpanded)}
         className="w-full px-5 sm:px-6 py-4 sm:py-5 transition-all duration-300"
       >
-        <div className="flex items-center justify-between w-full gap-4">
-          {/* Left: Number + Name */}
-          <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
-            {/* Strategy Number - Minimal */}
-            <div className={`
-              text-lg sm:text-xl font-bold shrink-0 transition-colors duration-300
-              ${strategy.status === 'active'
-                ? 'text-amber-400 dark:text-amber-400'
-                : 'text-gray-600 dark:text-gray-600'
-              }
-            `}>
-              #{strategy.id}
-            </div>
-          
-            {/* Strategy Name & Info */}
-            {strategy.status === 'active' && (
-              <div className="min-w-0 flex-1">
-                <h4 className="text-gray-900 dark:text-white font-semibold text-base sm:text-lg mb-1 truncate">
+        <div className="flex items-start justify-between w-full gap-4">
+          {/* Left: Strategy Info */}
+          <div className="min-w-0 flex-1">
+            <div className="flex items-baseline gap-2 mb-2">
+              {/* Strategy Number */}
+              <div className={`
+                text-lg sm:text-xl font-bold shrink-0 transition-colors duration-300
+                ${strategy.status === 'active'
+                  ? 'text-amber-400 dark:text-amber-400'
+                  : 'text-gray-600 dark:text-gray-600'
+                }
+              `}>
+                #{strategy.id}
+              </div>
+              
+              {/* Strategy Name */}
+              {strategy.status === 'active' && (
+                <h4 className="text-gray-900 dark:text-white font-semibold text-base sm:text-lg truncate">
                   {strategy.name}
                 </h4>
+              )}
+              
+              {strategy.status !== 'active' && (
+                <h4 className="text-gray-700 dark:text-gray-400 font-semibold text-base sm:text-lg truncate">
+                  {strategy.name}
+                </h4>
+              )}
+            </div>
+            
+            {/* Protocol Info */}
+            {strategy.status === 'active' && (
+              <div className="space-y-1">
+                <div className="text-[10px] text-gray-500 dark:text-gray-500 uppercase tracking-wider">Protocol</div>
                 <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
                   <span>Charm Finance</span>
                   {strategy.feeTier && (
@@ -77,35 +90,32 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
                 </div>
               </div>
             )}
-
-            {/* Coming Soon */}
+            
             {strategy.status !== 'active' && (
-              <div className="min-w-0 flex-1">
-                <h4 className="text-gray-700 dark:text-gray-400 font-semibold text-base sm:text-lg mb-1 truncate">
-                  {strategy.name}
-                </h4>
+              <div className="space-y-1">
+                <div className="text-[10px] text-gray-500 dark:text-gray-500 uppercase tracking-wider">Protocol</div>
                 <p className="text-xs text-gray-600 dark:text-gray-500">{strategy.protocol}</p>
               </div>
             )}
           </div>
           
-          {/* Right: Weight + Expand */}
-          <div className="flex items-center gap-3 sm:gap-4 shrink-0">
-            {/* Allocation - Minimal */}
+          {/* Right: Allocation + Expand */}
+          <div className="flex items-start gap-4 sm:gap-6 shrink-0">
+            {/* Allocation */}
             {strategy.allocation && strategy.status === 'active' && (
-              <div className="text-right">
+              <div className="text-center">
+                <div className="text-[10px] text-gray-500 dark:text-gray-500 uppercase tracking-wider mb-1">
+                  Allocation
+                </div>
                 <div className="text-2xl sm:text-3xl font-bold text-amber-400 dark:text-amber-400 leading-none">
                   {strategy.allocation}
-                </div>
-                <div className="text-[10px] text-gray-500 dark:text-gray-500 uppercase tracking-wider mt-0.5">
-                  Weight
                 </div>
               </div>
             )}
             
-            {/* Expand Icon - Minimal */}
+            {/* Expand Icon */}
             <div className={`
-              transition-all duration-300
+              transition-all duration-300 mt-6
               ${strategy.status === 'active' ? 'text-gray-400 group-hover:text-amber-400' : 'text-gray-600'}
             `}>
               <svg 
@@ -162,55 +172,52 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
             <>
 
               {strategy.contract && (
-                <div className="space-y-2 mb-4">
-                  {/* Minimal Contract Info */}
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-gray-500 dark:text-gray-500">Contract</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                  {/* Contract Address */}
+                  <div>
+                    <div className="text-[10px] text-gray-500 dark:text-gray-500 uppercase tracking-wider mb-1.5">Contract</div>
                     <a 
                       href={`https://etherscan.io/address/${strategy.contract}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-gray-700 dark:text-gray-300 hover:text-amber-600 dark:hover:text-amber-400 font-mono transition-colors"
+                      className="text-sm text-gray-700 dark:text-gray-300 hover:text-amber-600 dark:hover:text-amber-400 font-mono transition-colors block"
                     >
                       {strategy.contract.slice(0, 6)}...{strategy.contract.slice(-4)}
                     </a>
                   </div>
 
+                  {/* Charm Vault */}
                   {strategy.charmVault && (
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-gray-500 dark:text-gray-500">Charm Vault</span>
+                    <div>
+                      <div className="text-[10px] text-gray-500 dark:text-gray-500 uppercase tracking-wider mb-1.5">Charm Vault</div>
                       <a 
                         href={`https://etherscan.io/address/${strategy.charmVault}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-gray-700 dark:text-gray-300 hover:text-amber-600 dark:hover:text-amber-400 font-mono transition-colors"
+                        className="text-sm text-gray-700 dark:text-gray-300 hover:text-amber-600 dark:hover:text-amber-400 font-mono transition-colors block"
                       >
                         {strategy.charmVault.slice(0, 6)}...{strategy.charmVault.slice(-4)}
                       </a>
                     </div>
                   )}
 
-                  {/* Deployed Amount - Minimal */}
+                  {/* Deployed Amount */}
                   {strategy.deployed !== undefined && (
-                    <div className="pt-3 border-t border-gray-200/5 dark:border-gray-700/10 mt-3">
-                      <div className="flex items-baseline justify-between">
-                        <span className="text-xs text-gray-500 dark:text-gray-500">Deployed</span>
-                        <div className="text-right">
-                          <div className="text-lg font-bold text-gray-900 dark:text-white">
-                            ${Number(strategy.deployed).toFixed(0)}
-                          </div>
-                          {/* Show token breakdown */}
-                          {strategy.usd1Amount && Number(strategy.usd1Amount) > 0 ? (
-                            <div className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
-                              {strategy.usd1Amount} USD1 • {strategy.wlfiAmount} WLFI
-                            </div>
-                          ) : strategy.wethAmount && Number(strategy.wethAmount) > 0 ? (
-                            <div className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
-                              {strategy.wethAmount} WETH + WLFI
-                            </div>
-                          ) : null}
-                        </div>
+                    <div className="sm:col-span-2 pt-3 border-t border-gray-200/5 dark:border-gray-700/10">
+                      <div className="text-[10px] text-gray-500 dark:text-gray-500 uppercase tracking-wider mb-1.5">Deployed</div>
+                      <div className="text-lg font-bold text-gray-900 dark:text-white">
+                        ${Number(strategy.deployed).toFixed(0)}
                       </div>
+                      {/* Show token breakdown */}
+                      {strategy.usd1Amount && Number(strategy.usd1Amount) > 0 ? (
+                        <div className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
+                          {strategy.usd1Amount} USD1 • {strategy.wlfiAmount} WLFI
+                        </div>
+                      ) : strategy.wethAmount && Number(strategy.wethAmount) > 0 ? (
+                        <div className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
+                          {strategy.wethAmount} WETH + WLFI
+                        </div>
+                      ) : null}
                     </div>
                   )}
                 </div>
