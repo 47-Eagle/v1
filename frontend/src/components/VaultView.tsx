@@ -48,11 +48,11 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
           {/* Left: Number + Name + Meta */}
           <div className="min-w-0 flex-1">
             <div className="flex items-baseline gap-2 mb-1">
-              {/* Strategy Number */}
+              {/* Strategy Number - No glow */}
               <span className={`
-                text-base font-bold shrink-0 transition-all duration-300
+                text-base font-bold shrink-0
                 ${strategy.status === 'active'
-                  ? 'text-[#D4B474] dark:text-[#D4B474] dark:shadow-gold-glow'
+                  ? 'text-[#D4B474]'
                   : 'text-gray-600 dark:text-gray-600'
                 }
               `}>
@@ -74,15 +74,9 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
             {/* Compact Meta Info - One Line */}
             {strategy.status === 'active' && (
               <div className="flex items-center gap-1.5 text-[11px] text-gray-500 dark:text-gray-500">
-                <span>Charm Finance</span>
-                {strategy.feeTier && (
-                  <>
-                    <span>•</span>
-                    <span>{strategy.feeTier}</span>
-                  </>
-                )}
+                <span>Uniswap {strategy.feeTier || '1%'} Fee Tier</span>
                 <span>•</span>
-                <span className="text-[#A27D46] dark:text-[#D4B474]">4.7% Perf</span>
+                <span className="text-[#A27D46] dark:text-[#D4B474]">4.7% Performance Fee</span>
               </div>
             )}
             
@@ -95,10 +89,15 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
           
           {/* Right: Allocation + Expand */}
           <div className="flex items-center gap-3 shrink-0">
-            {/* Allocation - Clean */}
+            {/* Allocation - Table Header Style */}
             {strategy.allocation && strategy.status === 'active' && (
-              <div className="text-2xl font-bold text-[#D4B474] dark:text-[#D4B474] leading-none dark:shadow-gold-glow-strong">
-                {strategy.allocation}
+              <div className="text-center">
+                <div className="text-[9px] text-gray-500 dark:text-gray-500 uppercase tracking-wider mb-1">
+                  Allocation
+                </div>
+                <div className="text-2xl font-bold text-[#D4B474] leading-none">
+                  {strategy.allocation}
+                </div>
               </div>
             )}
             
