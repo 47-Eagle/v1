@@ -210,8 +210,14 @@ export default function AssetAllocationSunburst({
               </div>
             </div>
           `)
-          .style('left', (event.pageX + 15) + 'px')
-          .style('top', (event.pageY - 10) + 'px');
+          .style('left', (event.clientX + 15) + 'px')
+          .style('top', (event.clientY - 10) + 'px');
+      })
+      .on('mousemove', function(event, d) {
+        // Update tooltip position as mouse moves
+        d3.select('#tooltip')
+          .style('left', (event.clientX + 15) + 'px')
+          .style('top', (event.clientY - 10) + 'px');
       })
       .on('mouseleave', function(event, d) {
         d3.select(this)
