@@ -33,131 +33,91 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
 
   return (
     <div className={`
-      group relative rounded-3xl overflow-hidden transition-all duration-500 transform
+      group relative rounded-2xl overflow-hidden transition-all duration-300
       ${strategy.status === 'active' 
-        ? 'bg-[#1a1f2e] border border-amber-400/30 shadow-[0_8px_32px_-4px_rgba(0,0,0,0.5),0_0_24px_-4px_rgba(251,191,36,0.15),inset_0_1px_0_rgba(255,255,255,0.05)] hover:shadow-[0_12px_48px_-4px_rgba(251,191,36,0.4),0_8px_32px_-4px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.08)] hover:border-amber-400/50 hover:translate-y-[-2px]' 
-        : 'bg-[#13161f] border border-zinc-800/50 shadow-[inset_0_2px_8px_rgba(0,0,0,0.5),0_4px_16px_rgba(0,0,0,0.3)] opacity-50 hover:opacity-60'
+        ? 'bg-white/5 dark:bg-white/5 border border-gray-200/10 dark:border-gray-700/20 hover:bg-white/8 dark:hover:bg-white/8 hover:border-amber-400/20' 
+        : 'bg-white/3 dark:bg-white/3 border border-gray-200/5 dark:border-gray-700/10 opacity-40'
       }
     `}>
       {/* Header - Always Visible */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-5 lg:py-6 transition-all duration-300"
+        className="w-full px-5 sm:px-6 py-4 sm:py-5 transition-all duration-300"
       >
-        <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-4 lg:gap-6">
-          {/* Strategy Number Badge */}
-          <div className={`
-            relative px-5 py-2.5 rounded-xl text-sm font-black tracking-wider shrink-0 transition-all duration-300
-            ${strategy.status === 'active'
-              ? 'bg-gradient-to-br from-amber-300 via-amber-400 to-amber-500 text-gray-900 shadow-[0_4px_20px_rgba(251,191,36,0.6),0_2px_8px_rgba(251,191,36,0.3),inset_0_1px_0_rgba(255,255,255,0.5)] group-hover:shadow-[0_8px_32px_rgba(251,191,36,0.8),0_4px_16px_rgba(251,191,36,0.4),inset_0_2px_0_rgba(255,255,255,0.6)] group-hover:scale-105'
-              : 'bg-[#0f1117] border border-zinc-800/80 text-zinc-600 shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)]'
-            }
-          `}>
-            <span className="relative z-10">#{strategy.id}</span>
-          </div>
-          
-          {/* Status Indicator */}
-          {strategy.status === 'active' ? (
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0f1e1a] border border-green-500/30 shrink-0 shadow-[inset_0_1px_2px_rgba(0,0,0,0.5),0_0_12px_rgba(34,197,94,0.15)]">
-              <div className="relative">
-                <div className="w-2.5 h-2.5 bg-green-500 rounded-full shadow-[0_0_8px_rgba(34,197,94,0.8)]"></div>
-                <div className="absolute inset-0 w-2.5 h-2.5 bg-green-400 rounded-full animate-ping"></div>
-              </div>
-              <span className="text-xs text-green-400 font-bold uppercase tracking-wider">ACTIVE</span>
+        <div className="flex items-center justify-between w-full gap-4">
+          {/* Left: Number + Name */}
+          <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+            {/* Strategy Number - Minimal */}
+            <div className={`
+              text-lg sm:text-xl font-bold shrink-0 transition-colors duration-300
+              ${strategy.status === 'active'
+                ? 'text-amber-400 dark:text-amber-400'
+                : 'text-gray-600 dark:text-gray-600'
+              }
+            `}>
+              #{strategy.id}
             </div>
-          ) : (
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0f1117] border border-zinc-800/80 shrink-0 shadow-[inset_0_1px_2px_rgba(0,0,0,0.5)]">
-              <div className="w-2.5 h-2.5 bg-zinc-700 rounded-full"></div>
-              <span className="text-xs text-zinc-600 font-bold uppercase tracking-wider">SOON</span>
-            </div>
-          )}
           
-          {/* Protocol Badges & Info */}
-          {strategy.status === 'active' && (
-            <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
-              {/* Protocol Logos Stack */}
-              <div className="flex items-center shrink-0">
-                <div className="relative">
-                  <UniswapBadge className="!w-10 !h-10 sm:!w-12 sm:!h-12 ring-3 ring-white dark:ring-zinc-900 shadow-neo-raised transition-transform group-hover:scale-110" />
-                  <div className="absolute -bottom-1 -right-1 w-5 h-5 sm:w-6 sm:h-6 bg-white dark:bg-zinc-900 rounded-full flex items-center justify-center ring-2 ring-white dark:ring-zinc-900">
-                    <CharmBadge className="!w-4 !h-4 sm:!w-5 sm:!h-5" />
-                  </div>
-                </div>
-              </div>
-              
-              {/* Strategy Name */}
-              <div className="text-left min-w-0 flex-1">
-                <h4 className="text-gray-900 dark:text-white font-bold text-base sm:text-lg mb-0.5 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors truncate">
+            {/* Strategy Name & Info */}
+            {strategy.status === 'active' && (
+              <div className="min-w-0 flex-1">
+                <h4 className="text-gray-900 dark:text-white font-semibold text-base sm:text-lg mb-1 truncate">
                   {strategy.name}
                 </h4>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-                    Charm Finance
-                  </span>
+                <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+                  <span>Charm Finance</span>
                   {strategy.feeTier && (
                     <>
-                      <span className="text-gray-400 dark:text-gray-600">•</span>
-                      <span className="px-1.5 py-0.5 rounded text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-semibold">
-                        {strategy.feeTier}
-                      </span>
+                      <span>•</span>
+                      <span>{strategy.feeTier}</span>
                     </>
                   )}
-                  <span className="text-gray-400 dark:text-gray-600">•</span>
-                  <span className="px-1.5 py-0.5 rounded text-xs bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 font-semibold">
-                    4.7% Perf
-                  </span>
+                  <span>•</span>
+                  <span className="text-amber-600 dark:text-amber-400">4.7% Perf</span>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Coming Soon Strategies */}
-          {strategy.status !== 'active' && (
-            <div className="flex-1 text-left min-w-0">
-              <h4 className="text-gray-700 dark:text-gray-400 font-bold text-base sm:text-lg mb-0.5 truncate">
-                {strategy.name}
-              </h4>
-              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-500 truncate">{strategy.protocol}</p>
-            </div>
-          )}
+            {/* Coming Soon */}
+            {strategy.status !== 'active' && (
+              <div className="min-w-0 flex-1">
+                <h4 className="text-gray-700 dark:text-gray-400 font-semibold text-base sm:text-lg mb-1 truncate">
+                  {strategy.name}
+                </h4>
+                <p className="text-xs text-gray-600 dark:text-gray-500">{strategy.protocol}</p>
+              </div>
+            )}
+          </div>
           
-          {/* Allocation Badge */}
-          {strategy.allocation && strategy.status === 'active' && (
-            <div className="relative shrink-0 mr-2">
-              <div className="px-5 py-2.5 rounded-xl bg-gradient-to-br from-amber-300 via-amber-400 to-amber-500 shadow-[0_4px_20px_rgba(251,191,36,0.6),0_2px_8px_rgba(251,191,36,0.3),inset_0_1px_0_rgba(255,255,255,0.5)] border border-amber-200/40">
-                <div className="text-center">
-                  <div className="text-2xl font-black text-gray-900 leading-none mb-0.5">{strategy.allocation}</div>
-                  <div className="text-[9px] text-gray-800 font-bold uppercase tracking-widest">WEIGHT</div>
+          {/* Right: Weight + Expand */}
+          <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+            {/* Allocation - Minimal */}
+            {strategy.allocation && strategy.status === 'active' && (
+              <div className="text-right">
+                <div className="text-2xl sm:text-3xl font-bold text-amber-400 dark:text-amber-400 leading-none">
+                  {strategy.allocation}
+                </div>
+                <div className="text-[10px] text-gray-500 dark:text-gray-500 uppercase tracking-wider mt-0.5">
+                  Weight
                 </div>
               </div>
+            )}
+            
+            {/* Expand Icon - Minimal */}
+            <div className={`
+              transition-all duration-300
+              ${strategy.status === 'active' ? 'text-gray-400 group-hover:text-amber-400' : 'text-gray-600'}
+            `}>
+              <svg 
+                className={`w-5 h-5 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
             </div>
-          )}
-          
-          {/* Expand Button - Neumorphic */}
-          <div className={`
-            relative w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 shrink-0 cursor-pointer
-            ${strategy.status === 'active'
-              ? 'bg-[#161b28] border border-amber-500/20 shadow-[inset_0_2px_4px_rgba(0,0,0,0.5),0_1px_0_rgba(255,255,255,0.05)] group-hover:shadow-[inset_0_3px_6px_rgba(0,0,0,0.6),0_0_12px_rgba(234,179,8,0.2)]'
-              : 'bg-[#0f1117] border border-zinc-800/80 shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)]'
-            }
-            ${isExpanded ? 'shadow-[inset_0_3px_6px_rgba(0,0,0,0.6)]' : ''}
-          `}>
-            <svg 
-              className={`
-                w-6 h-6 transition-all duration-500
-                ${strategy.status === 'active'
-                  ? 'text-amber-500 group-hover:text-amber-400'
-                  : 'text-zinc-700'
-                }
-                ${isExpanded ? 'rotate-180' : ''}
-              `}
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
-              strokeWidth={2.5}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-            </svg>
           </div>
         </div>
       </button>
@@ -165,10 +125,10 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
       {/* Expanded Content */}
       {isExpanded && (
         <div className={`
-          px-6 sm:px-8 pb-6 sm:pb-8 pt-6 border-t animate-fadeIn
+          px-5 sm:px-6 pb-5 sm:pb-6 pt-5 border-t animate-fadeIn
           ${strategy.status === 'active'
-            ? 'border-amber-500/10 bg-gradient-to-b from-[#141824] to-[#0f1319]'
-            : 'border-zinc-800/30 bg-gradient-to-b from-[#0f1117] to-[#0a0c10]'
+            ? 'border-gray-200/5 dark:border-gray-700/10'
+            : 'border-gray-200/3 dark:border-gray-700/5'
           }
         `}>
           {/* 3D Visualization for Strategy 1 */}
@@ -202,71 +162,54 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
             <>
 
               {strategy.contract && (
-                <div className="space-y-3">
-                  {/* Compact Contract Cards */}
-                  <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/30">
-                    <span className="text-xs text-gray-600 dark:text-gray-400 font-semibold">Contract</span>
+                <div className="space-y-2 mb-4">
+                  {/* Minimal Contract Info */}
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-gray-500 dark:text-gray-500">Contract</span>
                     <a 
                       href={`https://etherscan.io/address/${strategy.contract}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 font-mono transition-colors"
+                      className="text-gray-700 dark:text-gray-300 hover:text-amber-600 dark:hover:text-amber-400 font-mono transition-colors"
                     >
                       {strategy.contract.slice(0, 6)}...{strategy.contract.slice(-4)}
                     </a>
                   </div>
 
                   {strategy.charmVault && (
-                    <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/30">
-                      <div className="flex items-center gap-2">
-                        <CharmBadge className="!w-4 !h-4" />
-                        <span className="text-xs text-gray-600 dark:text-gray-400 font-semibold">Charm Vault</span>
-                      </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-gray-500 dark:text-gray-500">Charm Vault</span>
                       <a 
                         href={`https://etherscan.io/address/${strategy.charmVault}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 font-mono transition-colors"
+                        className="text-gray-700 dark:text-gray-300 hover:text-amber-600 dark:hover:text-amber-400 font-mono transition-colors"
                       >
                         {strategy.charmVault.slice(0, 6)}...{strategy.charmVault.slice(-4)}
                       </a>
                     </div>
                   )}
 
-                  {/* Deployed Amount */}
+                  {/* Deployed Amount - Minimal */}
                   {strategy.deployed !== undefined && (
-                    <div className={`${DS.radius.md} ${DS.backgrounds.highlight} p-4 ${DS.borders.highlight} ${DS.shadows.raised} ${DS.transitions.default}`}>
-                      <div>
-                        <div className={`${DS.text.labelSmall} mb-2`}>Currently Deployed</div>
-                        {/* Show USD1 breakdown for strategy #1 */}
-                        {strategy.usd1Amount && Number(strategy.usd1Amount) > 0 ? (
-                          <div className={DS.spacing.itemGapSmall}>
-                            <div className={`${DS.text.valueMedium} ${DS.text.highlight}`}>
-                              {strategy.usd1Amount} <span className={DS.text.bodyMuted}>USD1</span>
-                            </div>
-                            <div className={`${DS.text.valueMedium} ${DS.text.highlight}`}>
-                              {strategy.wlfiAmount} <span className={DS.text.bodyMuted}>WLFI</span>
-                            </div>
-                            <div className={DS.text.description}>
-                              <span className={DS.text.descriptionSmall}>(~${Number(strategy.deployed).toFixed(0)} total value)</span>
-                            </div>
+                    <div className="pt-3 border-t border-gray-200/5 dark:border-gray-700/10 mt-3">
+                      <div className="flex items-baseline justify-between">
+                        <span className="text-xs text-gray-500 dark:text-gray-500">Deployed</span>
+                        <div className="text-right">
+                          <div className="text-lg font-bold text-gray-900 dark:text-white">
+                            ${Number(strategy.deployed).toFixed(0)}
                           </div>
-                        ) : 
-                        /* Show WETH breakdown for strategy #2 */
-                        strategy.wethAmount && Number(strategy.wethAmount) > 0 ? (
-                          <div className={DS.spacing.itemGapSmall}>
-                            <div className={`${DS.text.valueMedium} ${DS.text.highlight}`}>
-                              {strategy.wethAmount} <span className={DS.text.bodyMuted}>WETH</span>
+                          {/* Show token breakdown */}
+                          {strategy.usd1Amount && Number(strategy.usd1Amount) > 0 ? (
+                            <div className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
+                              {strategy.usd1Amount} USD1 • {strategy.wlfiAmount} WLFI
                             </div>
-                            <div className={DS.text.description}>
-                              + WLFI in pool <span className={DS.text.descriptionSmall}>(~${Number(strategy.deployed).toFixed(0)} total value)</span>
+                          ) : strategy.wethAmount && Number(strategy.wethAmount) > 0 ? (
+                            <div className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
+                              {strategy.wethAmount} WETH + WLFI
                             </div>
-                          </div>
-                        ) : (
-                          <div className={`${DS.text.valueMedium} ${DS.text.highlight}`}>
-                            {Number(strategy.deployed).toFixed(2)} <span className={DS.text.bodyMuted}>Tokens</span>
-                          </div>
-                        )}
+                          ) : null}
+                        </div>
                       </div>
                     </div>
                   )}
