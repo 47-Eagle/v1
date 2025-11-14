@@ -316,7 +316,7 @@ export default function VaultVisualization({ currentPrice = WLFI_PRICE_USD }: Va
                   <Text position={[0, 0.4, 0]} color="#10b981" fontSize={0.25} anchorX="left" fontWeight="bold">
                     7d Avg APR: {revertData.avgAPR?.toFixed(1) || '0'}%
                   </Text>
-                  <Text position={[0, 0.1, 0]} color="#fbbf24" fontSize={0.25} anchorX="left">
+                  <Text position={[0, 0.1, 0]} color="#F2D57C" fontSize={0.25} anchorX="left">
                     Max APR: {revertData.maxAPR?.toFixed(1) || '0'}%
                   </Text>
                   <Text position={[0, -0.2, 0]} color="white" fontSize={0.25} anchorX="left">
@@ -383,7 +383,7 @@ export default function VaultVisualization({ currentPrice = WLFI_PRICE_USD }: Va
                       <group position={[x, height + 2.5, 0]}>
                         <Text
                           position={[0, 1.2, 0]}
-                          color="#fbbf24"
+                          color="#F2D57C"
                           fontSize={0.7}
                           anchorX="center"
                           anchorY="middle"
@@ -467,7 +467,7 @@ export default function VaultVisualization({ currentPrice = WLFI_PRICE_USD }: Va
           <div className="text-[10px] sm:text-xs text-gray-500 mb-2 sm:mb-3">
             Total Allocation: {positions.reduce((sum, pos) => sum + pos.weight, 0).toFixed(1)}%
             {(positions.reduce((sum, pos) => sum + pos.weight, 0) < 95 || positions.reduce((sum, pos) => sum + pos.weight, 0) > 105) && (
-              <span className="text-yellow-500 ml-2 block sm:inline mt-1 sm:mt-0">⚠️ Warning: Total should be ~100%</span>
+              <span className="text-[#FFE7A3] ml-2 block sm:inline mt-1 sm:mt-0">⚠️ Warning: Total should be ~100%</span>
             )}
           </div>
           {revertData && (

@@ -87,10 +87,10 @@ export default function AssetAllocationSunburst({
       children: [
         {
           name: 'Vault Reserves',
-          color: '#d4af37', // Eagle Gold
+          color: '#F2D57C', // Primary Gold
           children: [
-            { name: 'Vault WLFI', value: vaultWLFI * 0.132, color: '#f6d55c' }, // Light Gold (WLFI in USD)
-            { name: 'Vault USD1', value: vaultUSD1, color: '#b8941f' } // Dark Gold (USD1 already in USD)
+            { name: 'Vault WLFI', value: vaultWLFI * 0.132, color: '#FFE7A3' }, // Highlight Gold (WLFI in USD)
+            { name: 'Vault USD1', value: vaultUSD1, color: '#C9A854' } // Soft Gold (USD1 already in USD)
           ]
         },
         {
@@ -293,7 +293,7 @@ export default function AssetAllocationSunburst({
       .attr('y', -8)
       .style('font-size', '32px')
       .style('font-weight', '700')
-      .style('fill', '#d4af37')
+      .style('fill', '#F2D57C')
       .style('letter-spacing', '1px')
       .text(totalInWLFI.toFixed(2));
 
@@ -311,7 +311,7 @@ export default function AssetAllocationSunburst({
   return (
     <div className="relative bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 shadow-neo-raised dark:shadow-neo-raised-dark rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 mb-4 sm:mb-6 md:mb-8 overflow-hidden border border-gray-300/50 dark:border-gray-600/40 transition-colors duration-300">
       {/* Subtle animated background gradient */}
-      <div className="absolute top-0 right-0 w-32 h-32 sm:w-48 sm:h-48 md:w-64 md:h-64 bg-gradient-to-br from-amber-500/5 to-transparent rounded-full blur-2xl sm:blur-3xl animate-pulse"></div>
+      <div className="absolute top-0 right-0 w-32 h-32 sm:w-48 sm:h-48 md:w-64 md:h-64 bg-gradient-to-br from-[#F2D57C]/5 to-transparent rounded-full blur-2xl sm:blur-3xl animate-pulse"></div>
       
       <div className="relative">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-5 md:mb-6">
@@ -320,7 +320,7 @@ export default function AssetAllocationSunburst({
             <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Real-time token distribution</p>
           </div>
           {selectedPath && (
-            <div className="px-3 sm:px-4 py-1.5 sm:py-2 bg-amber-100 dark:bg-amber-900/30 shadow-neo-inset dark:shadow-neo-inset-dark text-amber-700 dark:text-[#D4B474] text-xs sm:text-sm font-semibold rounded-lg sm:rounded-xl">
+            <div className="px-3 sm:px-4 py-1.5 sm:py-2 bg-[#FFE7A3]/20 dark:bg-[#C9A854]/20 shadow-neo-inset dark:shadow-neo-inset-dark text-[#A69348] dark:text-[#F2D57C] text-xs sm:text-sm font-semibold rounded-lg sm:rounded-xl">
               <span className="flex items-center gap-1.5 sm:gap-2">
                 <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
@@ -335,7 +335,7 @@ export default function AssetAllocationSunburst({
         {/* D3 Sunburst Chart with glow effect */}
         <div className="flex-shrink-0 relative flex flex-col items-center gap-4">
           <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 to-blue-500/10 rounded-full blur-2xl"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-[#F2D57C]/10 to-blue-500/10 rounded-full blur-2xl"></div>
             <svg ref={svgRef} className="relative drop-shadow-2xl"></svg>
             <div 
               id="tooltip" 
@@ -353,13 +353,13 @@ export default function AssetAllocationSunburst({
           
           {/* Selected Section Info Card - Below Chart */}
           {selectedPath && (
-            <div className="w-full max-w-xs p-3 sm:p-4 bg-amber-50 dark:bg-amber-900/30 shadow-neo-inset dark:shadow-neo-inset-dark border border-amber-400 dark:border-amber-600 rounded-lg sm:rounded-xl animate-fadeIn">
+            <div className="w-full max-w-xs p-3 sm:p-4 bg-[#FFE7A3]/20 dark:bg-[#C9A854]/20 shadow-neo-inset dark:shadow-neo-inset-dark border border-[#F2D57C] dark:border-[#C9A854] rounded-lg sm:rounded-xl animate-fadeIn">
               <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
-                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#A27D46] dark:text-[#D4B474] animate-pulse flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#C9A854] dark:text-[#F2D57C] animate-pulse flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
                   <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"/>
                 </svg>
-                <div className="text-xs sm:text-sm text-amber-700 dark:text-[#D4B474] font-bold truncate">
+                <div className="text-xs sm:text-sm text-[#A69348] dark:text-[#F2D57C] font-bold truncate">
                   Viewing: {selectedPath}
                 </div>
               </div>
@@ -375,7 +375,7 @@ export default function AssetAllocationSunburst({
           <div 
             className={`cursor-pointer p-3 sm:p-4 rounded-lg sm:rounded-xl transition-all duration-300 touch-manipulation active:scale-[0.98] ${
               expandedSection === 'vault'
-                ? 'bg-amber-100 dark:bg-amber-900/30 shadow-neo-inset dark:shadow-neo-inset-dark border-2 border-amber-400 dark:border-amber-600' 
+                ? 'bg-[#FFE7A3]/20 dark:bg-[#C9A854]/20 shadow-neo-inset dark:shadow-neo-inset-dark border-2 border-[#F2D57C] dark:border-[#C9A854]' 
                 : 'bg-white dark:bg-gray-800 shadow-neo-raised dark:shadow-neo-raised-dark border border-gray-300/50 dark:border-gray-600/50 hover:shadow-neo-hover dark:hover:shadow-neo-hover-dark'
             }`}
             onClick={() => {
@@ -409,7 +409,7 @@ export default function AssetAllocationSunburst({
               </div>
             )}
             
-            <div className="text-[10px] sm:text-xs text-amber-700 dark:text-[#D4B474] mt-1.5 sm:mt-2 font-semibold">
+            <div className="text-[10px] sm:text-xs text-[#A69348] dark:text-[#F2D57C] mt-1.5 sm:mt-2 font-semibold">
               {grandTotal > 0 ? ((totalVault / grandTotal) * 100).toFixed(1) : '0.0'}% • Available now
             </div>
           </div>
@@ -418,7 +418,7 @@ export default function AssetAllocationSunburst({
           <div 
             className={`cursor-pointer p-3 sm:p-4 rounded-lg sm:rounded-xl transition-all duration-300 touch-manipulation active:scale-[0.98] ${
               expandedSection === 'usd1'
-                ? 'bg-amber-100 dark:bg-amber-900/30 shadow-neo-inset dark:shadow-neo-inset-dark border-2 border-amber-400 dark:border-amber-600' 
+                ? 'bg-[#FFE7A3]/20 dark:bg-[#C9A854]/20 shadow-neo-inset dark:shadow-neo-inset-dark border-2 border-[#F2D57C] dark:border-[#C9A854]' 
                 : 'bg-white dark:bg-gray-800 shadow-neo-raised dark:shadow-neo-raised-dark border border-gray-300/50 dark:border-gray-600/50 hover:shadow-neo-hover dark:hover:shadow-neo-hover-dark'
             }`}
             onClick={() => {
@@ -432,14 +432,14 @@ export default function AssetAllocationSunburst({
               <div className="space-y-1.5 sm:space-y-2">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-1.5 sm:gap-2">
-                    <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full shadow-neo-inset dark:shadow-neo-inset-dark bg-amber-300 flex-shrink-0"></div>
+                    <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full shadow-neo-inset dark:shadow-neo-inset-dark bg-[#FFE7A3] flex-shrink-0"></div>
                     <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 font-medium">USD1</span>
                   </div>
                   <span className="text-xs sm:text-sm font-mono text-gray-900 dark:text-gray-100 font-semibold">{strategyUSD1InPool.toFixed(2)}</span>
                 </div>
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-1.5 sm:gap-2">
-                    <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full shadow-neo-inset dark:shadow-neo-inset-dark bg-amber-500 flex-shrink-0"></div>
+                    <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full shadow-neo-inset dark:shadow-neo-inset-dark bg-[#F2D57C] flex-shrink-0"></div>
                     <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 font-medium">WLFI</span>
                   </div>
                   <span className="text-xs sm:text-sm font-mono text-gray-900 dark:text-gray-100 font-semibold">{strategyWLFIinUSD1Pool.toFixed(2)}</span>
@@ -452,7 +452,7 @@ export default function AssetAllocationSunburst({
               </div>
             )}
             
-            <div className="text-[10px] sm:text-xs text-amber-700 dark:text-[#D4B474] mt-1.5 sm:mt-2 font-semibold">
+            <div className="text-[10px] sm:text-xs text-[#A69348] dark:text-[#F2D57C] mt-1.5 sm:mt-2 font-semibold">
               {grandTotal > 0 ? ((totalUSD1Strategy / grandTotal) * 100).toFixed(1) : '0'}% • Charm USD1/WLFI
             </div>
           </div>
