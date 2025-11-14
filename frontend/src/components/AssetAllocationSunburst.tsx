@@ -7,6 +7,8 @@ interface AssetAllocationSunburstProps {
   strategyWLFI: number;
   strategyUSD1: number;
   wlfiPrice: number;
+  strategyWETH?: number;
+  strategyWLFIinPool?: number;
 }
 
 interface HierarchyNode {
@@ -21,7 +23,9 @@ export default function AssetAllocationSunburst({
   vaultUSD1,
   strategyWLFI,
   strategyUSD1,
-  wlfiPrice
+  wlfiPrice,
+  strategyWETH = 0,
+  strategyWLFIinPool = 0
 }: AssetAllocationSunburstProps) {
   
   const svgRef = useRef<SVGSVGElement>(null);
@@ -353,6 +357,37 @@ export default function AssetAllocationSunburst({
               {grandTotal > 0 ? ((totalStrategy / grandTotal) * 100).toFixed(1) : '100.0'}% • Earning yield
             </div>
           </div>
+
+          {/* WETH/WLFI Strategy Breakdown */}
+          {strategyWETH > 0 && (
+            <div className="bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 shadow-neo-raised dark:shadow-neo-raised-dark border border-yellow-400/30 dark:border-yellow-600/30 rounded-lg sm:rounded-xl p-3 sm:p-4 hover:shadow-neo-hover dark:hover:shadow-neo-hover-dark transition-all duration-300">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-yellow-500 to-yellow-600 flex items-center justify-center shadow-md">
+                  <span className="text-white font-bold text-xs">Ξ</span>
+                </div>
+                <div className="text-[10px] sm:text-xs text-gray-700 dark:text-gray-300 uppercase tracking-wider font-semibold">WETH/WLFI Strategy</div>
+              </div>
+              <div className="space-y-1.5 sm:space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5 sm:gap-2">
+                    <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full shadow-neo-inset dark:shadow-neo-inset-dark bg-gradient-to-br from-yellow-400 to-yellow-500 flex-shrink-0"></div>
+                    <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 font-medium">WETH</span>
+                  </div>
+                  <span className="text-xs sm:text-sm font-mono text-gray-900 dark:text-gray-100 font-semibold">{strategyWETH.toFixed(4)}</span>
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5 sm:gap-2">
+                    <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full shadow-neo-inset dark:shadow-neo-inset-dark bg-gradient-to-br from-amber-400 to-amber-500 flex-shrink-0"></div>
+                    <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 font-medium">WLFI</span>
+                  </div>
+                  <span className="text-xs sm:text-sm font-mono text-gray-900 dark:text-gray-100 font-semibold">{strategyWLFIinPool.toFixed(2)}</span>
+                </div>
+              </div>
+              <div className="text-[10px] sm:text-xs text-yellow-700 dark:text-yellow-400 mt-1.5 sm:mt-2 font-semibold">
+                Charm Alpha Vault Breakdown
+              </div>
+            </div>
+          )}
 
           <div className="pt-3 sm:pt-4 border-t border-gray-300/50 dark:border-gray-600/40 mt-3 sm:mt-4">
             <div className="bg-white dark:bg-gray-800 shadow-neo-inset dark:shadow-neo-inset-dark rounded-lg sm:rounded-xl p-3 sm:p-4 border border-gray-200/50 dark:border-gray-600/50">

@@ -1613,44 +1613,9 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
                         strategyWLFI={Number(data.strategyWLFI)}
                         strategyUSD1={Number(data.strategyUSD1)}
                         wlfiPrice={Number(data.wlfiPrice)}
+                        strategyWETH={Number(data.strategyWETH)}
+                        strategyWLFIinPool={Number(data.strategyWLFIinPool)}
                       />
-                      
-                      {/* WETH/WLFI Strategy Breakdown */}
-                      {Number(data.strategyWETH) > 0 && (
-                        <div className={`${DS.radius.md} ${DS.backgrounds.highlight} p-4 ${DS.borders.highlight} ${DS.shadows.raised} ${DS.transitions.default}`}>
-                          <div className="flex items-center gap-2 mb-3">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-600 to-yellow-700 dark:from-yellow-500 dark:to-yellow-600 flex items-center justify-center shadow-lg">
-                              <span className="text-white font-bold text-sm">Ξ</span>
-                            </div>
-                            <div>
-                              <h4 className={`${DS.text.h4} text-sm`}>WETH/WLFI Strategy</h4>
-                              <p className={`${DS.text.descriptionSmall}`}>Charm Alpha Vault Breakdown</p>
-                            </div>
-                          </div>
-                          
-                          <div className="grid grid-cols-2 gap-3">
-                            <div className={`${DS.radius.sm} bg-white/50 dark:bg-gray-800/50 p-3 ${DS.borders.subtle} ${DS.shadows.inset}`}>
-                              <div className={`${DS.text.labelSmall} mb-1`}>WETH Deployed</div>
-                              <div className={`${DS.text.valueMedium} ${DS.text.highlight} text-xl`}>
-                                {data.strategyWETH}
-                              </div>
-                              <div className={`${DS.text.descriptionSmall} mt-0.5`}>
-                                ~${(Number(data.strategyWETH) * 3500).toFixed(0)} USD
-                              </div>
-                            </div>
-                            
-                            <div className={`${DS.radius.sm} bg-white/50 dark:bg-gray-800/50 p-3 ${DS.borders.subtle} ${DS.shadows.inset}`}>
-                              <div className={`${DS.text.labelSmall} mb-1`}>WLFI in Pool</div>
-                              <div className={`${DS.text.valueMedium} text-gray-900 dark:text-white text-xl`}>
-                                {Number(data.strategyWLFIinPool).toFixed(0)}
-                              </div>
-                              <div className={`${DS.text.descriptionSmall} mt-0.5`}>
-                                ~${(Number(data.strategyWLFIinPool) * 0.132).toFixed(0)} USD
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
                     </div>
                   </div>
                 )}
