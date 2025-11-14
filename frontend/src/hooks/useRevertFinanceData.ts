@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { CONTRACTS } from '../config/contracts';
 
-const POOL_ADDRESS = '0x9C2C8910F113f3b3B4F1f454D23A0F6B61B8E5A7'; // USD1/WLFI 1% pool
+const POOL_ADDRESS_USD1_WLFI = '0x9C2C8910F113f3b3B4F1f454D23A0F6B61B8E5A7'; // USD1/WLFI 1% pool
+const POOL_ADDRESS_WETH_WLFI = '0xCa2e972f081764c30Ae5F012A29D5277EEf33838'; // WETH/WLFI 1% pool
 
 interface RevertFinanceData {
   tvl: number;
@@ -12,32 +13,47 @@ interface RevertFinanceData {
   error: string | null;
 }
 
-export function useRevertFinanceData(): RevertFinanceData {
-  const [data, setData] = useState<RevertFinanceData>({
-    tvl: 0,
-    avgAPR: 0,
-    maxAPR: 0,
-    avgVolume: 0,
-    loading: true,
-    error: null,
+interface RevertFinanceDataByStrategy {
+  strategy1: RevertFinanceData; // USD1/WLFI
+  strategy2: RevertFinanceData; // WETH/WLFI
+}
+
+export function useRevertFinanceData(): RevertFinanceDataByStrategy {
+  const [data, setData] = useState<RevertFinanceDataByStrategy>({
+    strategy1: {
+      tvl: 0,
+      avgAPR: 0,
+      maxAPR: 0,
+      avgVolume: 0,
+      loading: true,
+      error: null,
+    },
+    strategy2: {
+      tvl: 0,
+      avgAPR: 0,
+      maxAPR: 0,
+      avgVolume: 0,
+      loading: true,
+      error: null,
+    },
   });
 
   useEffect(() => {
-    async function fetchData() {
+    async function fetchPoolData(poolAddress: string): Promise<RevertFinanceData> {
       try {
-        console.log('[useRevertFinanceData] Fetching from API proxy...');
+        console.log(`[useRevertFinanceData] Fetching for pool ${poolAddress}...`);
         const response = await fetch(
-          `/api/revert-finance?pool=${POOL_ADDRESS}&days=30&network=mainnet`
+          `/api/revert-finance?pool=${poolAddress}&days=30&network=mainnet`
         );
         
-        console.log('[useRevertFinanceData] Response status:', response.status);
+        console.log(`[useRevertFinanceData] Response status for ${poolAddress}:`, response.status);
         
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         
         const result = await response.json();
-        console.log('[useRevertFinanceData] Raw result:', result);
+        console.log(`[useRevertFinanceData] Raw result for ${poolAddress}:`, result);
         
         if (result.success && result.data && result.data.length > 0) {
           const latestDay = result.data[result.data.length - 1];
@@ -64,29 +80,52 @@ export function useRevertFinanceData(): RevertFinanceData {
             error: null,
           };
           
-          console.log('[useRevertFinanceData] Calculated data:', calculatedData);
+          console.log(`[useRevertFinanceData] Calculated data for ${poolAddress}:`, calculatedData);
           
-          setData(calculatedData);
+          return calculatedData;
         } else {
-          console.log('[useRevertFinanceData] No data available in result');
-          setData(prev => ({ ...prev, loading: false, error: 'No data available' }));
+          console.log(`[useRevertFinanceData] No data available for ${poolAddress}`);
+          return {
+            tvl: 0,
+            avgAPR: 0,
+            maxAPR: 0,
+            avgVolume: 0,
+            loading: false,
+            error: 'No data available',
+          };
         }
       } catch (err: any) {
-        console.error('[useRevertFinanceData] Error:', err);
-        setData(prev => ({
-          ...prev,
+        console.error(`[useRevertFinanceData] Error for ${poolAddress}:`, err);
+        return {
+          tvl: 0,
+          avgAPR: 0,
+          maxAPR: 0,
+          avgVolume: 0,
           loading: false,
           error: err.message || 'Failed to fetch data',
-        }));
+        };
       }
     }
 
-    fetchData();
+    async function fetchAllData() {
+      const [strategy1Data, strategy2Data] = await Promise.all([
+        fetchPoolData(POOL_ADDRESS_USD1_WLFI),
+        fetchPoolData(POOL_ADDRESS_WETH_WLFI),
+      ]);
+
+      setData({
+        strategy1: strategy1Data,
+        strategy2: strategy2Data,
+      });
+    }
+
+    fetchAllData();
     // Refresh every 5 minutes
-    const interval = setInterval(fetchData, 5 * 60 * 1000);
+    const interval = setInterval(fetchAllData, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 
   return data;
 }
+
 
