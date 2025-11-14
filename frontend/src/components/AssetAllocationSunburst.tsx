@@ -182,6 +182,8 @@ export default function AssetAllocationSunburst({
       .style('transition', 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)')
       .style('filter', 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3))')
       .on('mouseenter', function(event, d) {
+        console.log('[Sunburst] Mouse entered slice:', d.data.name);
+        
         d3.select(this)
           .transition()
           .duration(300)
@@ -190,15 +192,22 @@ export default function AssetAllocationSunburst({
           .attr('opacity', 1)
           .style('filter', 'drop-shadow(0 8px 16px rgba(0, 0, 0, 0.4)) drop-shadow(0 0 20px ' + (d.data.color || '#666') + '80)');
         
-        // Show elegant tooltip with correct positioning using D3's pointer method
+        // Show elegant tooltip with correct positioning
         const percentage = grandTotal > 0 ? ((d.value || 0) / grandTotal * 100).toFixed(1) : '0';
         
-        // Get mouse position relative to the body for fixed positioning
-        const [mouseX, mouseY] = d3.pointer(event, document.body);
+        // Try both methods and log them
+        const pointerCoords = d3.pointer(event, document.body);
+        const clientCoords = [event.clientX, event.clientY];
+        console.log('[Sunburst] Pointer coords:', pointerCoords);
+        console.log('[Sunburst] Client coords:', clientCoords);
         
-        d3.select('#tooltip')
-          .style('left', (mouseX + 15) + 'px')
-          .style('top', (mouseY - 10) + 'px')
+        // Use clientX/clientY for fixed positioning
+        const tooltip = d3.select('#tooltip');
+        console.log('[Sunburst] Tooltip element:', tooltip.node());
+        
+        tooltip
+          .style('left', (event.clientX + 15) + 'px')
+          .style('top', (event.clientY - 10) + 'px')
           .style('opacity', 1)
           .html(`
             <div style="
@@ -223,12 +232,10 @@ export default function AssetAllocationSunburst({
           `);
       })
       .on('mousemove', function(event, d) {
-        // Update tooltip position as mouse moves using D3's pointer method
-        const [mouseX, mouseY] = d3.pointer(event, document.body);
-        
+        // Update tooltip position as mouse moves
         d3.select('#tooltip')
-          .style('left', (mouseX + 15) + 'px')
-          .style('top', (mouseY - 10) + 'px');
+          .style('left', (event.clientX + 15) + 'px')
+          .style('top', (event.clientY - 10) + 'px');
       })
       .on('mouseleave', function(event, d) {
         d3.select(this)
