@@ -97,7 +97,14 @@ export function useEagleComposer() {
       };
     } catch (err: any) {
       console.error('Preview deposit failed:', err);
-      setError(err.message);
+      
+      // Check for StalePrice error (0x19abf40e)
+      let errorMsg = err.message;
+      if (err.data === '0x19abf40e' || errorMsg.includes('0x19abf40e')) {
+        errorMsg = 'Oracle prices are stale. Cannot preview deposit at this time.';
+      }
+      
+      setError(errorMsg);
       return null;
     }
   }, [getProvider]);
@@ -128,7 +135,14 @@ export function useEagleComposer() {
       };
     } catch (err: any) {
       console.error('Preview redeem failed:', err);
-      setError(err.message);
+      
+      // Check for StalePrice error (0x19abf40e)
+      let errorMsg = err.message;
+      if (err.data === '0x19abf40e' || errorMsg.includes('0x19abf40e')) {
+        errorMsg = 'Oracle prices are stale. Cannot preview redeem at this time.';
+      }
+      
+      setError(errorMsg);
       return null;
     }
   }, [getProvider]);
@@ -207,7 +221,15 @@ export function useEagleComposer() {
       
     } catch (err: any) {
       console.error('Deposit failed:', err);
-      const errorMsg = err.reason || err.message || 'Transaction failed';
+      
+      // Check for StalePrice error (0x19abf40e)
+      let errorMsg = err.reason || err.message || 'Transaction failed';
+      if (err.data === '0x19abf40e' || errorMsg.includes('0x19abf40e')) {
+        errorMsg = '⚠️ Oracle prices are stale. The protocol needs fresh price updates to process deposits. Please try again in a few minutes or contact support.';
+      } else if (errorMsg.includes('execution reverted')) {
+        errorMsg = 'Transaction would fail. This may be due to stale price oracles. Please try again later.';
+      }
+      
       setError(errorMsg);
       onError?.(errorMsg);
       setLoading(false);
@@ -289,7 +311,15 @@ export function useEagleComposer() {
       
     } catch (err: any) {
       console.error('Redeem failed:', err);
-      const errorMsg = err.reason || err.message || 'Transaction failed';
+      
+      // Check for StalePrice error (0x19abf40e)
+      let errorMsg = err.reason || err.message || 'Transaction failed';
+      if (err.data === '0x19abf40e' || errorMsg.includes('0x19abf40e')) {
+        errorMsg = '⚠️ Oracle prices are stale. The protocol needs fresh price updates to process withdrawals. Please try again in a few minutes or contact support.';
+      } else if (errorMsg.includes('execution reverted')) {
+        errorMsg = 'Transaction would fail. This may be due to stale price oracles or insufficient liquidity. Please try again later.';
+      }
+      
       setError(errorMsg);
       onError?.(errorMsg);
       setLoading(false);
