@@ -362,9 +362,21 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
                           </div>
                           <div>
                             <div className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1">Currently Deployed</div>
-                            <div className="text-2xl font-black text-yellow-400">
-                              {Number(strategy.deployed).toFixed(2)} <span className="text-lg text-zinc-500">Tokens</span>
-                            </div>
+                            {/* Show WETH breakdown for strategy #2 */}
+                            {strategy.wethAmount && Number(strategy.wethAmount) > 0 ? (
+                              <div className="space-y-1">
+                                <div className="text-xl font-black text-yellow-400">
+                                  {strategy.wethAmount} <span className="text-sm text-zinc-500 font-semibold">WETH</span>
+                                </div>
+                                <div className="text-sm text-zinc-400">
+                                  + WLFI in pool <span className="text-xs text-zinc-600">(Total: ~${Number(strategy.deployed).toFixed(0)})</span>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="text-2xl font-black text-yellow-400">
+                                {Number(strategy.deployed).toFixed(2)} <span className="text-lg text-zinc-500">Tokens</span>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -494,6 +506,7 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
     vaultLiquidUSD1: '0', // Production: Empty vault
     strategyWLFI: '0', // Production: No strategy deposits yet
     strategyUSD1: '0', // Production: No strategy deposits yet
+    strategyWETH: '0', // WETH amount in WETH/WLFI strategy
     liquidTotal: '0',
     strategyTotal: '0',
     currentFeeApr: '0',
@@ -638,31 +651,50 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
         strategyUSD1 = '0';
       }
       
-      // WETH Strategy: getTotalAmounts() returns (wlfiAmount, usd1Amount)
-      // Note: This may revert if Chainlink oracles are stale
+      // WETH Strategy: Get actual WETH + WLFI balances from Charm vault
+      // Since getTotalAmounts() reverts due to stale oracles, we'll query the Charm vault directly
+      let strategyWETH = '0';
       try {
-        const wethStrategy = new Contract(
-          CONTRACTS.STRATEGY_WETH,
-          ['function getTotalAmounts() external view returns (uint256 wlfiAmount, uint256 usd1Amount)'],
+        // Get strategy's share balance in Charm vault
+        const charmVault = new Contract(
+          CONTRACTS.CHARM_VAULT_WETH,
+          [
+            'function balanceOf(address) external view returns (uint256)',
+            'function totalSupply() external view returns (uint256)',
+            'function getTotalAmounts() external view returns (uint256 total0, uint256 total1)'
+          ],
           provider
         );
-        const [wlfiAmount, usd1Equivalent] = await wethStrategy.getTotalAmounts();
-        // For WETH strategy display, show the deployed WLFI + USD1 equivalent
-        strategyWLFI = (Number(formatEther(wlfiAmount)) + Number(formatEther(usd1Equivalent))).toFixed(2);
-      } catch (error: any) {
-        console.warn('WETH strategy getTotalAmounts() failed (likely stale oracle):', error?.reason || error?.message || error);
-        // Fallback: Get WLFI balance directly from the strategy
-        try {
-          const wlfi = new Contract(
-            CONTRACTS.WLFI,
-            ['function balanceOf(address) external view returns (uint256)'],
-            provider
-          );
-          const strategyWlfiBalance = await wlfi.balanceOf(CONTRACTS.STRATEGY_WETH);
-          strategyWLFI = Number(formatEther(strategyWlfiBalance)).toFixed(2);
-        } catch {
-          strategyWLFI = '0';
+        
+        const strategyShares = await charmVault.balanceOf(CONTRACTS.STRATEGY_WETH);
+        console.log('[VaultView] WETH strategy Charm shares:', formatEther(strategyShares));
+        
+        if (strategyShares > 0n) {
+          const [totalShares, [totalWeth, totalWlfi]] = await Promise.all([
+            charmVault.totalSupply(),
+            charmVault.getTotalAmounts()
+          ]);
+          
+          // Calculate strategy's proportional share
+          const strategyWethAmount = (totalWeth * strategyShares) / totalShares;
+          const strategyWlfiAmount = (totalWlfi * strategyShares) / totalShares;
+          
+          strategyWETH = Number(formatEther(strategyWethAmount)).toFixed(4);
+          const wlfiPart = Number(formatEther(strategyWlfiAmount)).toFixed(2);
+          
+          console.log('[VaultView] WETH strategy balances:', {
+            weth: strategyWETH,
+            wlfi: wlfiPart,
+            shares: formatEther(strategyShares)
+          });
+          
+          // For display, show total value (WETH worth ~$3500, approximate)
+          strategyWLFI = (Number(strategyWETH) * 3500 + Number(wlfiPart)).toFixed(2);
         }
+      } catch (error: any) {
+        console.warn('WETH strategy Charm vault query failed:', error?.reason || error?.message || error);
+        strategyWLFI = '0';
+        strategyWETH = '0';
       }
 
       const liquidTotal = (Number(vaultLiquidWLFI) + Number(vaultLiquidUSD1)).toFixed(2);
@@ -720,6 +752,7 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
         vaultLiquidUSD1,
         strategyWLFI,
         strategyUSD1,
+        strategyWETH,
         liquidTotal,
         strategyTotal,
         currentFeeApr: charmStats?.currentFeeApr || '0',
@@ -1618,7 +1651,8 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
                         analytics: 'https://alpha.charm.fi/vault/1/0x3314e248F3F752Cd16939773D83bEb3a362F0AEF',
                         contract: '0x997feaa69a60c536F8449F0D5Adf997fD83aDf39',
                         charmVault: '0x3314e248F3F752Cd16939773D83bEb3a362F0AEF',
-                        deployed: data.strategyWLFI
+                        deployed: data.strategyWLFI,
+                        wethAmount: data.strategyWETH // Add WETH amount for display
                       },
                       {
                         id: 3,
