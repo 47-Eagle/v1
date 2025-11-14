@@ -633,8 +633,10 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
           provider
         );
         const [usd1Wlfi, usd1Amount] = await usd1Strategy.getTotalAmounts();
-        // For USD1 strategy display, show total USD1 + WLFI in USD1 terms
-        const usd1Total = Number(formatEther(usd1Amount)) + Number(formatEther(usd1Wlfi));
+        // For USD1 strategy display, show total USD value (USD1 + WLFI converted to USD)
+        const wlfiValueUsd = Number(formatEther(usd1Wlfi)) * 0.132; // WLFI worth ~$0.132
+        const usd1ValueUsd = Number(formatEther(usd1Amount)); // USD1 worth ~$1.00
+        const usd1Total = wlfiValueUsd + usd1ValueUsd;
         strategyUSD1 = usd1Total.toFixed(2);
       } catch (error) {
         console.error('Error fetching USD1 strategy balances:', error);
@@ -679,8 +681,10 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
       console.log('[VaultView] Shares:', formatEther(strategyShares));
       console.log('[VaultView] ============================');
           
-          // For display, show total value (WETH worth ~$3500, approximate)
-          strategyWLFI = (Number(strategyWETH) * 3500 + Number(strategyWLFIinPool)).toFixed(2);
+          // For display, show total USD value (WETH worth ~$3500, WLFI worth ~$0.132)
+          const wethValueUsd = Number(strategyWETH) * 3500;
+          const wlfiValueUsd = Number(strategyWLFIinPool) * 0.132;
+          strategyWLFI = (wethValueUsd + wlfiValueUsd).toFixed(2);
         }
       } catch (error: any) {
         console.warn('WETH strategy Charm vault query failed:', error?.reason || error?.message || error);
@@ -689,7 +693,12 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
         strategyWLFIinPool = '0';
       }
 
-      const liquidTotal = (Number(vaultLiquidWLFI) + Number(vaultLiquidUSD1)).toFixed(2);
+      // Calculate total USD value of vault reserves (WLFI worth ~$0.132, USD1 worth ~$1.00)
+      const vaultWlfiValueUsd = Number(vaultLiquidWLFI) * 0.132;
+      const vaultUsd1ValueUsd = Number(vaultLiquidUSD1);
+      const liquidTotal = (vaultWlfiValueUsd + vaultUsd1ValueUsd).toFixed(2);
+      
+      // strategyWLFI and strategyUSD1 are already in USD terms from above calculations
       const strategyTotal = (Number(strategyWLFI) + Number(strategyUSD1)).toFixed(2);
 
       console.log('[VaultView] ===== ALL STRATEGY BALANCES =====');
@@ -701,11 +710,11 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
       console.log('[VaultView] WETH Strategy WLFI in Pool:', strategyWLFIinPool);
       console.log('[VaultView] ===============================');
 
-      // If totalAssets failed to fetch, calculate it manually
+      // If totalAssets failed to fetch, calculate it manually (in USD)
       if (totalAssets === 0n) {
-        const manualTotal = Number(vaultLiquidWLFI) + Number(vaultLiquidUSD1) + Number(strategyWLFI) + Number(strategyUSD1);
+        const manualTotal = Number(liquidTotal) + Number(strategyTotal);
         totalAssets = parseEther(manualTotal.toFixed(18));
-        console.log('[VaultView] Calculated totalAssets manually:', formatEther(totalAssets));
+        console.log('[VaultView] Calculated totalAssets manually (USD):', formatEther(totalAssets));
       }
 
       const charmStats = await charmStatsPromise;
