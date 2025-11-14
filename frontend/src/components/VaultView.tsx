@@ -353,8 +353,22 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
                     <div className={`col-span-1 sm:col-span-2 ${DS.radius.md} ${DS.backgrounds.highlight} p-5 ${DS.borders.highlight} ${DS.shadows.raised} ${DS.transitions.default}`}>
                       <div>
                         <div className={`${DS.text.labelSmall} mb-2`}>Currently Deployed</div>
-                        {/* Show WETH breakdown for strategy #2 */}
-                        {strategy.wethAmount && Number(strategy.wethAmount) > 0 ? (
+                        {/* Show USD1 breakdown for strategy #1 */}
+                        {strategy.usd1Amount && Number(strategy.usd1Amount) > 0 ? (
+                          <div className={DS.spacing.itemGapSmall}>
+                            <div className={`${DS.text.valueMedium} ${DS.text.highlight}`}>
+                              {strategy.usd1Amount} <span className={DS.text.bodyMuted}>USD1</span>
+                            </div>
+                            <div className={`${DS.text.valueMedium} ${DS.text.highlight}`}>
+                              {strategy.wlfiAmount} <span className={DS.text.bodyMuted}>WLFI</span>
+                            </div>
+                            <div className={DS.text.description}>
+                              <span className={DS.text.descriptionSmall}>(~${Number(strategy.deployed).toFixed(0)} total value)</span>
+                            </div>
+                          </div>
+                        ) : 
+                        /* Show WETH breakdown for strategy #2 */
+                        strategy.wethAmount && Number(strategy.wethAmount) > 0 ? (
                           <div className={DS.spacing.itemGapSmall}>
                             <div className={`${DS.text.valueMedium} ${DS.text.highlight}`}>
                               {strategy.wethAmount} <span className={DS.text.bodyMuted}>WETH</span>
@@ -497,6 +511,8 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
     strategyUSD1: '0', // Production: No strategy deposits yet
     strategyWETH: '0', // WETH amount in WETH/WLFI strategy
     strategyWLFIinPool: '0', // Actual WLFI tokens in WETH/WLFI pool
+    strategyUSD1InPool: '0', // Actual USD1 tokens in USD1/WLFI pool
+    strategyWLFIinUSD1Pool: '0', // Actual WLFI tokens in USD1/WLFI pool
     liquidTotal: '0',
     strategyTotal: '0',
     currentFeeApr: '0',
@@ -626,6 +642,8 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
       
       // Get strategy balances from BOTH strategies
       // USD1 Strategy: getTotalAmounts() returns (wlfiAmount, usd1Amount)
+      let strategyUSD1InPool = '0';
+      let strategyWLFIinUSD1Pool = '0';
       try {
         const usd1Strategy = new Contract(
           CONTRACTS.STRATEGY_USD1,
@@ -633,6 +651,11 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
           provider
         );
         const [usd1Wlfi, usd1Amount] = await usd1Strategy.getTotalAmounts();
+        
+        // Store individual amounts for breakdown display
+        strategyWLFIinUSD1Pool = Number(formatEther(usd1Wlfi)).toFixed(2);
+        strategyUSD1InPool = Number(formatEther(usd1Amount)).toFixed(2);
+        
         // For USD1 strategy display, show total USD value (USD1 + WLFI converted to USD)
         const wlfiValueUsd = Number(formatEther(usd1Wlfi)) * 0.132; // WLFI worth ~$0.132
         const usd1ValueUsd = Number(formatEther(usd1Amount)); // USD1 worth ~$1.00
@@ -641,6 +664,8 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
       } catch (error) {
         console.error('Error fetching USD1 strategy balances:', error);
         strategyUSD1 = '0';
+        strategyUSD1InPool = '0';
+        strategyWLFIinUSD1Pool = '0';
       }
       
       // WETH Strategy: Get actual WETH + WLFI balances from Charm vault
@@ -755,6 +780,8 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
         strategyUSD1,
         strategyWETH,
         strategyWLFIinPool,
+        strategyUSD1InPool,
+        strategyWLFIinUSD1Pool,
         liquidTotal,
         strategyTotal,
         currentFeeApr: charmStats?.currentFeeApr || '0',
@@ -1646,7 +1673,9 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
                         revertAnalytics: 'https://revert.finance/#/pool/mainnet/uniswapv3/0xf9f5e6f7a44ee10c72e67bded6654afaf4d0c85d',
                         contract: '0x47B2659747d6A7E00c8251c3C3f7e92625a8cf6f',
                         charmVault: '0x22828Dbf15f5FBa2394Ba7Cf8fA9A96BdB444B71',
-                        deployed: data.strategyUSD1
+                        deployed: data.strategyUSD1,
+                        usd1Amount: data.strategyUSD1InPool, // Add USD1 amount for display
+                        wlfiAmount: data.strategyWLFIinUSD1Pool // Add WLFI amount for display
                       },
                       {
                         id: 2,
