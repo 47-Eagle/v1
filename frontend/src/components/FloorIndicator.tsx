@@ -97,7 +97,7 @@ export default function FloorIndicator({ current, onChange, isTransitioning }: P
                       <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 border border-gray-200/50 dark:border-gray-600/50 rounded-xl px-4 py-2 backdrop-blur-xl shadow-neo-raised dark:shadow-neo-raised-dark">
                         <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{floor.label}</p>
                         {floor.id === 'lp' && (
-                          <p className="text-xs text-gray-400 mt-0.5">Coming Soon</p>
+                          <p className="text-xs text-emerald-500 mt-0.5 font-medium">Live</p>
                         )}
                         {floor.id === 'vault' && (
                           <p className="text-xs text-[#D4B474] mt-0.5 font-medium">Active</p>

@@ -89,9 +89,9 @@ export default function EagleHomeContent({ onNavigateUp, onNavigateDown, provide
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-400 to-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             
             {/* Status Badge - Top Right */}
-            <div className="absolute top-3 sm:top-4 right-3 sm:right-4 inline-flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 border-2 border-orange-400 dark:border-orange-500 rounded-full shadow-sm">
-              <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-orange-500 rounded-full animate-pulse"></div>
-              <span className="text-[10px] sm:text-xs font-semibold text-orange-700 dark:text-orange-300">Coming Soon</span>
+            <div className="absolute top-3 sm:top-4 right-3 sm:right-4 inline-flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-emerald-100 to-green-100 dark:from-emerald-900/30 dark:to-green-900/30 border-2 border-emerald-400 dark:border-emerald-500 rounded-full shadow-sm">
+              <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+              <span className="text-[10px] sm:text-xs font-semibold text-emerald-700 dark:text-emerald-300">Live</span>
             </div>
             
             <div className="flex items-start justify-between mb-3 sm:mb-4 pr-24 sm:pr-32">

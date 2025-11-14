@@ -1772,9 +1772,9 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
                         {
                           id: 3,
                           name: 'Additional Strategies',
-                          protocol: 'Coming Soon',
-                          description: 'More yield optimization strategies are in development. Stay tuned for announcements about additional DeFi integrations and liquidity opportunities.',
-                          status: 'coming-soon',
+                          protocol: 'Live',
+                          description: 'EAGLE/ETH LP and additional yield optimization strategies are now available! Check the ecosystem for more DeFi integrations and liquidity opportunities.',
+                          status: 'live',
                           allocation: 'TBD'
                         }
                       ];
