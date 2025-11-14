@@ -236,15 +236,23 @@ export default function AssetAllocationSunburst({
         d3.select('#tooltip')
           .transition()
           .duration(200)
-          .style('opacity', 0);
+          .style('opacity', 0)
+          .on('end', function() {
+            // Move offscreen after fade out completes
+            d3.select(this)
+              .style('left', '-9999px')
+              .style('top', '-9999px');
+          });
       })
       .on('click', function(event, d) {
         event.stopPropagation();
         setSelectedPath(d.data.name);
         
-        // Hide tooltip immediately on click
+        // Hide tooltip immediately on click and move it offscreen
         d3.select('#tooltip')
-          .style('opacity', 0);
+          .style('opacity', 0)
+          .style('left', '-9999px')
+          .style('top', '-9999px');
         
         // Trigger close-then-open animation
         const clickedPath = d3.select(this);
