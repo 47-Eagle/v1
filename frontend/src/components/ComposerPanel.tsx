@@ -109,22 +109,9 @@ export function ComposerPanel() {
     <NeoCard className="mt-6">
       {/* Header */}
       <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-300/50 dark:border-gray-700/30">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white">Eagle Composer</h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400">One-click vault operations</p>
-          </div>
-          
-          {/* Fee - conditional based on active tab */}
-          {activeTab === 'deposit' ? (
-            <div className="px-3 py-1.5 rounded-lg bg-blue-500/10 dark:bg-blue-500/20 border border-blue-500/20">
-              <div className="text-xs font-bold text-blue-700 dark:text-blue-400">1% Fee</div>
-            </div>
-          ) : (
-            <div className="px-3 py-1.5 rounded-lg bg-orange-500/10 dark:bg-orange-500/20 border border-orange-500/20">
-              <div className="text-xs font-bold text-orange-700 dark:text-orange-400">2% Fee</div>
-            </div>
-          )}
+        <div>
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white">Eagle Composer</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400">One-click vault operations</p>
         </div>
       </div>
       
@@ -154,17 +141,24 @@ export function ComposerPanel() {
           </div>
         ) : (
           <>
-            {/* Balance Display */}
+            {/* Balance Display with Fee */}
             <div className="flex justify-between items-center text-sm">
-              <span className="text-gray-600 dark:text-gray-400">
-                Balance: 
-              </span>
-              <span className="font-mono text-gray-900 dark:text-white">
-                {activeTab === 'deposit' 
-                  ? `${Number(formatEther(balances.wlfi)).toFixed(2)} WLFI`
-                  : `${Number(formatEther(balances.eagle)).toFixed(2)} EAGLE`
-                }
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-gray-600 dark:text-gray-400">Balance:</span>
+                <span className="font-mono text-gray-900 dark:text-white">
+                  {activeTab === 'deposit' 
+                    ? `${Number(formatEther(balances.wlfi)).toFixed(2)} WLFI`
+                    : `${Number(formatEther(balances.eagle)).toFixed(2)} EAGLE`
+                  }
+                </span>
+              </div>
+              <div className={`text-xs font-medium px-2 py-0.5 rounded ${
+                activeTab === 'deposit'
+                  ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
+                  : 'text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20'
+              }`}>
+                {activeTab === 'deposit' ? '1%' : '2%'} fee
+              </div>
             </div>
             
             {/* Input */}
@@ -174,13 +168,13 @@ export function ComposerPanel() {
                 placeholder="0.0"
                 value={inputAmount}
                 onChange={setInputAmount}
-                className="pr-20"
+                className="pr-16"
               />
               <button
                 onClick={handleMaxClick}
-                className="absolute right-3 top-1/2 -translate-y-1/2 px-3 py-1 rounded-lg bg-gradient-to-br from-amber-300 via-amber-400 to-amber-500 hover:from-amber-400 hover:via-amber-500 hover:to-amber-600 text-gray-900 text-sm font-black tracking-wide shadow-[0_2px_8px_rgba(251,191,36,0.4)] hover:shadow-[0_4px_12px_rgba(251,191,36,0.6)] transition-all"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-gray-600 dark:text-gray-400 hover:text-[#A27D46] dark:hover:text-[#D4B474] transition-colors uppercase tracking-wider"
               >
-                MAX
+                Max
               </button>
             </div>
             
