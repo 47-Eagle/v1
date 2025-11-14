@@ -5,11 +5,19 @@
 @tailwind utilities;
 
 :root {
-  /* Eagle Finance Colors - Enhanced Premium Gold */
-  --eagle-gold: #D4B474;        /* Enhanced Metallic Gold */
-  --eagle-gold-dark: #A27D46;   /* Rich Bronze */
-  --eagle-gold-light: #E4CFA0;  /* Lighter Champagne */
-  --eagle-gold-rich: #8C6A38;   /* Deep Copper */
+  /* 🌟 Refined Web3-Friendly Gold Palette */
+  --eagle-gold: #F2D57C;        /* Primary Gold (Bright, Clean) */
+  --eagle-gold-soft: #C9A854;   /* Secondary Gold (Softer Token Gold) */
+  --eagle-gold-light: #FFE7A3;  /* Highlight Gold (for glows, edges) */
+  --eagle-gold-dark: #A69348;   /* Shadow Gold (depth without brown) */
+  
+  /* 🎨 Premium UI Colors */
+  --ui-bg: #0C0F14;             /* Background Deep */
+  --ui-surface: #161A21;        /* Surface */
+  --ui-card: #1E222C;           /* Card */
+  --ui-border: #2F3742;         /* Border Subtle */
+  --ui-text: #FFFFFF;           /* Text Primary */
+  --ui-text-soft: #C9CED7;      /* Text Secondary */
   
   /* Light Mode (Default) */
   --bg-light: #e8ebef;
@@ -42,10 +50,10 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Dark mode */
+/* Dark mode - Using new deep background */
 body.dark {
-  background-color: #0B0D10;
-  color: #e5e5e5;
+  background-color: #0C0F14;
+  color: #C9CED7;
 }
 
 .dark {
@@ -120,18 +128,18 @@ h1, h2, h3, h4, h5, h6 {
   animation: shimmer 3s ease-in-out infinite;
 }
 
-/* Glassmorphism */
+/* Glassmorphism - Using new Web3-friendly gold */
 .glass-card {
   background: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(212, 180, 116, 0.2);
+  border: 1px solid rgba(242, 213, 124, 0.2);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .glass-card:hover {
-  border-color: rgba(212, 180, 116, 0.4);
-  box-shadow: 0 0 12px rgba(212, 180, 116, 0.18), 0 0 18px rgba(212, 180, 116, 0.12);
+  border-color: rgba(242, 213, 124, 0.4);
+  box-shadow: 0 0 12px rgba(242, 213, 124, 0.18), 0 0 18px rgba(242, 213, 124, 0.12);
   transform: translateY(-2px);
 }
 

@@ -4,13 +4,13 @@
  */
 
 export const DESIGN_SYSTEM = {
-  // Card Backgrounds
+  // Card Backgrounds - Using new Web3-friendly gold palette
   backgrounds: {
-    card: 'bg-gradient-to-br from-white to-gray-50 dark:from-[#1A1D23] dark:to-[#22262E]',
-    cardAlt: 'bg-gradient-to-br from-gray-50 to-white dark:from-[#22262E] dark:to-[#1A1D23]',
-    highlight: 'bg-gradient-to-br from-[#E4CFA0]/20 to-[#D4B474]/10 dark:from-[#8C6A38]/20 dark:to-[#A27D46]/15',
+    card: 'bg-gradient-to-br from-white to-gray-50 dark:from-[#161A21] dark:to-[#1E222C]',
+    cardAlt: 'bg-gradient-to-br from-gray-50 to-white dark:from-[#1E222C] dark:to-[#161A21]',
+    highlight: 'bg-gradient-to-br from-[#FFE7A3]/20 to-[#F2D57C]/10 dark:from-[#A69348]/20 dark:to-[#C9A854]/15',
     info: 'bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/20',
-    inset: 'bg-white/50 dark:bg-[#0B0D10]/50',
+    inset: 'bg-white/50 dark:bg-[#0C0F14]/50',
   },
 
   // Shadows
@@ -24,13 +24,13 @@ export const DESIGN_SYSTEM = {
     goldGlowStrong: 'shadow-gold-glow-strong dark:shadow-gold-glow-strong-dark',
   },
 
-  // Borders
+  // Borders - Using new UI border color
   borders: {
-    subtle: 'border border-gray-200/50 dark:border-[#353A42]/50',
-    medium: 'border-2 border-gray-300/60 dark:border-[#353A42]/60',
-    highlight: 'border-2 border-[#D4B474]/60 dark:border-[#A27D46]/50',
+    subtle: 'border border-gray-200/50 dark:border-[#2F3742]/50',
+    medium: 'border-2 border-gray-300/60 dark:border-[#2F3742]/60',
+    highlight: 'border-2 border-[#F2D57C]/60 dark:border-[#C9A854]/50',
     info: 'border-2 border-blue-400 dark:border-blue-600',
-    separator: 'border-gray-300/50 dark:border-[#353A42]/30',
+    separator: 'border-gray-300/50 dark:border-[#2F3742]/30',
   },
 
   // Border Radius
@@ -67,9 +67,9 @@ export const DESIGN_SYSTEM = {
     description: 'text-sm text-gray-600 dark:text-gray-400',
     descriptionSmall: 'text-xs text-gray-500 dark:text-gray-400',
     
-    // Highlights
-    highlight: 'text-[#A27D46] dark:text-[#D4B474]',
-    highlightBold: 'text-[#8C6A38] dark:text-[#E4CFA0] font-semibold',
+    // Highlights - Using new Web3-friendly gold palette
+    highlight: 'text-[#C9A854] dark:text-[#F2D57C]',
+    highlightBold: 'text-[#A69348] dark:text-[#FFE7A3] font-semibold',
   },
 
   // Spacing
