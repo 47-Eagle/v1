@@ -42,72 +42,66 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
       {/* Header - Always Visible */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full px-5 sm:px-6 py-4 sm:py-5 transition-all duration-300"
+        className="w-full px-4 sm:px-5 py-3.5 sm:py-4 transition-all duration-300"
       >
-        <div className="flex items-start justify-between w-full gap-4">
-          {/* Left: Strategy Info */}
+        <div className="flex items-center justify-between w-full gap-4">
+          {/* Left: Number + Name + Meta */}
           <div className="min-w-0 flex-1">
-            <div className="flex items-baseline gap-2 mb-2">
+            <div className="flex items-baseline gap-2 mb-1">
               {/* Strategy Number */}
-              <div className={`
-                text-lg sm:text-xl font-bold shrink-0 transition-colors duration-300
+              <span className={`
+                text-base font-bold shrink-0
                 ${strategy.status === 'active'
                   ? 'text-amber-400 dark:text-amber-400'
                   : 'text-gray-600 dark:text-gray-600'
                 }
               `}>
                 #{strategy.id}
-              </div>
+              </span>
               
               {/* Strategy Name */}
-              {strategy.status === 'active' && (
-                <h4 className="text-gray-900 dark:text-white font-semibold text-base sm:text-lg truncate">
-                  {strategy.name}
-                </h4>
-              )}
-              
-              {strategy.status !== 'active' && (
-                <h4 className="text-gray-700 dark:text-gray-400 font-semibold text-base sm:text-lg truncate">
-                  {strategy.name}
-                </h4>
-              )}
+              <h4 className={`
+                font-semibold text-base truncate
+                ${strategy.status === 'active'
+                  ? 'text-gray-900 dark:text-white'
+                  : 'text-gray-700 dark:text-gray-400'
+                }
+              `}>
+                {strategy.name}
+              </h4>
             </div>
             
-            {/* Protocol Info */}
+            {/* Compact Meta Info - One Line */}
             {strategy.status === 'active' && (
-              <div className="space-y-1">
-                <div className="text-[10px] text-gray-500 dark:text-gray-500 uppercase tracking-wider">Protocol</div>
-                <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
-                  <span>Charm Finance</span>
-                  {strategy.feeTier && (
-                    <>
-                      <span>•</span>
-                      <span>{strategy.feeTier}</span>
-                    </>
-                  )}
-                  <span>•</span>
-                  <span className="text-amber-600 dark:text-amber-400">4.7% Perf</span>
-                </div>
+              <div className="flex items-center gap-1.5 text-[11px] text-gray-500 dark:text-gray-500">
+                <span>Charm Finance</span>
+                {strategy.feeTier && (
+                  <>
+                    <span>•</span>
+                    <span>{strategy.feeTier}</span>
+                  </>
+                )}
+                <span>•</span>
+                <span className="text-amber-600 dark:text-amber-400">4.7% Perf</span>
               </div>
             )}
             
             {strategy.status !== 'active' && (
-              <div className="space-y-1">
-                <div className="text-[10px] text-gray-500 dark:text-gray-500 uppercase tracking-wider">Protocol</div>
-                <p className="text-xs text-gray-600 dark:text-gray-500">{strategy.protocol}</p>
+              <div className="text-[11px] text-gray-500 dark:text-gray-500">
+                {strategy.protocol}
               </div>
             )}
           </div>
           
           {/* Right: Allocation + Expand */}
-          <div className="flex items-start gap-4 sm:gap-6 shrink-0">
-            {/* Allocation */}
+          <div className="flex items-center gap-3 shrink-0">
+            {/* Allocation - Compact */}
             {strategy.allocation && strategy.status === 'active' && (
-              <div className="text-center">
-                <div className="text-[10px] text-gray-500 dark:text-gray-500 uppercase tracking-wider mb-1">
+              <div className="text-right">
+                <div className="text-[9px] text-gray-500 dark:text-gray-500 uppercase tracking-wider mb-0.5">
                   Allocation
                 </div>
-                <div className="text-2xl sm:text-3xl font-bold text-amber-400 dark:text-amber-400 leading-none">
+                <div className="text-2xl font-bold text-amber-400 dark:text-amber-400 leading-none">
                   {strategy.allocation}
                 </div>
               </div>
@@ -115,7 +109,7 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
             
             {/* Expand Icon */}
             <div className={`
-              transition-all duration-300 mt-6
+              transition-all duration-300
               ${strategy.status === 'active' ? 'text-gray-400 group-hover:text-amber-400' : 'text-gray-600'}
             `}>
               <svg 
@@ -135,7 +129,7 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
       {/* Expanded Content */}
       {isExpanded && (
         <div className={`
-          px-5 sm:px-6 pb-5 sm:pb-6 pt-5 border-t animate-fadeIn
+          px-4 sm:px-5 pb-4 sm:pb-5 pt-4 border-t animate-fadeIn
           ${strategy.status === 'active'
             ? 'border-gray-200/5 dark:border-gray-700/10'
             : 'border-gray-200/3 dark:border-gray-700/5'
@@ -143,7 +137,7 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
         `}>
           {/* 3D Visualization for Strategy 1 */}
           {strategy.id === 1 && wlfiPrice && (
-            <div className="mb-6">
+            <div className="mb-4">
               <ErrorBoundary fallback={
                 <div className="bg-orange-50 dark:bg-orange-900/30 border border-orange-300 dark:border-orange-700 rounded-lg p-4 text-center">
                   <p className="text-xs text-orange-700 dark:text-orange-400">3D visualization unavailable</p>
@@ -166,7 +160,7 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
             </div>
           )}
           
-          <p className="text-gray-600 dark:text-gray-400 text-sm mb-6">{strategy.description}</p>
+          <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">{strategy.description}</p>
           
           {strategy.status === 'active' && (
             <>
