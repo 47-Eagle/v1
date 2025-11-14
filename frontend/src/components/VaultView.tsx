@@ -85,32 +85,27 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
                 </div>
               </div>
               
-              {/* Pool Info */}
+              {/* Strategy Name */}
               <div className="text-left min-w-0 flex-1">
                 <h4 className="text-gray-900 dark:text-white font-bold text-base sm:text-lg mb-0.5 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors truncate">
                   {strategy.name}
                 </h4>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-medium">
-                    {strategy.pool}
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-600 dark:text-gray-400 font-medium">
+                    Charm Finance
                   </span>
                   {strategy.feeTier && (
                     <>
                       <span className="text-gray-400 dark:text-gray-600">•</span>
-                      <span className={`px-2 py-0.5 ${DS.radius.sm} ${DS.backgrounds.info} ${DS.text.label} text-xs ${DS.borders.info}`}>
-                        {strategy.feeTier} Fee
+                      <span className="px-1.5 py-0.5 rounded text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-semibold">
+                        {strategy.feeTier}
                       </span>
                     </>
                   )}
-                  {/* Charm Performance Fee */}
-                  {strategy.status === 'active' && (
-                    <>
-                      <span className="text-gray-400 dark:text-gray-600">•</span>
-                      <span className={`px-2 py-0.5 ${DS.radius.sm} ${DS.backgrounds.highlight} ${DS.text.highlightBold} text-xs ${DS.borders.highlight}`}>
-                        4.7% Perf
-                      </span>
-                    </>
-                  )}
+                  <span className="text-gray-400 dark:text-gray-600">•</span>
+                  <span className="px-1.5 py-0.5 rounded text-xs bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 font-semibold">
+                    4.7% Perf
+                  </span>
                 </div>
               </div>
             </div>
@@ -123,66 +118,6 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
                 {strategy.name}
               </h4>
               <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-500 truncate">{strategy.protocol}</p>
-            </div>
-          )}
-          
-          {/* POOL ANALYTICS - Comprehensive */}
-          {strategy.id === 1 && strategy.status === 'active' && !revertData.loading && (
-            <div className="flex-1 min-w-0 max-w-2xl">
-              <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-zinc-800/50 dark:to-zinc-900/50 rounded-xl p-3 border border-gray-200/50 dark:border-zinc-700/30">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                    Pool Analytics
-                  </div>
-                  <div className="text-[9px] text-gray-500 dark:text-gray-600">Last 7 days</div>
-                </div>
-                {revertData.error ? (
-                  <div className="text-center py-4 text-xs text-gray-500 dark:text-gray-600">
-                    Pool data temporarily unavailable
-                  </div>
-                ) : (
-                  <>
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-                      <div className="bg-white/60 dark:bg-black/20 rounded-lg p-2 border border-white/50 dark:border-white/5">
-                        <div className="text-[9px] text-gray-500 dark:text-gray-600 mb-0.5 uppercase tracking-wide">TVL</div>
-                        <div className="text-sm font-bold text-gray-900 dark:text-white">
-                          ${revertData.tvl.toFixed(2)}
-                        </div>
-                      </div>
-                      <div className="bg-white/60 dark:bg-black/20 rounded-lg p-2 border border-white/50 dark:border-white/5">
-                        <div className="text-[9px] text-gray-500 dark:text-gray-600 mb-0.5 uppercase tracking-wide">7d Avg APR</div>
-                        <div className="text-sm font-bold text-gray-900 dark:text-white">
-                          {revertData.avgAPR.toFixed(1)}%
-                        </div>
-                      </div>
-                      <div className="bg-white/60 dark:bg-black/20 rounded-lg p-2 border border-white/50 dark:border-white/5">
-                        <div className="text-[9px] text-gray-500 dark:text-gray-600 mb-0.5 uppercase tracking-wide">Max APR</div>
-                        <div className="text-sm font-bold text-gray-900 dark:text-white">
-                          {revertData.maxAPR.toFixed(1)}%
-                        </div>
-                      </div>
-                      <div className="bg-white/60 dark:bg-black/20 rounded-lg p-2 border border-white/50 dark:border-white/5">
-                        <div className="text-[9px] text-gray-500 dark:text-gray-600 mb-0.5 uppercase tracking-wide">Avg Vol</div>
-                        <div className="text-sm font-bold text-gray-900 dark:text-white">
-                          ${revertData.avgVolume.toFixed(0)}/day
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-[9px] text-gray-500 dark:text-gray-600 mt-2 text-center">
-                      via Revert Finance
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-          )}
-          
-          {/* Loading/Error State */}
-          {strategy.id === 1 && strategy.status === 'active' && (revertData.loading || revertData.error) && (
-            <div className="text-right shrink-0">
-              <div className="text-xs text-gray-500 dark:text-gray-600">
-                {revertData.loading ? 'Loading analytics...' : 'Analytics unavailable'}
-              </div>
             </div>
           )}
           
@@ -261,96 +196,46 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
             </div>
           )}
           
-          <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">{strategy.description}</p>
+          <p className="text-gray-600 dark:text-gray-400 text-sm mb-6">{strategy.description}</p>
           
           {strategy.status === 'active' && (
             <>
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                {strategy.pool && (
-                  <div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Pool</div>
-                    <div className="text-gray-900 dark:text-white font-medium">{strategy.pool}</div>
-                  </div>
-                )}
-                {strategy.feeTier && (
-                  <div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Fee Tier</div>
-                    <div className="text-gray-900 dark:text-white font-medium">{strategy.feeTier}</div>
-                  </div>
-                )}
-              </div>
-
-              {/* Analytics Links */}
-              <div className="flex flex-col gap-2 mb-4">
-                {strategy.analytics && (
-                  <a 
-                    href={strategy.analytics} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 font-medium text-sm inline-flex items-center gap-2 transition-colors"
-                  >
-                    View Analytics on Charm Finance
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    </svg>
-                  </a>
-                )}
-                
-                {strategy.revertAnalytics && (
-                  <a 
-                    href={strategy.revertAnalytics} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 font-medium text-sm inline-flex items-center gap-2 transition-colors"
-                  >
-                    View Pool Analytics on Revert Finance
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    </svg>
-                  </a>
-                )}
-              </div>
 
               {strategy.contract && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
-                  {/* Strategy Contract Card */}
-                  <div className={`group ${DS.radius.md} ${DS.backgrounds.card} p-5 ${DS.borders.subtle} ${DS.shadows.raised} ${DS.interactive.hover} ${DS.transitions.default}`}>
-                    <div className={`${DS.text.labelSmall} mb-3`}>Strategy Contract</div>
+                <div className="space-y-3">
+                  {/* Compact Contract Cards */}
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/30">
+                    <span className="text-xs text-gray-600 dark:text-gray-400 font-semibold">Contract</span>
                     <a 
                       href={`https://etherscan.io/address/${strategy.contract}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={`block ${DS.text.highlight} hover:underline ${DS.transitions.default}`}
+                      className="text-xs text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 font-mono transition-colors"
                     >
-                      <code className="text-xs font-mono break-all">
-                        {strategy.contract}
-                      </code>
+                      {strategy.contract.slice(0, 6)}...{strategy.contract.slice(-4)}
                     </a>
                   </div>
 
-                  {/* Charm Vault Card (if exists) */}
                   {strategy.charmVault && (
-                    <div className={`group ${DS.radius.md} ${DS.backgrounds.card} p-5 ${DS.borders.subtle} ${DS.shadows.raised} ${DS.interactive.hover} ${DS.transitions.default}`}>
-                      <div className="flex items-center gap-2 mb-3">
-                        <CharmBadge className="!w-6 !h-6" />
-                        <span className={DS.text.labelSmall}>Charm Vault</span>
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/30">
+                      <div className="flex items-center gap-2">
+                        <CharmBadge className="!w-4 !h-4" />
+                        <span className="text-xs text-gray-600 dark:text-gray-400 font-semibold">Charm Vault</span>
                       </div>
                       <a 
                         href={`https://etherscan.io/address/${strategy.charmVault}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className={`block ${DS.text.highlight} hover:underline ${DS.transitions.default}`}
+                        className="text-xs text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 font-mono transition-colors"
                       >
-                        <code className="text-xs font-mono break-all">
-                          {strategy.charmVault}
-                        </code>
+                        {strategy.charmVault.slice(0, 6)}...{strategy.charmVault.slice(-4)}
                       </a>
                     </div>
                   )}
 
-                  {/* Deployed Amount Card (if exists) - Full Width */}
+                  {/* Deployed Amount */}
                   {strategy.deployed !== undefined && (
-                    <div className={`col-span-1 sm:col-span-2 ${DS.radius.md} ${DS.backgrounds.highlight} p-5 ${DS.borders.highlight} ${DS.shadows.raised} ${DS.transitions.default}`}>
+                    <div className={`${DS.radius.md} ${DS.backgrounds.highlight} p-4 ${DS.borders.highlight} ${DS.shadows.raised} ${DS.transitions.default}`}>
                       <div>
                         <div className={`${DS.text.labelSmall} mb-2`}>Currently Deployed</div>
                         {/* Show USD1 breakdown for strategy #1 */}
@@ -1577,40 +1462,38 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
           {/* Tabbed Vault Info & Strategies */}
           <div>
             <NeoCard className="!p-0">
-              {/* ERC-4626 Vault Header - Inside card, above tabs */}
-              <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b border-gray-300/50 dark:border-gray-700/30">
-                <div className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-800/50 dark:to-gray-900/30 rounded-lg p-3 sm:p-4 border border-gray-200/50 dark:border-gray-700/30 mb-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 dark:from-amber-500 dark:to-amber-700 flex items-center justify-center flex-shrink-0">
-                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {/* ERC-4626 Vault Header - Matches User/Admin Controls style */}
+              <div className={`px-3 sm:px-4 py-3 sm:py-4 border-b ${DS.borders.separator}`}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className={`w-6 h-6 sm:w-7 sm:h-7 ${DS.backgrounds.highlight} ${DS.radius.full} flex items-center justify-center shrink-0 ${DS.shadows.raised}`}>
+                      <svg className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${DS.text.highlight}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                       </svg>
                     </div>
-                    <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">ERC-4626 Vault</h3>
+                    <div>
+                      <h3 className={`${DS.text.h3} leading-tight`}>ERC-4626 Vault</h3>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
+                        Deposit <span className="text-amber-600 dark:text-amber-400 font-semibold">WLFI</span> or <span className="text-amber-600 dark:text-amber-400 font-semibold">USD1</span> for auto-compounding yield
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-snug mb-2">
-                    Deposit{' '}
-                    <a href="https://worldlibertyfinancial.com/" target="_blank" rel="noopener noreferrer" className="text-amber-600 dark:text-amber-400 font-semibold hover:underline">
-                      WLFI
-                    </a>
-                    {' '}or{' '}
-                    <a href="https://worldlibertyfinancial.com/usd1" target="_blank" rel="noopener noreferrer" className="text-amber-600 dark:text-amber-400 font-semibold hover:underline">
-                      USD1
-                    </a>
-                    , get vEAGLE shares with auto-compounding yield.
-                  </p>
-                  <div className="flex items-center gap-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg px-2.5 py-1.5 border border-blue-200/50 dark:border-blue-700/30">
+                  <div className="flex items-center gap-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg px-2.5 py-1.5 border border-blue-200/50 dark:border-blue-700/30 shrink-0">
                     <svg className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <p className="text-xs text-blue-800 dark:text-blue-300">
-                      <span className="font-semibold">Bootstrapping:</span> Currently easing capital into strategies
+                    <p className="text-xs text-blue-800 dark:text-blue-300 hidden sm:block">
+                      <span className="font-semibold">Bootstrapping:</span> Easing capital
+                    </p>
+                    <p className="text-xs text-blue-800 dark:text-blue-300 sm:hidden font-semibold">
+                      Bootstrapping
                     </p>
                   </div>
                 </div>
+              </div>
 
-
-                {/* Tab Headers */}
+              {/* Tab Headers */}
+              <div className="px-4 sm:px-6 pt-4 pb-2">
                 <NeoTabs
                   tabs={[
                     { id: 'vault', label: 'Assets' },
