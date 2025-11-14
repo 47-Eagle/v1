@@ -242,6 +242,10 @@ export default function AssetAllocationSunburst({
         event.stopPropagation();
         setSelectedPath(d.data.name);
         
+        // Hide tooltip immediately on click
+        d3.select('#tooltip')
+          .style('opacity', 0);
+        
         // Trigger close-then-open animation
         const clickedPath = d3.select(this);
         
@@ -465,16 +469,6 @@ export default function AssetAllocationSunburst({
               </div>
             </div>
           )}
-
-          <div className="pt-3 sm:pt-4 border-t border-gray-300/50 dark:border-gray-600/40 mt-3 sm:mt-4">
-            <div className="bg-white dark:bg-gray-800 shadow-neo-inset dark:shadow-neo-inset-dark rounded-lg sm:rounded-xl p-3 sm:p-4 border border-gray-200/50 dark:border-gray-600/50">
-              <div className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-1 font-semibold">Total Assets</div>
-              <div className="text-2xl sm:text-3xl font-bold text-yellow-600 dark:text-yellow-400">
-                {totalInWLFI.toFixed(2)}
-              </div>
-              <div className="text-[10px] sm:text-xs text-gray-700 dark:text-gray-300 mt-1 font-medium">WLFI (incl. USD1 equiv.)</div>
-            </div>
-          </div>
 
           {selectedPath && (
             <div className="p-3 sm:p-4 bg-yellow-50 dark:bg-yellow-900/30 shadow-neo-inset dark:shadow-neo-inset-dark border border-yellow-400 dark:border-yellow-600 rounded-lg sm:rounded-xl animate-fadeIn">
