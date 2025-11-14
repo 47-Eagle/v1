@@ -1594,6 +1594,19 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
                   <div className="space-y-4">
                     {/* Asset Deployment Sunburst Chart */}
                     <div className="space-y-3">
+                      {/* Sunburst Chart */}
+                      <AssetAllocationSunburst
+                        vaultWLFI={Number(data.vaultLiquidWLFI)}
+                        vaultUSD1={Number(data.vaultLiquidUSD1)}
+                        strategyWLFI={Number(data.strategyWLFI)}
+                        strategyUSD1={Number(data.strategyUSD1)}
+                        wlfiPrice={Number(data.wlfiPrice)}
+                        strategyWETH={Number(data.strategyWETH)}
+                        strategyWLFIinPool={Number(data.strategyWLFIinPool)}
+                        strategyUSD1InPool={Number(data.strategyUSD1InPool)}
+                        strategyWLFIinUSD1Pool={Number(data.strategyWLFIinUSD1Pool)}
+                      />
+                      
                       {/* Assets Display */}
                       <div>
                         <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Assets</div>
@@ -1686,19 +1699,6 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
                           </div>
                         </div>
                       </div>
-                      
-                      {/* Sunburst Chart */}
-                      <AssetAllocationSunburst
-                        vaultWLFI={Number(data.vaultLiquidWLFI)}
-                        vaultUSD1={Number(data.vaultLiquidUSD1)}
-                        strategyWLFI={Number(data.strategyWLFI)}
-                        strategyUSD1={Number(data.strategyUSD1)}
-                        wlfiPrice={Number(data.wlfiPrice)}
-                        strategyWETH={Number(data.strategyWETH)}
-                        strategyWLFIinPool={Number(data.strategyWLFIinPool)}
-                        strategyUSD1InPool={Number(data.strategyUSD1InPool)}
-                        strategyWLFIinUSD1Pool={Number(data.strategyWLFIinUSD1Pool)}
-                      />
                     </div>
                   </div>
                 )}
