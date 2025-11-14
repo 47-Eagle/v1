@@ -204,31 +204,35 @@ export default function AssetAllocationSunburst({
         // Show elegant tooltip with correct positioning
         const percentage = grandTotal > 0 ? ((d.value || 0) / grandTotal * 100).toFixed(1) : '0';
         
-        d3.select('#tooltip')
-          .style('left', (event.clientX + 15) + 'px')
-          .style('top', (event.clientY - 10) + 'px')
+        const tooltipX = event.clientX + 15;
+        const tooltipY = event.clientY - 10;
+        
+        console.log('[Tooltip] Setting position:', { x: tooltipX, y: tooltipY, clientX: event.clientX, clientY: event.clientY });
+        
+        const tooltip = d3.select('#tooltip');
+        tooltip
+          .style('left', tooltipX + 'px')
+          .style('top', tooltipY + 'px')
           .style('opacity', '1')
-          .html(`
-            <div style="
-              background: linear-gradient(135deg, rgba(0,0,0,0.95) 0%, rgba(20,20,20,0.95) 100%);
-              padding: 16px;
-              border-radius: 12px;
-              border: 1px solid rgba(255,255,255,0.2);
-              box-shadow: 0 20px 40px rgba(0,0,0,0.5), 0 0 20px ${d.data.color}40;
-              backdrop-filter: blur(10px);
-              min-width: 180px;
-            ">
-              <div style="color: ${d.data.color}; font-weight: 700; margin-bottom: 8px; font-size: 14px; letter-spacing: 0.5px;">${d.data.name.toUpperCase()}</div>
-              <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px;">
-                <span style="color: #9ca3af; font-size: 12px;">Amount:</span>
-                <span style="color: white; font-weight: 600; font-family: monospace; font-size: 13px;">${(d.value || 0).toFixed(2)}</span>
-              </div>
-              <div style="display: flex; justify-content: space-between; align-items: baseline;">
-                <span style="color: #9ca3af; font-size: 12px;">Share:</span>
-                <span style="color: #eab308; font-weight: 700; font-size: 16px;">${percentage}%</span>
-              </div>
-            </div>
-          `);
+          .style('background', 'red') // DEBUG: Make it very obvious
+          .style('border', '3px solid yellow') // DEBUG
+          .style('padding', '20px') // DEBUG
+          .html(`DEBUG TOOLTIP - ${d.data.name} - ${percentage}%`);
+        
+        // Log the actual computed styles
+        const tooltipNode = tooltip.node() as HTMLElement;
+        if (tooltipNode) {
+          const computedStyle = window.getComputedStyle(tooltipNode);
+          console.log('[Tooltip] Computed styles:', {
+            position: computedStyle.position,
+            left: computedStyle.left,
+            top: computedStyle.top,
+            opacity: computedStyle.opacity,
+            display: computedStyle.display,
+            visibility: computedStyle.visibility,
+            zIndex: computedStyle.zIndex
+          });
+        }
       })
       .on('mousemove', function(event, d) {
         // Update tooltip position as mouse moves
