@@ -28,7 +28,7 @@ export default function EagleHomeContent({ onNavigateUp, onNavigateDown, provide
           />
           
           <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold mb-2 sm:mb-3 tracking-tight">
-            <span className="bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 dark:from-amber-300 dark:via-amber-400 dark:to-amber-500 bg-clip-text text-transparent drop-shadow-[0_2px_8px_rgba(251,191,36,0.3)]">
+            <span className="bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500 dark:from-amber-300 dark:via-amber-400 dark:to-amber-500 bg-clip-text text-transparent drop-shadow-[0_4px_16px_rgba(251,191,36,0.5)] dark:drop-shadow-[0_4px_16px_rgba(251,191,36,0.6)]">
               EAGLE
             </span>
           </h1>

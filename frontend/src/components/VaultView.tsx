@@ -35,7 +35,7 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
     <div className={`
       group relative rounded-3xl overflow-hidden transition-all duration-500 transform
       ${strategy.status === 'active' 
-        ? 'bg-[#1a1f2e] border border-amber-500/20 shadow-[0_8px_32px_-4px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.05)] hover:shadow-[0_12px_48px_-4px_rgba(234,179,8,0.2),0_8px_32px_-4px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.08)] hover:border-amber-500/30 hover:translate-y-[-2px]' 
+        ? 'bg-[#1a1f2e] border border-amber-400/30 shadow-[0_8px_32px_-4px_rgba(0,0,0,0.5),0_0_24px_-4px_rgba(251,191,36,0.15),inset_0_1px_0_rgba(255,255,255,0.05)] hover:shadow-[0_12px_48px_-4px_rgba(251,191,36,0.4),0_8px_32px_-4px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.08)] hover:border-amber-400/50 hover:translate-y-[-2px]' 
         : 'bg-[#13161f] border border-zinc-800/50 shadow-[inset_0_2px_8px_rgba(0,0,0,0.5),0_4px_16px_rgba(0,0,0,0.3)] opacity-50 hover:opacity-60'
       }
     `}>
@@ -49,7 +49,7 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
           <div className={`
             relative px-5 py-2.5 rounded-xl text-sm font-black tracking-wider shrink-0 transition-all duration-300
             ${strategy.status === 'active'
-              ? 'bg-gradient-to-br from-amber-500 to-amber-600 text-white shadow-[0_4px_16px_rgba(234,179,8,0.4),inset_0_1px_0_rgba(255,255,255,0.2)] group-hover:shadow-[0_6px_24px_rgba(234,179,8,0.5),inset_0_1px_0_rgba(255,255,255,0.3)] group-hover:scale-105'
+              ? 'bg-gradient-to-br from-amber-300 via-amber-400 to-amber-500 text-gray-900 shadow-[0_4px_20px_rgba(251,191,36,0.6),0_2px_8px_rgba(251,191,36,0.3),inset_0_1px_0_rgba(255,255,255,0.5)] group-hover:shadow-[0_8px_32px_rgba(251,191,36,0.8),0_4px_16px_rgba(251,191,36,0.4),inset_0_2px_0_rgba(255,255,255,0.6)] group-hover:scale-105'
               : 'bg-[#0f1117] border border-zinc-800/80 text-zinc-600 shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)]'
             }
           `}>
@@ -124,10 +124,10 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
           {/* Allocation Badge */}
           {strategy.allocation && strategy.status === 'active' && (
             <div className="relative shrink-0 mr-2">
-              <div className="px-5 py-2.5 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 shadow-[0_4px_16px_rgba(234,179,8,0.3),inset_0_1px_0_rgba(255,255,255,0.2)] border border-amber-400/20">
+              <div className="px-5 py-2.5 rounded-xl bg-gradient-to-br from-amber-300 via-amber-400 to-amber-500 shadow-[0_4px_20px_rgba(251,191,36,0.6),0_2px_8px_rgba(251,191,36,0.3),inset_0_1px_0_rgba(255,255,255,0.5)] border border-amber-200/40">
                 <div className="text-center">
-                  <div className="text-2xl font-black text-white leading-none mb-0.5">{strategy.allocation}</div>
-                  <div className="text-[9px] text-amber-100 font-bold uppercase tracking-widest">WEIGHT</div>
+                  <div className="text-2xl font-black text-gray-900 leading-none mb-0.5">{strategy.allocation}</div>
+                  <div className="text-[9px] text-gray-800 font-bold uppercase tracking-widest">WEIGHT</div>
                 </div>
               </div>
             </div>
