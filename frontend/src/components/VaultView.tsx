@@ -35,7 +35,7 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
     <div className={`
       group relative rounded-2xl overflow-hidden transition-all duration-300
       ${strategy.status === 'active' 
-        ? 'bg-white/5 dark:bg-white/5 border border-gray-200/10 dark:border-gray-700/20 hover:bg-white/8 dark:hover:bg-white/8 hover:border-[#C9A769]/20' 
+        ? 'bg-white/5 dark:bg-white/5 border border-gray-200/10 dark:border-gray-700/20 hover:bg-white/8 dark:hover:bg-white/8 hover:border-[#D4B474]/20' 
         : 'bg-white/3 dark:bg-white/3 border border-gray-200/5 dark:border-gray-700/10 opacity-40'
       }
     `}>
@@ -50,9 +50,9 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
             <div className="flex items-baseline gap-2 mb-1">
               {/* Strategy Number */}
               <span className={`
-                text-base font-bold shrink-0
+                text-base font-bold shrink-0 transition-all duration-300
                 ${strategy.status === 'active'
-                  ? 'text-[#C9A769] dark:text-[#C9A769]'
+                  ? 'text-[#D4B474] dark:text-[#D4B474] dark:shadow-gold-glow'
                   : 'text-gray-600 dark:text-gray-600'
                 }
               `}>
@@ -82,7 +82,7 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
                   </>
                 )}
                 <span>•</span>
-                <span className="text-[#A27D46] dark:text-[#C9A769]">4.7% Perf</span>
+                <span className="text-[#A27D46] dark:text-[#D4B474]">4.7% Perf</span>
               </div>
             )}
             
@@ -101,7 +101,7 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
                 <div className="text-[9px] text-gray-500 dark:text-gray-500 uppercase tracking-wider mb-0.5">
                   Allocation
                 </div>
-                <div className="text-2xl font-bold text-[#C9A769] dark:text-[#C9A769] leading-none">
+                <div className="text-2xl font-bold text-[#D4B474] dark:text-[#D4B474] leading-none dark:shadow-gold-glow-strong">
                   {strategy.allocation}
                 </div>
               </div>
@@ -110,7 +110,7 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
             {/* Expand Icon */}
             <div className={`
               transition-all duration-300
-              ${strategy.status === 'active' ? 'text-gray-400 group-hover:text-[#C9A769]' : 'text-gray-600'}
+              ${strategy.status === 'active' ? 'text-gray-400 group-hover:text-[#D4B474]' : 'text-gray-600'}
             `}>
               <svg 
                 className={`w-5 h-5 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}
@@ -146,7 +146,7 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
                 <Suspense fallback={
                   <div className="bg-white/30 dark:bg-gray-800/30 rounded-lg p-6 flex items-center justify-center h-64">
                     <div className="text-center">
-                      <svg className="animate-spin w-8 h-8 mx-auto mb-2 text-[#A27D46] dark:text-[#C9A769]" fill="none" viewBox="0 0 24 24">
+                      <svg className="animate-spin w-8 h-8 mx-auto mb-2 text-[#A27D46] dark:text-[#D4B474]" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
@@ -174,7 +174,7 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
                       href={`https://etherscan.io/address/${strategy.contract}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-gray-700 dark:text-gray-300 hover:text-[#A27D46] dark:hover:text-[#C9A769] font-mono transition-colors block"
+                      className="text-sm text-gray-700 dark:text-gray-300 hover:text-[#A27D46] dark:hover:text-[#D4B474] font-mono transition-colors block"
                     >
                       {strategy.contract.slice(0, 6)}...{strategy.contract.slice(-4)}
                     </a>
@@ -188,7 +188,7 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
                         href={`https://etherscan.io/address/${strategy.charmVault}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-sm text-gray-700 dark:text-gray-300 hover:text-[#A27D46] dark:hover:text-[#C9A769] font-mono transition-colors block"
+                        className="text-sm text-gray-700 dark:text-gray-300 hover:text-[#A27D46] dark:hover:text-[#D4B474] font-mono transition-colors block"
                       >
                         {strategy.charmVault.slice(0, 6)}...{strategy.charmVault.slice(-4)}
                       </a>
@@ -1316,7 +1316,7 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
                 href={`https://etherscan.io/address/${CONTRACTS.VAULT}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 hover:text-[#A27D46] dark:hover:text-[#C9A769] font-mono truncate transition-colors inline-flex items-center gap-1"
+                className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 hover:text-[#A27D46] dark:hover:text-[#D4B474] font-mono truncate transition-colors inline-flex items-center gap-1"
               >
                 {CONTRACTS.VAULT}
                 <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1418,7 +1418,7 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
                     <div>
                       <h3 className={`${DS.text.h3} leading-tight`}>ERC-4626 Vault</h3>
                       <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
-                        Deposit <span className="text-[#A27D46] dark:text-[#C9A769] font-semibold">WLFI</span> or <span className="text-[#A27D46] dark:text-[#C9A769] font-semibold">USD1</span> for auto-compounding yield
+                        Deposit <span className="text-[#A27D46] dark:text-[#D4B474] font-semibold">WLFI</span> or <span className="text-[#A27D46] dark:text-[#D4B474] font-semibold">USD1</span> for auto-compounding yield
                       </p>
                     </div>
                   </div>
@@ -1639,7 +1639,7 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
                     <div className="flex items-center gap-2">
                       <h4 className="text-sm font-semibold text-gray-900 dark:text-white">Capital Injection</h4>
                       <div className="group relative">
-                        <svg className="w-4 h-4 text-gray-400 dark:text-gray-500 hover:text-[#A27D46] dark:hover:text-[#C9A769] cursor-help transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4 text-gray-400 dark:text-gray-500 hover:text-[#A27D46] dark:hover:text-[#D4B474] cursor-help transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block z-50 w-64">

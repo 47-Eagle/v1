@@ -6,11 +6,11 @@
 export const DESIGN_SYSTEM = {
   // Card Backgrounds
   backgrounds: {
-    card: 'bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850',
-    cardAlt: 'bg-gradient-to-br from-gray-50 to-white dark:from-gray-850 dark:to-gray-800',
-    highlight: 'bg-gradient-to-br from-[#DCC38A]/20 to-[#C9A769]/10 dark:from-[#8C6A38]/20 dark:to-[#A27D46]/15',
+    card: 'bg-gradient-to-br from-white to-gray-50 dark:from-[#1A1D23] dark:to-[#22262E]',
+    cardAlt: 'bg-gradient-to-br from-gray-50 to-white dark:from-[#22262E] dark:to-[#1A1D23]',
+    highlight: 'bg-gradient-to-br from-[#E4CFA0]/20 to-[#D4B474]/10 dark:from-[#8C6A38]/20 dark:to-[#A27D46]/15',
     info: 'bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/20',
-    inset: 'bg-white/50 dark:bg-gray-800/50',
+    inset: 'bg-white/50 dark:bg-[#0B0D10]/50',
   },
 
   // Shadows
@@ -20,15 +20,17 @@ export const DESIGN_SYSTEM = {
     pressed: 'shadow-neo-pressed dark:shadow-neo-pressed-dark',
     inset: 'shadow-neo-inset dark:shadow-neo-inset-dark',
     glow: 'shadow-neo-glow dark:shadow-neo-glow-dark',
+    goldGlow: 'shadow-gold-glow dark:shadow-gold-glow-dark',
+    goldGlowStrong: 'shadow-gold-glow-strong dark:shadow-gold-glow-strong-dark',
   },
 
   // Borders
   borders: {
-    subtle: 'border border-gray-200/50 dark:border-gray-600/50',
-    medium: 'border-2 border-gray-300/60 dark:border-gray-600/60',
-    highlight: 'border-2 border-[#C9A769]/60 dark:border-[#A27D46]/50',
+    subtle: 'border border-gray-200/50 dark:border-[#353A42]/50',
+    medium: 'border-2 border-gray-300/60 dark:border-[#353A42]/60',
+    highlight: 'border-2 border-[#D4B474]/60 dark:border-[#A27D46]/50',
     info: 'border-2 border-blue-400 dark:border-blue-600',
-    separator: 'border-gray-300/50 dark:border-gray-700/30',
+    separator: 'border-gray-300/50 dark:border-[#353A42]/30',
   },
 
   // Border Radius
@@ -66,8 +68,8 @@ export const DESIGN_SYSTEM = {
     descriptionSmall: 'text-xs text-gray-500 dark:text-gray-400',
     
     // Highlights
-    highlight: 'text-[#A27D46] dark:text-[#C9A769]',
-    highlightBold: 'text-[#8C6A38] dark:text-[#DCC38A] font-semibold',
+    highlight: 'text-[#A27D46] dark:text-[#D4B474]',
+    highlightBold: 'text-[#8C6A38] dark:text-[#E4CFA0] font-semibold',
   },
 
   // Spacing

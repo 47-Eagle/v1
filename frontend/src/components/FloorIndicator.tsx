@@ -100,7 +100,7 @@ export default function FloorIndicator({ current, onChange, isTransitioning }: P
                           <p className="text-xs text-gray-400 mt-0.5">Coming Soon</p>
                         )}
                         {floor.id === 'vault' && (
-                          <p className="text-xs text-[#C9A769] mt-0.5 font-medium">Active</p>
+                          <p className="text-xs text-[#D4B474] mt-0.5 font-medium">Active</p>
                         )}
                       </div>
                       {/* Arrow */}

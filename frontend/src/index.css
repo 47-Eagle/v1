@@ -5,11 +5,11 @@
 @tailwind utilities;
 
 :root {
-  /* Eagle Finance Colors - Vibrant Gold */
-  --eagle-gold: #fbbf24;        /* Bright amber-400 */
-  --eagle-gold-dark: #f59e0b;   /* Rich amber-500 */
-  --eagle-gold-light: #fcd34d;  /* Luminous amber-300 */
-  --eagle-gold-rich: #d97706;   /* Deep amber-600 */
+  /* Eagle Finance Colors - Enhanced Premium Gold */
+  --eagle-gold: #D4B474;        /* Enhanced Metallic Gold */
+  --eagle-gold-dark: #A27D46;   /* Rich Bronze */
+  --eagle-gold-light: #E4CFA0;  /* Lighter Champagne */
+  --eagle-gold-rich: #8C6A38;   /* Deep Copper */
   
   /* Light Mode (Default) */
   --bg-light: #e8ebef;
@@ -44,7 +44,7 @@ body {
 
 /* Dark mode */
 body.dark {
-  background-color: #1c1c1e;
+  background-color: #0B0D10;
   color: #e5e5e5;
 }
 
@@ -125,12 +125,13 @@ h1, h2, h3, h4, h5, h6 {
   background: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(212, 175, 55, 0.2);
+  border: 1px solid rgba(212, 180, 116, 0.2);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .glass-card:hover {
-  border-color: rgba(212, 175, 55, 0.4);
+  border-color: rgba(212, 180, 116, 0.4);
+  box-shadow: 0 0 12px rgba(212, 180, 116, 0.18), 0 0 18px rgba(212, 180, 116, 0.12);
   transform: translateY(-2px);
 }
 

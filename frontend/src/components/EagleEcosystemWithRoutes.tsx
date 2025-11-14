@@ -405,7 +405,7 @@ export default function EagleEcosystemWithRoutes({ provider, account, onToast }:
             transition={{ duration: 3.5, ease: [0.19, 1.0, 0.22, 1.0] }}
           >
             <motion.div 
-              className="absolute top-1/3 right-1/4 w-[750px] h-[750px] bg-[#C9A769]/500/18 rounded-full blur-[110px]"
+              className="absolute top-1/3 right-1/4 w-[750px] h-[750px] bg-[#D4B474]/500/18 rounded-full blur-[110px]"
               animate={{
                 scale: currentFloor === 'vault' ? [1, 1.2, 1] : 0.8,
                 y: currentFloor === 'vault' ? [0, -50, 0] : 0,
@@ -413,7 +413,7 @@ export default function EagleEcosystemWithRoutes({ provider, account, onToast }:
               transition={{ duration: 11, repeat: Infinity, ease: "easeInOut" }}
             />
             <motion.div 
-              className="absolute bottom-1/4 left-1/3 w-[650px] h-[650px] bg-[#C9A769]/600/15 rounded-full blur-[100px]"
+              className="absolute bottom-1/4 left-1/3 w-[650px] h-[650px] bg-[#D4B474]/600/15 rounded-full blur-[100px]"
               animate={{
                 scale: currentFloor === 'vault' ? [1, 1.15, 1] : 0.8,
                 x: currentFloor === 'vault' ? [0, 45, 0] : 0,
@@ -471,7 +471,7 @@ export default function EagleEcosystemWithRoutes({ provider, account, onToast }:
             transition={{ duration: 3.5, ease: [0.19, 1.0, 0.22, 1.0] }}
           >
             <motion.div 
-              className="absolute top-1/4 right-1/3 w-[800px] h-[800px] bg-[#C9A769]/400/15 rounded-full blur-[120px]"
+              className="absolute top-1/4 right-1/3 w-[800px] h-[800px] bg-[#D4B474]/400/15 rounded-full blur-[120px]"
               animate={{
                 scale: currentFloor === 'home' ? [1, 1.15, 1] : 0.8,
                 x: currentFloor === 'home' ? [0, 60, 0] : 0,
@@ -479,7 +479,7 @@ export default function EagleEcosystemWithRoutes({ provider, account, onToast }:
               transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
             />
             <motion.div 
-              className="absolute bottom-1/3 left-1/4 w-[700px] h-[700px] bg-[#C9A769]/500/12 rounded-full blur-[110px]"
+              className="absolute bottom-1/3 left-1/4 w-[700px] h-[700px] bg-[#D4B474]/500/12 rounded-full blur-[110px]"
               animate={{
                 scale: currentFloor === 'home' ? [1, 1.2, 1] : 0.8,
                 y: currentFloor === 'home' ? [0, 40, 0] : 0,
