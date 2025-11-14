@@ -16,7 +16,7 @@ interface IERC20 {
 contract ForceDeployIdle is Script {
     address constant VAULT = 0x47b3ef629D9cB8DFcF8A6c61058338f4e99d7953;
     address constant USD1_STRATEGY = 0x47B2659747d6A7E00c8251c3C3f7e92625a8cf6f;
-    address constant WETH_STRATEGY = 0x997feaa69a60c536F8449F0D5Adf997fD83aDf39;
+    address constant WETH_STRATEGY = 0x5c525Af4153B1c43f9C06c31D32a84637c617FfE; // NEW: 24hr oracle support
     address constant WLFI = 0xdA5e1988097297dCdc1f90D4dFE7909e847CBeF6;
     address constant USD1 = 0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d;
 
