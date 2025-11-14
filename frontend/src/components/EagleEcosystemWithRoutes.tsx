@@ -118,8 +118,8 @@ export default function EagleEcosystemWithRoutes({ provider, account, onToast }:
       bottom: 'rgba(10, 10, 10, 1)' 
     },
     'vault': { 
-      top: 'rgba(69, 26, 3, 0.25)',        // amber-950 with more opacity
-      middle: 'rgba(99, 49, 0, 0.22)',     // yellow-900 with opacity
+      top: 'rgba(30, 27, 75, 0.18)',       // indigo-950 with subtle opacity
+      middle: 'rgba(49, 46, 129, 0.15)',   // indigo-900 with subtle opacity
       bottom: 'rgba(10, 10, 10, 1)' 
     },
     'wrapper': { 

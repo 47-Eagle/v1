@@ -184,7 +184,7 @@ export function ComposerPanel() {
               />
               <button
                 onClick={handleMaxClick}
-                className="absolute right-3 top-1/2 -translate-y-1/2 px-3 py-1 rounded-lg bg-yellow-500 hover:bg-yellow-600 text-white text-sm font-semibold transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 px-3 py-1 rounded-lg bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-semibold transition-colors"
               >
                 MAX
               </button>
