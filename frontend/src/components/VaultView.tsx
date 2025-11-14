@@ -96,7 +96,7 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
                   {strategy.feeTier && (
                     <>
                       <span className="text-gray-400 dark:text-gray-600">•</span>
-                      <span className="px-2 py-0.5 rounded-md bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-bold border border-blue-500/20">
+                      <span className={`px-2 py-0.5 ${DS.radius.sm} ${DS.backgrounds.info} ${DS.text.label} text-xs ${DS.borders.info}`}>
                         {strategy.feeTier} Fee
                       </span>
                     </>
@@ -105,7 +105,7 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
                   {strategy.status === 'active' && (
                     <>
                       <span className="text-gray-400 dark:text-gray-600">•</span>
-                      <span className="px-2 py-0.5 rounded-md bg-yellow-500/10 dark:bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 text-xs font-bold border border-yellow-500/20">
+                      <span className={`px-2 py-0.5 ${DS.radius.sm} ${DS.backgrounds.highlight} ${DS.text.highlightBold} text-xs ${DS.borders.highlight}`}>
                         4.7% Perf
                       </span>
                     </>
@@ -313,82 +313,60 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
               {strategy.contract && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
                   {/* Strategy Contract Card */}
-                  <div className="group rounded-2xl bg-[#161b28] p-5 border border-zinc-800/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.03),0_4px_16px_rgba(0,0,0,0.4)] hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_6px_24px_rgba(0,0,0,0.5),0_0_16px_rgba(234,179,8,0.1)] hover:border-yellow-500/20 transition-all duration-300">
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-[0_4px_12px_rgba(59,130,246,0.3),inset_0_1px_0_rgba(255,255,255,0.2)]">
-                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                      </div>
-                      <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Strategy Contract</span>
-                    </div>
+                  <div className={`group ${DS.radius.md} ${DS.backgrounds.card} p-5 ${DS.borders.subtle} ${DS.shadows.raised} ${DS.interactive.hover} ${DS.transitions.default}`}>
+                    <div className={`${DS.text.labelSmall} mb-3`}>Strategy Contract</div>
                     <a 
                       href={`https://etherscan.io/address/${strategy.contract}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-yellow-500 hover:text-yellow-400 transition-colors group"
+                      className={`block ${DS.text.highlight} hover:underline ${DS.transitions.default}`}
                     >
-                      <code className="text-xs font-mono break-all font-semibold">
+                      <code className="text-xs font-mono break-all">
                         {strategy.contract}
                       </code>
-                      <svg className="w-4 h-4 flex-shrink-0 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                      </svg>
                     </a>
                   </div>
 
                   {/* Charm Vault Card (if exists) */}
                   {strategy.charmVault && (
-                    <div className="group rounded-2xl bg-[#161b28] p-5 border border-zinc-800/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.03),0_4px_16px_rgba(0,0,0,0.4)] hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_6px_24px_rgba(0,0,0,0.5),0_0_16px_rgba(234,179,8,0.1)] hover:border-yellow-500/20 transition-all duration-300">
+                    <div className={`group ${DS.radius.md} ${DS.backgrounds.card} p-5 ${DS.borders.subtle} ${DS.shadows.raised} ${DS.interactive.hover} ${DS.transitions.default}`}>
                       <div className="flex items-center gap-2 mb-3">
-                        <CharmBadge className="!w-8 !h-8 shadow-[0_4px_12px_rgba(234,179,8,0.2)]" />
-                        <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Charm Vault</span>
+                        <CharmBadge className="!w-6 !h-6" />
+                        <span className={DS.text.labelSmall}>Charm Vault</span>
                       </div>
                       <a 
                         href={`https://etherscan.io/address/${strategy.charmVault}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-yellow-500 hover:text-yellow-400 transition-colors group"
+                        className={`block ${DS.text.highlight} hover:underline ${DS.transitions.default}`}
                       >
-                        <code className="text-xs font-mono break-all font-semibold">
+                        <code className="text-xs font-mono break-all">
                           {strategy.charmVault}
                         </code>
-                        <svg className="w-4 h-4 flex-shrink-0 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                        </svg>
                       </a>
                     </div>
                   )}
 
                   {/* Deployed Amount Card (if exists) - Full Width */}
                   {strategy.deployed !== undefined && (
-                    <div className="col-span-1 sm:col-span-2 rounded-2xl bg-gradient-to-br from-yellow-500/5 to-amber-600/5 p-5 border border-yellow-500/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.03),0_0_24px_rgba(234,179,8,0.1)] backdrop-blur-sm">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-yellow-500 to-yellow-600 flex items-center justify-center shadow-[0_4px_16px_rgba(234,179,8,0.4),inset_0_1px_0_rgba(255,255,255,0.2)]">
-                            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
+                    <div className={`col-span-1 sm:col-span-2 ${DS.radius.md} ${DS.backgrounds.highlight} p-5 ${DS.borders.highlight} ${DS.shadows.raised} ${DS.transitions.default}`}>
+                      <div>
+                        <div className={`${DS.text.labelSmall} mb-2`}>Currently Deployed</div>
+                        {/* Show WETH breakdown for strategy #2 */}
+                        {strategy.wethAmount && Number(strategy.wethAmount) > 0 ? (
+                          <div className={DS.spacing.itemGapSmall}>
+                            <div className={`${DS.text.valueMedium} ${DS.text.highlight}`}>
+                              {strategy.wethAmount} <span className={DS.text.bodyMuted}>WETH</span>
+                            </div>
+                            <div className={DS.text.description}>
+                              + WLFI in pool <span className={DS.text.descriptionSmall}>(~${Number(strategy.deployed).toFixed(0)} total value)</span>
+                            </div>
                           </div>
-                          <div>
-                            <div className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1">Currently Deployed</div>
-                            {/* Show WETH breakdown for strategy #2 */}
-                            {strategy.wethAmount && Number(strategy.wethAmount) > 0 ? (
-                              <div className="space-y-1">
-                                <div className="text-xl font-black text-yellow-400">
-                                  {strategy.wethAmount} <span className="text-sm text-zinc-500 font-semibold">WETH</span>
-                                </div>
-                                <div className="text-sm text-zinc-400">
-                                  + WLFI in pool <span className="text-xs text-zinc-600">(Total: ~${Number(strategy.deployed).toFixed(0)})</span>
-                                </div>
-                              </div>
-                            ) : (
-                              <div className="text-2xl font-black text-yellow-400">
-                                {Number(strategy.deployed).toFixed(2)} <span className="text-lg text-zinc-500">Tokens</span>
-                              </div>
-                            )}
+                        ) : (
+                          <div className={`${DS.text.valueMedium} ${DS.text.highlight}`}>
+                            {Number(strategy.deployed).toFixed(2)} <span className={DS.text.bodyMuted}>Tokens</span>
                           </div>
-                        </div>
+                        )}
                       </div>
                     </div>
                   )}
