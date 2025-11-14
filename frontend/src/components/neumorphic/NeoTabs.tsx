@@ -37,7 +37,7 @@ export const NeoTabs = ({ tabs, defaultTab, onChange }: NeoTabsProps) => {
                 ? 'text-gray-900 dark:text-white bg-white dark:bg-gray-700 shadow-neo-raised dark:shadow-neo-inset-dark border border-gray-200/50 dark:border-gray-600/50' 
                 : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 active:bg-gray-200 dark:active:bg-gray-700'
               }
-              focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-opacity-50
+              focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-opacity-50
             `}
           >
             {tab.label}

@@ -252,7 +252,7 @@ export default function Analytics({ provider, account, onNavigateUp }: Props) {
                     <span className="text-gray-900 font-bold text-lg">2%</span>
                   </div>
                   
-                  <div className="flex justify-between items-center py-3 border-b-2 border-indigo-400 bg-indigo-50/50 -mx-2 px-2 rounded">
+                  <div className="flex justify-between items-center py-3 border-b-2 border-amber-400 bg-amber-50/50 -mx-2 px-2 rounded">
                     <div>
                       <span className="text-gray-900 font-semibold block mb-1">Performance Fee</span>
                       <p className="text-xs text-gray-600 mb-2">Charged on profits only</p>
@@ -261,7 +261,7 @@ export default function Analytics({ provider, account, onNavigateUp }: Props) {
                         • 1% to Charm Finance
                       </p>
                     </div>
-                    <span className="text-indigo-700 font-bold text-lg">4.7%</span>
+                    <span className="text-amber-700 font-bold text-lg">4.7%</span>
                   </div>
                 </div>
               </div>
@@ -299,7 +299,7 @@ export default function Analytics({ provider, account, onNavigateUp }: Props) {
                 href={`https://alpha.charm.fi/vault/${CONTRACTS.CHARM_VAULT}`}
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-xs text-indigo-700 hover:text-indigo-800 font-medium mt-2 inline-flex items-center gap-1"
+                className="text-xs text-amber-700 hover:text-amber-800 font-medium mt-2 inline-flex items-center gap-1"
               >
                 View on Charm Finance
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">

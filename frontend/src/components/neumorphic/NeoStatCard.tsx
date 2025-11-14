@@ -31,12 +31,12 @@ export const NeoStatCard = ({
         backdrop-blur-sm
         transition-all duration-500 ease-out
         touch-manipulation
-        ${highlighted ? 'border-t-2 sm:border-t-4 border-t-eagle-gold dark:border-t-eagle-gold-light ring-1 ring-indigo-400/20 dark:ring-indigo-500/20' : ''}
+        ${highlighted ? 'border-t-2 sm:border-t-4 border-t-eagle-gold dark:border-t-eagle-gold-light ring-1 ring-amber-400/20 dark:ring-amber-500/20' : ''}
         ${className}
       `}
     >
       <div className="text-[10px] sm:text-xs md:text-sm text-gray-600 dark:text-gray-400 font-semibold uppercase tracking-wider mb-2 sm:mb-3 transition-colors duration-300 truncate">{label}</div>
-      <div className={`text-2xl sm:text-3xl md:text-4xl font-bold mb-1.5 sm:mb-2 transition-all duration-300 truncate ${highlighted ? 'text-eagle-gold-darker dark:text-eagle-gold-light bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent' : 'text-gray-900 dark:text-gray-100'}`}>
+      <div className={`text-2xl sm:text-3xl md:text-4xl font-bold mb-1.5 sm:mb-2 transition-all duration-300 truncate ${highlighted ? 'text-eagle-gold-darker dark:text-eagle-gold-light bg-gradient-to-r from-amber-600 to-orange-600 dark:from-amber-400 dark:to-orange-400 bg-clip-text text-transparent' : 'text-gray-900 dark:text-gray-100'}`}>
         {value}
       </div>
       {subtitle && (

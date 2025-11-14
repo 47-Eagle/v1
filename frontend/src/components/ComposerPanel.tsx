@@ -111,7 +111,7 @@ export function ComposerPanel() {
       <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-300/50 dark:border-gray-700/30">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center">
+            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center">
               <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
               </svg>
@@ -184,7 +184,7 @@ export function ComposerPanel() {
               />
               <button
                 onClick={handleMaxClick}
-                className="absolute right-3 top-1/2 -translate-y-1/2 px-3 py-1 rounded-lg bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-semibold transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 px-3 py-1 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors"
               >
                 MAX
               </button>

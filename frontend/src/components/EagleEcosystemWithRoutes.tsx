@@ -118,8 +118,8 @@ export default function EagleEcosystemWithRoutes({ provider, account, onToast }:
       bottom: 'rgba(10, 10, 10, 1)' 
     },
     'vault': { 
-      top: 'rgba(30, 27, 75, 0.18)',       // indigo-950 with subtle opacity
-      middle: 'rgba(49, 46, 129, 0.15)',   // indigo-900 with subtle opacity
+      top: 'rgba(69, 26, 3, 0.12)',        // amber-950 with refined opacity
+      middle: 'rgba(120, 53, 15, 0.10)',   // amber-900 with refined opacity
       bottom: 'rgba(10, 10, 10, 1)' 
     },
     'wrapper': { 
@@ -185,8 +185,8 @@ export default function EagleEcosystemWithRoutes({ provider, account, onToast }:
         animate={{
           background: isDarkMode ? 
             (currentFloor === 'lp' ? 'radial-gradient(ellipse 120% 100% at top, rgba(59, 130, 246, 0.12), transparent 60%)' :
-             currentFloor === 'home' ? 'radial-gradient(ellipse 120% 100% at center, rgba(99, 102, 241, 0.14), transparent 60%)' :
-             currentFloor === 'vault' ? 'radial-gradient(ellipse 120% 100% at bottom, rgba(79, 70, 229, 0.16), transparent 60%)' :
+             currentFloor === 'home' ? 'radial-gradient(ellipse 120% 100% at center, rgba(251, 191, 36, 0.08), transparent 60%)' :
+             currentFloor === 'vault' ? 'radial-gradient(ellipse 120% 100% at bottom, rgba(245, 158, 11, 0.10), transparent 60%)' :
              'radial-gradient(ellipse 120% 100% at top right, rgba(168, 85, 247, 0.18), transparent 60%)') :
             (currentFloor === 'lp' ? 'radial-gradient(ellipse 120% 100% at top, rgba(59, 130, 246, 0.15), transparent 70%)' :
              currentFloor === 'home' ? 'radial-gradient(ellipse 120% 100% at center, rgba(0, 0, 0, 0.01), transparent 90%)' :
@@ -405,7 +405,7 @@ export default function EagleEcosystemWithRoutes({ provider, account, onToast }:
             transition={{ duration: 3.5, ease: [0.19, 1.0, 0.22, 1.0] }}
           >
             <motion.div 
-              className="absolute top-1/3 right-1/4 w-[750px] h-[750px] bg-indigo-600/25 rounded-full blur-[110px]"
+              className="absolute top-1/3 right-1/4 w-[750px] h-[750px] bg-amber-500/18 rounded-full blur-[110px]"
               animate={{
                 scale: currentFloor === 'vault' ? [1, 1.2, 1] : 0.8,
                 y: currentFloor === 'vault' ? [0, -50, 0] : 0,
@@ -413,7 +413,7 @@ export default function EagleEcosystemWithRoutes({ provider, account, onToast }:
               transition={{ duration: 11, repeat: Infinity, ease: "easeInOut" }}
             />
             <motion.div 
-              className="absolute bottom-1/4 left-1/3 w-[650px] h-[650px] bg-purple-600/22 rounded-full blur-[100px]"
+              className="absolute bottom-1/4 left-1/3 w-[650px] h-[650px] bg-amber-600/15 rounded-full blur-[100px]"
               animate={{
                 scale: currentFloor === 'vault' ? [1, 1.15, 1] : 0.8,
                 x: currentFloor === 'vault' ? [0, 45, 0] : 0,
@@ -471,7 +471,7 @@ export default function EagleEcosystemWithRoutes({ provider, account, onToast }:
             transition={{ duration: 3.5, ease: [0.19, 1.0, 0.22, 1.0] }}
           >
             <motion.div 
-              className="absolute top-1/4 right-1/3 w-[800px] h-[800px] bg-indigo-500/20 rounded-full blur-[120px]"
+              className="absolute top-1/4 right-1/3 w-[800px] h-[800px] bg-amber-400/15 rounded-full blur-[120px]"
               animate={{
                 scale: currentFloor === 'home' ? [1, 1.15, 1] : 0.8,
                 x: currentFloor === 'home' ? [0, 60, 0] : 0,
@@ -479,7 +479,7 @@ export default function EagleEcosystemWithRoutes({ provider, account, onToast }:
               transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
             />
             <motion.div 
-              className="absolute bottom-1/3 left-1/4 w-[700px] h-[700px] bg-purple-500/18 rounded-full blur-[110px]"
+              className="absolute bottom-1/3 left-1/4 w-[700px] h-[700px] bg-amber-500/12 rounded-full blur-[110px]"
               animate={{
                 scale: currentFloor === 'home' ? [1, 1.2, 1] : 0.8,
                 y: currentFloor === 'home' ? [0, 40, 0] : 0,

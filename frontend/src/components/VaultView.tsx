@@ -35,7 +35,7 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
     <div className={`
       group relative rounded-3xl overflow-hidden transition-all duration-500 transform
       ${strategy.status === 'active' 
-        ? 'bg-[#1a1f2e] border border-indigo-500/20 shadow-[0_8px_32px_-4px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.05)] hover:shadow-[0_12px_48px_-4px_rgba(234,179,8,0.2),0_8px_32px_-4px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.08)] hover:border-indigo-500/30 hover:translate-y-[-2px]' 
+        ? 'bg-[#1a1f2e] border border-amber-500/20 shadow-[0_8px_32px_-4px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.05)] hover:shadow-[0_12px_48px_-4px_rgba(234,179,8,0.2),0_8px_32px_-4px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.08)] hover:border-amber-500/30 hover:translate-y-[-2px]' 
         : 'bg-[#13161f] border border-zinc-800/50 shadow-[inset_0_2px_8px_rgba(0,0,0,0.5),0_4px_16px_rgba(0,0,0,0.3)] opacity-50 hover:opacity-60'
       }
     `}>
@@ -49,7 +49,7 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
           <div className={`
             relative px-5 py-2.5 rounded-xl text-sm font-black tracking-wider shrink-0 transition-all duration-300
             ${strategy.status === 'active'
-              ? 'bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-[0_4px_16px_rgba(234,179,8,0.4),inset_0_1px_0_rgba(255,255,255,0.2)] group-hover:shadow-[0_6px_24px_rgba(234,179,8,0.5),inset_0_1px_0_rgba(255,255,255,0.3)] group-hover:scale-105'
+              ? 'bg-gradient-to-br from-amber-500 to-amber-600 text-white shadow-[0_4px_16px_rgba(234,179,8,0.4),inset_0_1px_0_rgba(255,255,255,0.2)] group-hover:shadow-[0_6px_24px_rgba(234,179,8,0.5),inset_0_1px_0_rgba(255,255,255,0.3)] group-hover:scale-105'
               : 'bg-[#0f1117] border border-zinc-800/80 text-zinc-600 shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)]'
             }
           `}>
@@ -87,7 +87,7 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
               
               {/* Pool Info */}
               <div className="text-left min-w-0 flex-1">
-                <h4 className="text-gray-900 dark:text-white font-bold text-base sm:text-lg mb-0.5 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors truncate">
+                <h4 className="text-gray-900 dark:text-white font-bold text-base sm:text-lg mb-0.5 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors truncate">
                   {strategy.name}
                 </h4>
                 <div className="flex items-center gap-2 flex-wrap">
@@ -189,10 +189,10 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
           {/* Allocation Badge */}
           {strategy.allocation && strategy.status === 'active' && (
             <div className="relative shrink-0 mr-2">
-              <div className="px-5 py-2.5 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 shadow-[0_4px_16px_rgba(234,179,8,0.3),inset_0_1px_0_rgba(255,255,255,0.2)] border border-indigo-400/20">
+              <div className="px-5 py-2.5 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 shadow-[0_4px_16px_rgba(234,179,8,0.3),inset_0_1px_0_rgba(255,255,255,0.2)] border border-amber-400/20">
                 <div className="text-center">
                   <div className="text-2xl font-black text-white leading-none mb-0.5">{strategy.allocation}</div>
-                  <div className="text-[9px] text-indigo-100 font-bold uppercase tracking-widest">WEIGHT</div>
+                  <div className="text-[9px] text-amber-100 font-bold uppercase tracking-widest">WEIGHT</div>
                 </div>
               </div>
             </div>
@@ -202,7 +202,7 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
           <div className={`
             relative w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 shrink-0 cursor-pointer
             ${strategy.status === 'active'
-              ? 'bg-[#161b28] border border-indigo-500/20 shadow-[inset_0_2px_4px_rgba(0,0,0,0.5),0_1px_0_rgba(255,255,255,0.05)] group-hover:shadow-[inset_0_3px_6px_rgba(0,0,0,0.6),0_0_12px_rgba(234,179,8,0.2)]'
+              ? 'bg-[#161b28] border border-amber-500/20 shadow-[inset_0_2px_4px_rgba(0,0,0,0.5),0_1px_0_rgba(255,255,255,0.05)] group-hover:shadow-[inset_0_3px_6px_rgba(0,0,0,0.6),0_0_12px_rgba(234,179,8,0.2)]'
               : 'bg-[#0f1117] border border-zinc-800/80 shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)]'
             }
             ${isExpanded ? 'shadow-[inset_0_3px_6px_rgba(0,0,0,0.6)]' : ''}
@@ -211,7 +211,7 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
               className={`
                 w-6 h-6 transition-all duration-500
                 ${strategy.status === 'active'
-                  ? 'text-indigo-500 group-hover:text-indigo-400'
+                  ? 'text-amber-500 group-hover:text-amber-400'
                   : 'text-zinc-700'
                 }
                 ${isExpanded ? 'rotate-180' : ''}
@@ -232,7 +232,7 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
         <div className={`
           px-6 sm:px-8 pb-6 sm:pb-8 pt-6 border-t animate-fadeIn
           ${strategy.status === 'active'
-            ? 'border-indigo-500/10 bg-gradient-to-b from-[#141824] to-[#0f1319]'
+            ? 'border-amber-500/10 bg-gradient-to-b from-[#141824] to-[#0f1319]'
             : 'border-zinc-800/30 bg-gradient-to-b from-[#0f1117] to-[#0a0c10]'
           }
         `}>
@@ -247,7 +247,7 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
                 <Suspense fallback={
                   <div className="bg-white/30 dark:bg-gray-800/30 rounded-lg p-6 flex items-center justify-center h-64">
                     <div className="text-center">
-                      <svg className="animate-spin w-8 h-8 mx-auto mb-2 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24">
+                      <svg className="animate-spin w-8 h-8 mx-auto mb-2 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
@@ -287,7 +287,7 @@ function StrategyRow({ strategy, wlfiPrice, revertData }: { strategy: any; wlfiP
                     href={strategy.analytics} 
                     target="_blank" 
                     rel="noopener noreferrer" 
-                    className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium text-sm inline-flex items-center gap-2 transition-colors"
+                    className="text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 font-medium text-sm inline-flex items-center gap-2 transition-colors"
                   >
                     View Analytics on Charm Finance
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1487,7 +1487,7 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
                 href={`https://etherscan.io/address/${CONTRACTS.VAULT}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 font-mono truncate transition-colors inline-flex items-center gap-1"
+                className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 font-mono truncate transition-colors inline-flex items-center gap-1"
               >
                 {CONTRACTS.VAULT}
                 <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1581,7 +1581,7 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
               <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b border-gray-300/50 dark:border-gray-700/30">
                 <div className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-800/50 dark:to-gray-900/30 rounded-lg p-3 sm:p-4 border border-gray-200/50 dark:border-gray-700/30 mb-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-400 to-indigo-600 dark:from-indigo-500 dark:to-indigo-700 flex items-center justify-center flex-shrink-0">
+                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 dark:from-amber-500 dark:to-amber-700 flex items-center justify-center flex-shrink-0">
                       <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                       </svg>
@@ -1590,11 +1590,11 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
                   </div>
                   <p className="text-sm text-gray-600 dark:text-gray-400 leading-snug mb-2">
                     Deposit{' '}
-                    <a href="https://worldlibertyfinancial.com/" target="_blank" rel="noopener noreferrer" className="text-indigo-600 dark:text-indigo-400 font-semibold hover:underline">
+                    <a href="https://worldlibertyfinancial.com/" target="_blank" rel="noopener noreferrer" className="text-amber-600 dark:text-amber-400 font-semibold hover:underline">
                       WLFI
                     </a>
                     {' '}or{' '}
-                    <a href="https://worldlibertyfinancial.com/usd1" target="_blank" rel="noopener noreferrer" className="text-indigo-600 dark:text-indigo-400 font-semibold hover:underline">
+                    <a href="https://worldlibertyfinancial.com/usd1" target="_blank" rel="noopener noreferrer" className="text-amber-600 dark:text-amber-400 font-semibold hover:underline">
                       USD1
                     </a>
                     , get vEAGLE shares with auto-compounding yield.
@@ -1812,7 +1812,7 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
                     <div className="flex items-center gap-2">
                       <h4 className="text-sm font-semibold text-gray-900 dark:text-white">Capital Injection</h4>
                       <div className="group relative">
-                        <svg className="w-4 h-4 text-gray-400 dark:text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400 cursor-help transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4 text-gray-400 dark:text-gray-500 hover:text-amber-600 dark:hover:text-amber-400 cursor-help transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block z-50 w-64">
@@ -1889,7 +1889,7 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
                     <div className="flex items-center gap-2">
                       <h4 className="text-sm font-semibold text-gray-900 dark:text-white">Deploy Assets</h4>
                       <div className="group relative">
-                        <svg className="w-4 h-4 text-gray-400 dark:text-gray-500 hover:text-purple-600 dark:hover:text-purple-400 cursor-help transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4 text-gray-400 dark:text-gray-500 hover:text-orange-600 dark:hover:text-orange-400 cursor-help transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block z-50 w-64">
@@ -1912,7 +1912,7 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
                             : 'Deploy Assets to Strategy'
                       }
                       onClick={handleDeployToStrategy}
-                      className="w-full !py-3 sm:!py-4 !text-sm sm:!text-base !bg-gradient-to-r !from-purple-500 !to-purple-600 dark:!from-purple-600 dark:!to-purple-700 !text-white disabled:!opacity-50 disabled:!cursor-not-allowed"
+                      className="w-full !py-3 sm:!py-4 !text-sm sm:!text-base !bg-gradient-to-r !from-orange-500 !to-orange-600 dark:!from-orange-600 dark:!to-orange-700 !text-white disabled:!opacity-50 disabled:!cursor-not-allowed"
                       disabled={deployLoading || !account || !isActualAdmin}
                       icon={
                         <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
