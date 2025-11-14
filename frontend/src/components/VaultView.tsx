@@ -1504,14 +1504,14 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
           <NeoStatCard
             label="Total deposited"
             value={(() => {
-              const totalWLFI = Number(data.vaultLiquidWLFI) + Number(data.strategyWLFI);
-              const totalUSD1 = Number(data.vaultLiquidUSD1) + Number(data.strategyUSD1);
-              const totalUSD = (totalWLFI * Number(data.wlfiPrice)) + (totalUSD1 * Number(data.usd1Price));
+              // liquidTotal and strategyTotal are already in USD
+              const totalUSD = Number(data.liquidTotal) + Number(data.strategyTotal);
               return `$${totalUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
             })()}
             subtitle={(() => {
-              const totalWLFI = Number(data.vaultLiquidWLFI) + Number(data.strategyWLFI);
-              const totalUSD1 = Number(data.vaultLiquidUSD1) + Number(data.strategyUSD1);
+              // Calculate actual token amounts for display
+              const totalWLFI = Number(data.vaultLiquidWLFI) + Number(data.strategyWLFIinUSD1Pool) + Number(data.strategyWLFIinPool);
+              const totalUSD1 = Number(data.vaultLiquidUSD1) + Number(data.strategyUSD1InPool);
               return `${totalWLFI.toFixed(2)} WLFI + ${totalUSD1.toFixed(2)} USD1`;
             })()}
           />
