@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import * as d3 from 'd3';
 
 interface AssetAllocationSunburstProps {
@@ -319,36 +320,42 @@ export default function AssetAllocationSunburst({
   }, [vaultWLFI, vaultUSD1, strategyWLFI, strategyUSD1, grandTotal, selectedPath, animationKey, wlfiPrice, totalInWLFI]);
 
   return (
-    <div className="relative bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 shadow-neo-raised dark:shadow-neo-raised-dark rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 mb-4 sm:mb-6 md:mb-8 overflow-hidden border border-gray-300/50 dark:border-gray-600/40 transition-colors duration-300">
-      {/* Subtle animated background gradient */}
-      <div className="absolute top-0 right-0 w-32 h-32 sm:w-48 sm:h-48 md:w-64 md:h-64 bg-gradient-to-br from-[#F2D57C]/5 to-transparent rounded-full blur-2xl sm:blur-3xl animate-pulse"></div>
+    <>
+      {/* Tooltip Portal - rendered at document.body level */}
+      {createPortal(
+        <div id="tooltip" />,
+        document.body
+      )}
       
-      <div className="relative">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-5 md:mb-6">
-          <div>
-            <h3 className="text-gray-900 dark:text-gray-100 font-bold text-lg sm:text-xl mb-1">Asset Allocation</h3>
-            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Real-time token distribution</p>
-          </div>
-          {selectedPath && (
-            <div className="px-3 sm:px-4 py-1.5 sm:py-2 bg-[#FFE7A3]/20 dark:bg-[#C9A854]/20 shadow-neo-inset dark:shadow-neo-inset-dark text-[#A69348] dark:text-[#F2D57C] text-xs sm:text-sm font-semibold rounded-lg sm:rounded-xl">
-              <span className="flex items-center gap-1.5 sm:gap-2">
-                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
-                </svg>
-                <span className="truncate max-w-[150px] sm:max-w-none">{selectedPath}</span>
-              </span>
+      <div className="relative bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 shadow-neo-raised dark:shadow-neo-raised-dark rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 mb-4 sm:mb-6 md:mb-8 overflow-hidden border border-gray-300/50 dark:border-gray-600/40 transition-colors duration-300">
+        {/* Subtle animated background gradient */}
+        <div className="absolute top-0 right-0 w-32 h-32 sm:w-48 sm:h-48 md:w-64 md:h-64 bg-gradient-to-br from-[#F2D57C]/5 to-transparent rounded-full blur-2xl sm:blur-3xl animate-pulse"></div>
+        
+        <div className="relative">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-5 md:mb-6">
+            <div>
+              <h3 className="text-gray-900 dark:text-gray-100 font-bold text-lg sm:text-xl mb-1">Asset Allocation</h3>
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Real-time token distribution</p>
             </div>
-          )}
-        </div>
-      
-      <div className="flex flex-col lg:flex-row items-center justify-center gap-6 sm:gap-8 lg:gap-10 max-w-5xl mx-auto">
-        {/* D3 Sunburst Chart with glow effect */}
-        <div className="flex-shrink-0 relative flex flex-col items-center gap-4">
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-[#F2D57C]/10 to-blue-500/10 rounded-full blur-2xl"></div>
-            <svg ref={svgRef} className="relative drop-shadow-2xl"></svg>
-            <div id="tooltip" />
+            {selectedPath && (
+              <div className="px-3 sm:px-4 py-1.5 sm:py-2 bg-[#FFE7A3]/20 dark:bg-[#C9A854]/20 shadow-neo-inset dark:shadow-neo-inset-dark text-[#A69348] dark:text-[#F2D57C] text-xs sm:text-sm font-semibold rounded-lg sm:rounded-xl">
+                <span className="flex items-center gap-1.5 sm:gap-2">
+                  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
+                  </svg>
+                  <span className="truncate max-w-[150px] sm:max-w-none">{selectedPath}</span>
+                </span>
+              </div>
+            )}
           </div>
+        
+        <div className="flex flex-col lg:flex-row items-center justify-center gap-6 sm:gap-8 lg:gap-10 max-w-5xl mx-auto">
+          {/* D3 Sunburst Chart with glow effect */}
+          <div className="flex-shrink-0 relative flex flex-col items-center gap-4">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-[#F2D57C]/10 to-blue-500/10 rounded-full blur-2xl"></div>
+              <svg ref={svgRef} className="relative drop-shadow-2xl"></svg>
+            </div>
           
           {/* Selected Section Info Card - Below Chart */}
           {selectedPath && (
@@ -504,5 +511,6 @@ export default function AssetAllocationSunburst({
       </div>
       </div>
     </div>
+    </>
   );
 }
