@@ -190,11 +190,16 @@ export default function AssetAllocationSunburst({
           .attr('opacity', 1)
           .style('filter', 'drop-shadow(0 8px 16px rgba(0, 0, 0, 0.4)) drop-shadow(0 0 20px ' + (d.data.color || '#666') + '80)');
         
-        // Show elegant tooltip
+        // Show elegant tooltip with correct positioning
         const percentage = grandTotal > 0 ? ((d.value || 0) / grandTotal * 100).toFixed(1) : '0';
+        
+        // Use pageX/pageY for absolute positioning relative to document
+        const mouseX = event.pageX !== undefined ? event.pageX : event.clientX + window.scrollX;
+        const mouseY = event.pageY !== undefined ? event.pageY : event.clientY + window.scrollY;
+        
         d3.select('#tooltip')
-          .style('left', (event.clientX + 15) + 'px')
-          .style('top', (event.clientY - 10) + 'px')
+          .style('left', (mouseX + 15) + 'px')
+          .style('top', (mouseY - 10) + 'px')
           .style('opacity', 1)
           .html(`
             <div style="
@@ -216,15 +221,16 @@ export default function AssetAllocationSunburst({
                 <span style="color: #eab308; font-weight: 700; font-size: 16px;">${percentage}%</span>
               </div>
             </div>
-          `)
-          .style('left', (event.clientX + 15) + 'px')
-          .style('top', (event.clientY - 10) + 'px');
+          `);
       })
       .on('mousemove', function(event, d) {
-        // Update tooltip position as mouse moves
+        // Update tooltip position as mouse moves with correct coordinates
+        const mouseX = event.pageX !== undefined ? event.pageX : event.clientX + window.scrollX;
+        const mouseY = event.pageY !== undefined ? event.pageY : event.clientY + window.scrollY;
+        
         d3.select('#tooltip')
-          .style('left', (event.clientX + 15) + 'px')
-          .style('top', (event.clientY - 10) + 'px');
+          .style('left', (mouseX + 15) + 'px')
+          .style('top', (mouseY - 10) + 'px');
       })
       .on('mouseleave', function(event, d) {
         d3.select(this)
@@ -340,7 +346,7 @@ export default function AssetAllocationSunburst({
             <div 
               id="tooltip" 
               style={{ 
-                position: 'fixed', 
+                position: 'absolute', 
                 opacity: 0, 
                 left: '-9999px',
                 top: '-9999px',
