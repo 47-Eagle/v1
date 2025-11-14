@@ -357,6 +357,79 @@ export function useEagleComposer() {
     }
   }, [getProvider, address]);
   
+  // ============================================
+  // APPROVAL HELPERS
+  // ============================================
+  
+  /**
+   * Check if WLFI/EAGLE is approved for given amount
+   */
+  const checkAllowance = useCallback(async (
+    token: 'wlfi' | 'eagle',
+    amount: bigint
+  ): Promise<boolean> => {
+    const provider = getProvider();
+    if (!provider || !address) return false;
+    
+    try {
+      const tokenAddress = token === 'wlfi' ? ADDRESSES.WLFI : ADDRESSES.EAGLE;
+      const tokenContract = new Contract(tokenAddress, ERC20_ABI, provider);
+      const allowance = await tokenContract.allowance(address, ADDRESSES.COMPOSER);
+      
+      return allowance >= amount;
+    } catch (err) {
+      console.error('Failed to check allowance:', err);
+      return false;
+    }
+  }, [getProvider, address]);
+  
+  /**
+   * Approve WLFI/EAGLE for Composer
+   */
+  const approveToken = useCallback(async (
+    token: 'wlfi' | 'eagle',
+    amount: bigint,
+    onSuccess?: () => void,
+    onError?: (error: string) => void
+  ): Promise<boolean> => {
+    if (!address) {
+      const err = 'Wallet not connected';
+      setError(err);
+      onError?.(err);
+      return false;
+    }
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const signer = await getSigner();
+      if (!signer) {
+        throw new Error('Failed to get signer');
+      }
+      
+      const tokenAddress = token === 'wlfi' ? ADDRESSES.WLFI : ADDRESSES.EAGLE;
+      const tokenContract = new Contract(tokenAddress, ERC20_ABI, signer);
+      
+      console.log(`Approving ${token.toUpperCase()}...`);
+      const tx = await tokenContract.approve(ADDRESSES.COMPOSER, amount);
+      await tx.wait();
+      console.log(`✅ ${token.toUpperCase()} approved`);
+      
+      onSuccess?.();
+      setLoading(false);
+      return true;
+      
+    } catch (err: any) {
+      console.error('Approval failed:', err);
+      const errorMsg = err.reason || err.message || 'Approval failed';
+      setError(errorMsg);
+      onError?.(errorMsg);
+      setLoading(false);
+      return false;
+    }
+  }, [getSigner, address]);
+  
   return {
     // Functions
     previewDeposit,
@@ -364,6 +437,8 @@ export function useEagleComposer() {
     depositWLFI,
     redeemEAGLE,
     getBalances,
+    checkAllowance,
+    approveToken,
     
     // State
     loading,

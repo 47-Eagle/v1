@@ -14,6 +14,8 @@ export function ComposerPanel() {
     depositWLFI,
     redeemEAGLE,
     getBalances,
+    checkAllowance,
+    approveToken,
     loading,
     error,
     isConnected
@@ -25,6 +27,7 @@ export function ComposerPanel() {
   const [preview, setPreview] = useState<any>(null);
   const [balances, setBalances] = useState({ wlfi: 0n, eagle: 0n });
   const [txStatus, setTxStatus] = useState<string | null>(null);
+  const [needsApproval, setNeedsApproval] = useState(false);
   
   // Load balances
   useEffect(() => {
@@ -33,11 +36,12 @@ export function ComposerPanel() {
     }
   }, [isConnected, getBalances]);
   
-  // Auto-preview when amount changes
+  // Auto-preview when amount changes + check allowance
   useEffect(() => {
     const amount = parseFloat(inputAmount);
     if (!amount || amount <= 0) {
       setPreview(null);
+      setNeedsApproval(false);
       return;
     }
     
@@ -45,16 +49,41 @@ export function ComposerPanel() {
     
     if (activeTab === 'deposit') {
       previewDeposit(amountBigInt).then(setPreview);
+      checkAllowance('wlfi', amountBigInt).then(approved => setNeedsApproval(!approved));
     } else {
       previewRedeem(amountBigInt).then(setPreview);
+      checkAllowance('eagle', amountBigInt).then(approved => setNeedsApproval(!approved));
     }
-  }, [inputAmount, activeTab, previewDeposit, previewRedeem]);
+  }, [inputAmount, activeTab, previewDeposit, previewRedeem, checkAllowance]);
+  
+  // Handle approval
+  const handleApprove = async () => {
+    if (!inputAmount) return;
+    
+    setTxStatus('Requesting approval...');
+    const amount = parseEther(inputAmount);
+    const token = activeTab === 'deposit' ? 'wlfi' : 'eagle';
+    
+    await approveToken(
+      token,
+      amount,
+      () => {
+        setTxStatus('✅ Approved!');
+        setNeedsApproval(false);
+        setTimeout(() => setTxStatus(null), 2000);
+      },
+      (error) => {
+        setTxStatus(`❌ ${error}`);
+        setTimeout(() => setTxStatus(null), 5000);
+      }
+    );
+  };
   
   // Handle deposit
   const handleDeposit = async () => {
     if (!inputAmount) return;
     
-    setTxStatus('Approving...');
+    setTxStatus('Depositing...');
     const amount = parseEther(inputAmount);
     
     await depositWLFI(
@@ -77,7 +106,7 @@ export function ComposerPanel() {
   const handleRedeem = async () => {
     if (!inputAmount) return;
     
-    setTxStatus('Approving...');
+    setTxStatus('Redeeming...');
     const amount = parseEther(inputAmount);
     
     await redeemEAGLE(
@@ -236,15 +265,17 @@ export function ComposerPanel() {
             
             {/* Action Button */}
             <NeoButton
-              onClick={activeTab === 'deposit' ? handleDeposit : handleRedeem}
+              onClick={needsApproval ? handleApprove : (activeTab === 'deposit' ? handleDeposit : handleRedeem)}
               disabled={loading || !inputAmount || parseFloat(inputAmount) <= 0}
               className="w-full"
             >
               {loading 
                 ? 'Processing...'
-                : activeTab === 'deposit'
-                  ? '🦅 Deposit & Wrap'
-                  : '💰 Unwrap & Redeem'
+                : needsApproval
+                  ? `Approve ${activeTab === 'deposit' ? 'WLFI' : 'EAGLE'}`
+                  : activeTab === 'deposit'
+                    ? 'Deposit'
+                    : 'Redeem'
               }
             </NeoButton>
             
