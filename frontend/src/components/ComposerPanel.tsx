@@ -110,27 +110,21 @@ export function ComposerPanel() {
       {/* Header */}
       <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-300/50 dark:border-gray-700/30">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center">
-              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-              </svg>
-            </div>
-            <div>
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white">Eagle Composer</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">One-click vault operations</p>
-            </div>
+          <div>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white">Eagle Composer</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400">One-click vault operations</p>
           </div>
           
-          {/* Fees */}
-          <div className="flex items-center gap-2">
+          {/* Fee - conditional based on active tab */}
+          {activeTab === 'deposit' ? (
             <div className="px-3 py-1.5 rounded-lg bg-blue-500/10 dark:bg-blue-500/20 border border-blue-500/20">
-              <div className="text-xs font-bold text-blue-700 dark:text-blue-400">Deposit: 1%</div>
+              <div className="text-xs font-bold text-blue-700 dark:text-blue-400">1% Fee</div>
             </div>
+          ) : (
             <div className="px-3 py-1.5 rounded-lg bg-orange-500/10 dark:bg-orange-500/20 border border-orange-500/20">
-              <div className="text-xs font-bold text-orange-700 dark:text-orange-400">Withdraw: 2%</div>
+              <div className="text-xs font-bold text-orange-700 dark:text-orange-400">2% Fee</div>
             </div>
-          </div>
+          )}
         </div>
       </div>
       
