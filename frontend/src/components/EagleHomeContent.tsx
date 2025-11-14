@@ -13,7 +13,7 @@ interface Props {
 export default function EagleHomeContent({ onNavigateUp, onNavigateDown, provider }: Props) {
 
   return (
-    <div className="h-full flex items-center justify-center px-3 sm:px-6 bg-neo-bg-light dark:bg-neo-bg-dark relative overflow-hidden transition-colors duration-300">
+    <div className="h-full flex items-center justify-center px-3 sm:px-6 relative overflow-hidden transition-colors duration-300">
       <div className="max-w-4xl mx-auto w-full relative z-10">
         {/* Hero Section */}
         <motion.div
