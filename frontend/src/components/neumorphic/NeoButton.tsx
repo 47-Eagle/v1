@@ -41,8 +41,8 @@ export const NeoButton = ({
           ? 'shadow-neo-pressed dark:shadow-neo-pressed-dark border-gray-300/70 dark:border-gray-500/60' 
           : 'shadow-neo-raised hover:shadow-neo-hover dark:shadow-neo-raised-dark dark:hover:shadow-neo-hover-dark hover:border-gray-300/70 dark:hover:border-gray-500/60'
         }
-        ${glowing ? 'shadow-neo-glow dark:shadow-neo-glow-dark ring-2 ring-amber-400 dark:ring-amber-500 ring-opacity-70 animate-pulse' : ''}
-        focus:outline-none focus:ring-2 focus:ring-eagle-gold dark:focus:ring-eagle-gold-light focus:ring-opacity-60
+        ${glowing ? 'shadow-neo-glow dark:shadow-neo-glow-dark ring-2 ring-[#F2D57C] dark:ring-[#FFE7A3] ring-opacity-70 animate-pulse' : ''}
+        focus:outline-none focus:ring-2 focus:ring-[#F2D57C] dark:focus:ring-[#FFE7A3] focus:ring-opacity-60
         ${className}
       `}
     >

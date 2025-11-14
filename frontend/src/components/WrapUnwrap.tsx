@@ -126,7 +126,7 @@ export default function WrapUnwrap({ provider, account, onToast }: Props) {
   }
 
   return (
-    <div className="bg-[#0a0a0a]/60 rounded-xl border border-eagle-gold/30 backdrop-blur-md mb-4 sm:mb-6">
+    <div className="bg-[#0a0a0a]/60 rounded-xl border border-[#F2D57C]/30 backdrop-blur-md mb-4 sm:mb-6">
       {/* Header */}
       <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-800">
         <h2 className="text-base sm:text-lg font-semibold text-white">Convert Tokens</h2>
@@ -170,7 +170,7 @@ export default function WrapUnwrap({ provider, account, onToast }: Props) {
             {/* Wrap Input */}
             <div>
               <div className="flex items-center justify-between mb-1.5 sm:mb-2 gap-2">
-                <label className="text-xs sm:text-sm text-eagle-gold-light font-medium">Amount to Wrap</label>
+                <label className="text-xs sm:text-sm text-[#FFE7A3] font-medium">Amount to Wrap</label>
                 <span className="text-[10px] sm:text-xs text-gray-500 truncate">
                   Available: {Number(vEagleBalance).toLocaleString(undefined, { maximumFractionDigits: 4 })} vEAGLE
                 </span>
@@ -182,7 +182,7 @@ export default function WrapUnwrap({ provider, account, onToast }: Props) {
                   value={wrapAmount}
                   onChange={(e) => setWrapAmount(e.target.value)}
                   placeholder="0"
-                  className="w-full bg-gray-900/50 border border-gray-700 rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 pr-16 text-white text-base sm:text-lg focus:outline-none focus:border-eagle-gold/50 focus:ring-1 focus:ring-eagle-gold/50 transition-all"
+                  className="w-full bg-gray-900/50 border border-gray-700 rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 pr-16 text-white text-base sm:text-lg focus:outline-none focus:border-[#F2D57C]/50 focus:ring-1 focus:ring-[#F2D57C]/50 transition-all"
                 />
                 <button 
                   onClick={() => setWrapAmount(vEagleBalance)}
@@ -231,7 +231,7 @@ export default function WrapUnwrap({ provider, account, onToast }: Props) {
             {/* Unwrap Input */}
             <div>
               <div className="flex items-center justify-between mb-1.5 sm:mb-2 gap-2">
-                <label className="text-xs sm:text-sm text-eagle-gold-light font-medium">Amount to Unwrap</label>
+                <label className="text-xs sm:text-sm text-[#FFE7A3] font-medium">Amount to Unwrap</label>
                 <span className="text-[10px] sm:text-xs text-gray-500 truncate">
                   Available: {Number(eagleBalance).toLocaleString(undefined, { maximumFractionDigits: 4 })} EAGLE
                 </span>
@@ -243,7 +243,7 @@ export default function WrapUnwrap({ provider, account, onToast }: Props) {
                   value={unwrapAmount}
                   onChange={(e) => setUnwrapAmount(e.target.value)}
                   placeholder="0"
-                  className="w-full bg-gray-900/50 border border-gray-700 rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 pr-16 text-white text-base sm:text-lg focus:outline-none focus:border-eagle-gold/50 focus:ring-1 focus:ring-eagle-gold/50 transition-all"
+                  className="w-full bg-gray-900/50 border border-gray-700 rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 pr-16 text-white text-base sm:text-lg focus:outline-none focus:border-[#F2D57C]/50 focus:ring-1 focus:ring-[#F2D57C]/50 transition-all"
                 />
                 <button 
                   onClick={() => setUnwrapAmount(eagleBalance)}

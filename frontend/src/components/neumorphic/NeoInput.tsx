@@ -31,7 +31,7 @@ export const NeoInput = ({
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={onMaxClick}
-              className="text-xs text-gray-600 dark:text-gray-400 hover:text-eagle-gold dark:hover:text-eagle-gold-light font-semibold transition-all duration-300 px-2 py-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 touch-manipulation active:bg-gray-200 dark:active:bg-gray-700"
+              className="text-xs text-gray-600 dark:text-gray-400 hover:text-[#F2D57C] dark:hover:text-[#FFE7A3] font-semibold transition-all duration-300 px-2 py-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 touch-manipulation active:bg-gray-200 dark:active:bg-gray-700"
             >
               {maxLabel}
             </motion.button>
@@ -58,7 +58,7 @@ export const NeoInput = ({
             text-gray-900 dark:text-gray-100 
             placeholder-gray-400 dark:placeholder-gray-500
             text-base sm:text-lg font-semibold
-            focus:outline-none focus:ring-2 focus:ring-eagle-gold dark:focus:ring-eagle-gold-light focus:ring-opacity-40
+            focus:outline-none focus:ring-2 focus:ring-[#F2D57C] dark:focus:ring-[#FFE7A3] focus:ring-opacity-40
             transition-all duration-400 ease-out
             touch-manipulation
           "

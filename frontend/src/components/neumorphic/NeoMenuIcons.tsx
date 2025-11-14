@@ -56,7 +56,7 @@ export const NeoMenuIcons = ({
                 ? ''
                 : 'bg-neo-bg-light dark:bg-neo-bg-dark shadow-neo-raised dark:shadow-neo-raised-dark hover:shadow-neo-raised-hover dark:hover:shadow-neo-raised-lift-dark'
               }
-              focus:outline-none focus:ring-3 focus:ring-eagle-gold focus:ring-opacity-50
+              focus:outline-none focus:ring-3 focus:ring-[#F2D57C] focus:ring-opacity-50
             `}
             aria-label={item.label || item.id}
           >

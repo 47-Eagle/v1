@@ -98,7 +98,7 @@ function AppContent() {
                 href="https://docs.47eagle.com" 
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 hover:text-eagle-gold dark:hover:text-eagle-gold-light transition-colors font-medium"
+                className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 hover:text-[#F2D57C] dark:hover:text-[#FFE7A3] transition-colors font-medium"
               >
                 Docs
               </a>
@@ -106,7 +106,7 @@ function AppContent() {
                 href="https://x.com/teameagle47" 
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 hover:text-eagle-gold dark:hover:text-eagle-gold-light transition-colors font-medium"
+                className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 hover:text-[#F2D57C] dark:hover:text-[#FFE7A3] transition-colors font-medium"
               >
                 Twitter
               </a>
@@ -114,7 +114,7 @@ function AppContent() {
                 href="https://t.me/Eagle_community_47" 
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 hover:text-eagle-gold dark:hover:text-eagle-gold-light transition-colors font-medium"
+                className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 hover:text-[#F2D57C] dark:hover:text-[#FFE7A3] transition-colors font-medium"
               >
                 Telegram
               </a>
