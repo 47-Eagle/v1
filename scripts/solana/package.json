@@ -6,7 +6,7 @@
   "scripts": {
     "recover": "tsx recover-wallet.ts",
     "airdrop": "tsx airdrop.ts",
-    "initialize": "tsx initialize-devnet.ts",
+    "initialize": "tsx initialize-anchor.ts",
     "initialize:simple": "tsx initialize-simple.ts",
     "register-chains": "tsx register-chains.ts",
     "test": "tsx test-registry.ts"
