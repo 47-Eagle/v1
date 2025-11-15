@@ -15,7 +15,7 @@ import * as os from "os";
 import * as path from "path";
 
 const PROGRAM_ID = new PublicKey("7wSrZXHF6BguZ1qwkXdZcNf3qyV2MPNvcztQLwrh9qPJ");
-const DEVNET_RPC = "https://rpc.ankr.com/solana_devnet";
+const DEVNET_RPC = "https://api.devnet.solana.com";
 const LZ_ENDPOINT = new PublicKey("76y77prsiCMvXMjuoZ5VRrhG5qYBrUMYTE5WgHqgjEn6");
 
 async function initialize() {
