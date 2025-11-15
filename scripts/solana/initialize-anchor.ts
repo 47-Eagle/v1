@@ -47,6 +47,9 @@ const IDL = {
       },
     },
   ],
+  metadata: {
+    address: "7wSrZXHF6BguZ1qwkXdZcNf3qyV2MPNvcztQLwrh9qPJ",
+  },
 };
 
 async function initialize() {
