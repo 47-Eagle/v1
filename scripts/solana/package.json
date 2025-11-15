@@ -4,6 +4,7 @@
   "description": "Eagle Registry Solana deployment and testing scripts",
   "type": "module",
   "scripts": {
+    "recover": "tsx recover-wallet.ts",
     "initialize": "tsx initialize-devnet.ts",
     "initialize:simple": "tsx initialize-simple.ts",
     "register-chains": "tsx register-chains.ts",
@@ -15,6 +16,7 @@
     "@layerzerolabs/lz-solana-sdk-v2": "^3.0.12",
     "@metaplex-foundation/umi": "^0.9.2",
     "@metaplex-foundation/umi-bundle-defaults": "^0.9.2",
+    "bip39": "^3.1.0",
     "bn.js": "^5.2.1"
   },
   "devDependencies": {
