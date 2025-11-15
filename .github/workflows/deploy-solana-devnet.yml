@@ -31,7 +31,10 @@ jobs:
       - name: Install Solana
         run: |
           sh -c "$(curl -sSfL https://release.solana.com/v1.18.22/install)"
+          export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
           echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+          solana --version
+          solana-keygen --version
       
       - name: Install Anchor
         run: |
@@ -44,11 +47,10 @@ jobs:
       
       - name: Setup Solana wallet
         run: |
-          export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
           mkdir -p $HOME/.config/solana
           echo '${{ secrets.SOLANA_PRIVATE_KEY }}' > $HOME/.config/solana/id.json
           echo "Using wallet:"
-          solana address
+          $HOME/.local/share/solana/install/active_release/bin/solana address
         env:
           SOLANA_PRIVATE_KEY: ${{ secrets.SOLANA_PRIVATE_KEY }}
       
