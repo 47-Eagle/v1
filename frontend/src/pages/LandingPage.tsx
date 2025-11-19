@@ -28,7 +28,10 @@ const CONTRACTS = {
   wlfiAdapter: '0x2437F6555350c131647daA0C655c4B49A7aF3621',
   composer: '0x0c74174b5F04ec15d3Fb94D15Dc13c91fAc6C21F',
   charmUSD1: '0x22828Dbf15f5FBa2394Ba7Cf8fA9A96BdB444B71',
-  charmWETH: '0x3314e248F3F752Cd16939773D83bEb3a362F0AEF'
+  charmWETH: '0x3314e248F3F752Cd16939773D83bEb3a362F0AEF',
+  registry: '0x47c81c9a70CA7518d3b911bC8C8b11000e92F59e',
+  vault: '0x47b3ef629D9cB8DFcF8A6c61058338f4e99d7953',
+  wrapper: '0x47dAc5063c526dBc6f157093dd1D62d9DE8891c5'
 };
 
 const CHARM_STRATEGIES = [
@@ -323,6 +326,9 @@ const Addresses = () => (
           { net: 'BASE', type: 'WLFI OFT', addr: CONTRACTS.wlfiBase, icon: Logos.Base },
           { net: 'ETHEREUM', type: 'Composer V2', addr: CONTRACTS.composer, icon: Logos.Ethereum },
           { net: 'ETH / BNB', type: 'WLFI Adapter', addr: CONTRACTS.wlfiAdapter, icon: Logos.Ethereum },
+          { net: 'ETHEREUM', type: 'Eagle Registry', addr: CONTRACTS.registry, icon: Globe },
+          { net: 'ETHEREUM', type: 'Eagle Vault', addr: CONTRACTS.vault, icon: Shield },
+          { net: 'ETHEREUM', type: 'Vault Wrapper', addr: CONTRACTS.wrapper, icon: RefreshCw },
         ].map((row, i) => {
           const Icon = row.icon;
           return (
@@ -404,7 +410,7 @@ export default function LandingPage() {
               <div className="w-10 h-10 drop-shadow-md">
                 <img src={ICONS.EAGLE} alt="Eagle Protocol" className="w-full h-full object-contain" />
               </div>
-              <span className="font-bold tracking-tight text-xl text-gray-900 dark:text-white">EAGLE</span>
+              <span className="font-bold tracking-tight text-xl text-gray-900 dark:text-white">47 EAGLE</span>
             </div>
             
             <div className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-600 dark:text-gray-400">
@@ -588,7 +594,7 @@ export default function LandingPage() {
             <div className="flex flex-col md:flex-row justify-between items-center gap-6">
               <div className="flex items-center gap-2 opacity-70">
                 <img src={ICONS.EAGLE} alt="Eagle" className="w-6 h-6 grayscale" />
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">© 2025 Eagle Protocol</span>
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">© 2025 47 Eagle Protocol</span>
               </div>
               
               <div className="flex gap-6 text-sm text-gray-500 dark:text-gray-400">

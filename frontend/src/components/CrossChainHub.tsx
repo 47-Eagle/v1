@@ -19,14 +19,14 @@ type Chain = 'base' | 'ethereum';
 type Operation = 'bridge' | 'redeem' | 'deposit';
 
 // Simple chain icons as SVG components
-const BaseIcon = () => (
-  <svg viewBox="0 0 111 111" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+const BaseIcon = ({ className = "w-full h-full" }: { className?: string }) => (
+  <svg viewBox="0 0 111 111" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
     <path d="M54.921 110.034C85.359 110.034 110.034 85.402 110.034 55.017C110.034 24.6319 85.359 0 54.921 0C26.0432 0 2.35281 22.1714 0 50.3923H72.8467V59.6416H3.9565e-07C2.35281 87.8625 26.0432 110.034 54.921 110.034Z" fill="#0052FF"/>
   </svg>
 );
 
-const EthereumIcon = () => (
-  <svg viewBox="0 0 256 417" xmlns="http://www.w3.org/2000/svg" className="w-full h-full" preserveAspectRatio="xMidYMid">
+const EthereumIcon = ({ className = "w-full h-full" }: { className?: string }) => (
+  <svg viewBox="0 0 256 417" xmlns="http://www.w3.org/2000/svg" className={className} preserveAspectRatio="xMidYMid">
     <path fill="#627EEA" d="M127.961 0l-2.795 9.5v275.668l2.795 2.79 127.962-75.638z" fillOpacity=".602"/>
     <path fill="#627EEA" d="M127.962 0L0 212.32l127.962 75.639V154.158z"/>
     <path fill="#627EEA" d="M127.961 312.187l-1.575 1.92v98.199l1.575 4.6L256 236.587z" fillOpacity=".602"/>
@@ -147,7 +147,12 @@ export default function CrossChainHub({ provider, account, onToast, onNavigateTo
                 onClick={() => setSourceToken(sourceToken === 'EAGLE' ? 'WLFI' : 'EAGLE')}
                 className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm hover:scale-105 transition-transform shrink-0"
               >
-                <img src={sourceToken === 'EAGLE' ? ICONS.EAGLE : ICONS.WLFI} className="w-6 h-6 rounded-full" alt={sourceToken} />
+                <div className="relative">
+                  <img src={sourceToken === 'EAGLE' ? ICONS.EAGLE : ICONS.WLFI} className="w-8 h-8 rounded-full" alt={sourceToken} />
+                  <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-white dark:bg-gray-900 flex items-center justify-center border border-gray-100 dark:border-gray-800 overflow-hidden shadow-sm">
+                    {sourceChain === 'base' ? <BaseIcon className="w-full h-full" /> : <EthereumIcon className="w-full h-full p-[2px]" />}
+                  </div>
+                </div>
                 <span className="text-lg font-bold text-gray-900 dark:text-white">{sourceToken}</span>
                 <ArrowDown className="w-3 h-3 text-gray-400" />
               </button>
@@ -197,7 +202,12 @@ export default function CrossChainHub({ provider, account, onToast, onNavigateTo
                 onClick={() => setDestToken(destToken === 'EAGLE' ? 'WLFI' : 'EAGLE')}
                 className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm hover:scale-105 transition-transform shrink-0"
               >
-                <img src={destToken === 'EAGLE' ? ICONS.EAGLE : ICONS.WLFI} className="w-6 h-6 rounded-full" alt={destToken} />
+                <div className="relative">
+                  <img src={destToken === 'EAGLE' ? ICONS.EAGLE : ICONS.WLFI} className="w-8 h-8 rounded-full" alt={destToken} />
+                  <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-white dark:bg-gray-900 flex items-center justify-center border border-gray-100 dark:border-gray-800 overflow-hidden shadow-sm">
+                    {destChain === 'base' ? <BaseIcon className="w-full h-full" /> : <EthereumIcon className="w-full h-full p-[2px]" />}
+                  </div>
+                </div>
                 <span className="text-lg font-bold text-gray-900 dark:text-white">{destToken}</span>
                 <ArrowDown className="w-3 h-3 text-gray-400" />
               </button>
