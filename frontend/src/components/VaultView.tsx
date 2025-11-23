@@ -708,28 +708,72 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
         console.log('[VaultView] WETH strategy Charm shares:', formatEther(strategyShares));
         
         if (strategyShares > 0n) {
-          const [totalShares, [totalWeth, totalWlfi]] = await Promise.all([
-            charmVault.totalSupply(),
-            charmVault.getTotalAmounts()
-          ]);
+          const totalShares = await charmVault.totalSupply();
           
-          // Calculate strategy's proportional share
-          const strategyWethAmount = (totalWeth * strategyShares) / totalShares;
-          const strategyWlfiAmount = (totalWlfi * strategyShares) / totalShares;
+          // Try getTotalAmounts() first, but fallback to direct token balance query if it reverts
+          let totalWeth = 0n;
+          let totalWlfi = 0n;
           
-          strategyWETH = Number(formatEther(strategyWethAmount)).toFixed(4);
-          strategyWLFIinPool = Number(formatEther(strategyWlfiAmount)).toFixed(2);
+          try {
+            const [total0, total1] = await charmVault.getTotalAmounts();
+            totalWeth = total0;
+            totalWlfi = total1;
+            console.log('[VaultView] Successfully fetched via getTotalAmounts()');
+          } catch (getTotalAmountsError: any) {
+            console.warn('[VaultView] getTotalAmounts() failed, trying direct token balance query:', getTotalAmountsError?.reason || getTotalAmountsError?.message);
+            
+            // Fallback: Query token balances directly from the Charm vault
+            try {
+              const wethToken = new Contract(
+                CONTRACTS.WETH,
+                ['function balanceOf(address) external view returns (uint256)'],
+                provider
+              );
+              const wlfiToken = new Contract(
+                CONTRACTS.WLFI,
+                ['function balanceOf(address) external view returns (uint256)'],
+                provider
+              );
+              
+              const [wethBal, wlfiBal] = await Promise.all([
+                wethToken.balanceOf(CONTRACTS.CHARM_VAULT_WETH),
+                wlfiToken.balanceOf(CONTRACTS.CHARM_VAULT_WETH)
+              ]);
+              
+              totalWeth = wethBal;
+              totalWlfi = wlfiBal;
+              console.log('[VaultView] Successfully fetched via direct token balances');
+            } catch (tokenBalanceError: any) {
+              console.error('[VaultView] Direct token balance query also failed:', tokenBalanceError?.reason || tokenBalanceError?.message);
+              throw tokenBalanceError;
+            }
+          }
           
-      console.log('[VaultView] ===== WETH STRATEGY DATA =====');
-      console.log('[VaultView] WETH amount:', strategyWETH);
-      console.log('[VaultView] WLFI in pool amount:', strategyWLFIinPool);
-      console.log('[VaultView] Shares:', formatEther(strategyShares));
-      console.log('[VaultView] ============================');
-          
-          // For display, show total USD value (WETH worth ~$3500, WLFI worth ~$0.132)
-          const wethValueUsd = Number(strategyWETH) * 3500;
-          const wlfiValueUsd = Number(strategyWLFIinPool) * 0.132;
-          strategyWLFI = (wethValueUsd + wlfiValueUsd).toFixed(2);
+          if (totalShares > 0n && (totalWeth > 0n || totalWlfi > 0n)) {
+            // Calculate strategy's proportional share
+            const strategyWethAmount = (totalWeth * strategyShares) / totalShares;
+            const strategyWlfiAmount = (totalWlfi * strategyShares) / totalShares;
+            
+            strategyWETH = Number(formatEther(strategyWethAmount)).toFixed(4);
+            strategyWLFIinPool = Number(formatEther(strategyWlfiAmount)).toFixed(2);
+            
+            console.log('[VaultView] ===== WETH STRATEGY DATA =====');
+            console.log('[VaultView] WETH amount:', strategyWETH);
+            console.log('[VaultView] WLFI in pool amount:', strategyWLFIinPool);
+            console.log('[VaultView] Shares:', formatEther(strategyShares));
+            console.log('[VaultView] Total WETH in vault:', formatEther(totalWeth));
+            console.log('[VaultView] Total WLFI in vault:', formatEther(totalWlfi));
+            console.log('[VaultView] ============================');
+            
+            // For display, show total USD value (WETH worth ~$3500, WLFI worth ~$0.132)
+            const wethValueUsd = Number(strategyWETH) * 3500;
+            const wlfiValueUsd = Number(strategyWLFIinPool) * 0.132;
+            strategyWLFI = (wethValueUsd + wlfiValueUsd).toFixed(2);
+          } else {
+            console.log('[VaultView] No assets in Charm vault or invalid share calculation');
+          }
+        } else {
+          console.log('[VaultView] Strategy has no shares in Charm vault');
         }
       } catch (error: any) {
         console.warn('WETH strategy Charm vault query failed:', error?.reason || error?.message || error);
@@ -1753,6 +1797,7 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
                             </button>
                           </div>
                         </div>
+
                       </div>
                     </div>
                   </div>
@@ -1799,9 +1844,9 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
                           status: 'active',
                           description: 'Actively managed concentrated liquidity position on Uniswap V3, optimized for the WETH/WLFI 1% fee tier pool. Features 24-hour oracle support for stable operations.',
                           analytics: 'https://alpha.charm.fi/vault/1/0x3314e248F3F752Cd16939773D83bEb3a362F0AEF',
-                          contract: '0x5c525Af4153B1c43f9C06c31D32a84637c617FfE',
-                          charmVault: '0x3314e248F3F752Cd16939773D83bEb3a362F0AEF',
-                          uniswapPool: '0xCa2e972f081764c30Ae5F012A29D5277EEf33838', // WETH/WLFI 1% pool
+                          contract: CONTRACTS.STRATEGY_WETH,
+                          charmVault: CONTRACTS.CHARM_VAULT_WETH,
+                          uniswapPool: CONTRACTS.UNISWAP_V3_POOL_WETH_1PCT, // WETH/WLFI 1% pool
                           deployed: data.strategyWLFI,
                           wethAmount: data.strategyWETH, // Add WETH amount for display
                           wlfiAmount: data.strategyWLFIinPool // Add WLFI in pool for display
@@ -2053,5 +2098,6 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
     </div>
   );
 }
+
 
 

@@ -2,9 +2,10 @@
 
 import { Connection, Keypair, PublicKey } from "@solana/web3.js";
 import { ethers } from "ethers";
-import { getOrCreateAssociatedTokenAccount, mintTo } from "@solana/spl-token";
+import { getOrCreateAssociatedTokenAccount } from "@solana/spl-token";
 import fs from "fs";
 import * as dotenv from "dotenv";
+import { EagleOftClient } from "./program-client";
 
 dotenv.config();
 
@@ -108,6 +109,7 @@ class SolanaBridge {
   private relayerKeypair: Keypair;
   private programId: PublicKey;
   private mint: PublicKey;
+  private client: EagleOftClient;
 
   constructor() {
     this.connection = new Connection(SOLANA_RPC, "confirmed");
@@ -130,6 +132,14 @@ class SolanaBridge {
     );
     
     console.log("💼 Relayer Solana Wallet:", this.relayerKeypair.publicKey.toBase58());
+    
+    // Initialize Anchor program client
+    this.client = new EagleOftClient(
+      this.connection,
+      this.relayerKeypair,
+      this.programId,
+      this.mint
+    );
   }
 
   async mintToUser(ethereumAddress: string, amount: bigint): Promise<void> {
@@ -148,39 +158,39 @@ class SolanaBridge {
     console.log(`   Solana recipient: ${solanaAddress}`);
 
     try {
-      // Get or create associated token account
-      const recipientTokenAccount = await getOrCreateAssociatedTokenAccount(
-        this.connection,
-        this.relayerKeypair,
-        this.mint,
-        recipientPubkey
-      );
-
-      console.log(`   Token account: ${recipientTokenAccount.address.toBase58()}`);
-      
       // Convert amount from 18 decimals (ETH) to 9 decimals (Solana)
       // amount is in wei (18 decimals), we need 9 decimals
       const solanaAmount = amount / 1_000_000_000n; // Divide by 10^9 to go from 18 to 9 decimals
 
       console.log(`   Minting ${solanaAmount.toString()} EAGLE (9 decimals)...`);
 
-      // Mint tokens using SPL Token program
-      // mintTo accepts bigint for amount parameter
-      const signature = await mintTo(
-        this.connection,
-        this.relayerKeypair,
-        this.mint,
-        recipientTokenAccount.address,
-        this.relayerKeypair, // Current mint authority
-        solanaAmount
+      // Use the deployed program's bridge_in instruction
+      // This is the proper way to mint via the Anchor program
+      const signature = await this.client.bridgeIn(
+        recipientPubkey,
+        solanaAmount,
+        30101 // Ethereum EID
       );
 
-      console.log("✅ Minted on Solana!");
+      console.log("✅ Bridged to Solana!");
       console.log(`   Signature: ${signature}`);
       console.log(`   Explorer: https://solscan.io/tx/${signature}`);
+      console.log(`   Method: bridge_in instruction (proper Anchor call)`);
       
     } catch (error: any) {
-      console.error("❌ Mint failed:", error.message);
+      console.error("❌ Bridge failed:", error.message);
+      
+      // If bridge_in fails (e.g., not authorized), provide helpful error
+      if (error.message.includes("Unauthorized")) {
+        console.error("");
+        console.error("⚠️  Relayer not authorized to mint!");
+        console.error("   The program authority needs to be set to:");
+        console.error(`   ${this.relayerKeypair.publicKey.toBase58()}`);
+        console.error("");
+        console.error("   Current authority can transfer with:");
+        console.error("   (check EXISTING_DEPLOYMENT_ANALYSIS.md for details)");
+      }
+      
       throw error;
     }
   }
@@ -188,6 +198,34 @@ class SolanaBridge {
   async checkBalance(): Promise<number> {
     const balance = await this.connection.getBalance(this.relayerKeypair.publicKey);
     return balance / 1e9; // Convert lamports to SOL
+  }
+
+  async checkProgramStatus(): Promise<void> {
+    console.log("📋 Program Status:");
+    console.log(`   Program ID: ${this.programId.toBase58()}`);
+    console.log(`   Mint: ${this.mint.toBase58()}`);
+    console.log(`   Config PDA: ${this.client.configPda.toBase58()}`);
+    
+    const isInit = await this.client.isInitialized();
+    console.log(`   Initialized: ${isInit ? "✅ Yes" : "❌ No"}`);
+    
+    if (isInit) {
+      const config = await this.client.getConfig();
+      console.log(`   Authority: ${config.authority.toBase58()}`);
+      console.log(`   Decimals: ${config.decimals}`);
+      
+      const isAuthorized = config.authority.equals(this.relayerKeypair.publicKey);
+      console.log(`   Relayer Authorized: ${isAuthorized ? "✅ Yes" : "⚠️  No"}`);
+      
+      if (!isAuthorized) {
+        console.log("");
+        console.log("⚠️  WARNING: Relayer is not the program authority!");
+        console.log("   Bridge operations will fail until authority is transferred.");
+        console.log(`   Current authority: ${config.authority.toBase58()}`);
+        console.log(`   Needed authority: ${this.relayerKeypair.publicKey.toBase58()}`);
+      }
+    }
+    console.log("");
   }
 }
 
@@ -213,6 +251,9 @@ async function main() {
     console.warn("⚠️  WARNING: Low SOL balance! Add more SOL for transaction fees.");
   }
   console.log("");
+
+  // Check program status
+  await solanaBridge.checkProgramStatus();
 
   // Start watching Ethereum burns
   await ethWatcher.start(async (user, amount) => {

@@ -7,18 +7,12 @@ skip-lint = false
 
 [programs.localnet]
 eagle_registry_solana = "7wSrZXHF6BguZ1qwkXdZcNf3qyV2MPNvcztQLwrh9qPJ"
-eagle_share_oft = "11111111111111111111111111111112"
-eagle_share_oft_minimal = "11111111111111111111111111111112"
 
 [programs.devnet]
 eagle_registry_solana = "7wSrZXHF6BguZ1qwkXdZcNf3qyV2MPNvcztQLwrh9qPJ"
-eagle_share_oft = "11111111111111111111111111111112"
-eagle_share_oft_minimal = "11111111111111111111111111111112"
 
 [programs.mainnet]
 eagle_registry_solana = "7wSrZXHF6BguZ1qwkXdZcNf3qyV2MPNvcztQLwrh9qPJ"
-eagle_share_oft = "11111111111111111111111111111112"
-eagle_share_oft_minimal = "11111111111111111111111111111112"
 
 [registry]
 url = "https://api.apr.dev"

@@ -249,7 +249,7 @@ export class TelegramService {
             parse_mode: 'HTML',
             ...Markup.inlineKeyboard([
               [
-                Markup.button.url('Etherscan', `https://etherscan.io/address/${walletAddr}`),
+                Markup.button.url('Explorer', this.getExplorerUrl('Ethereum') + `/address/${walletAddr}`), // Default to Ethereum link for generic check
                 Markup.button.url('Debank', `https://debank.com/profile/${walletAddr}`)
               ],
               [
@@ -646,6 +646,11 @@ export class TelegramService {
     throw lastError;
   }
 
+  private getExplorerUrl(chainName: string): string {
+    const chain = config.chains.find(c => c.name === chainName);
+    return chain ? chain.explorerUrl : 'https://etherscan.io';
+  }
+
   async initialize(ethereumService?: EthereumService, priceService?: PriceService): Promise<void> {
     try {
       // Initialize database first
@@ -675,9 +680,10 @@ export class TelegramService {
       const trackedWallets = await this.db.getTrackedWallets();
       
       // Send a startup message (with retry)
-      const poolCount = config.uniswapV4.monitoredPools.length;
+      const poolCount = config.chains.reduce((acc, chain) => acc + chain.monitoredPools.length, 0);
       const poolsText = poolCount > 0 ? `${poolCount} pool(s)` : 'all pools';
       const monitoredToken = config.filters.monitoredToken;
+      const chainNames = config.chains.map(c => c.name).join(' & ');
       
       try {
         await this.retryWithBackoff(
@@ -686,9 +692,9 @@ export class TelegramService {
             `<b>🦅 EAGLE SMART MONEY</b>\n` +
             `━━━━━━━━━━━━\n\n` +
             `<b>Status:</b> 🟢 <code>ACTIVE</code>\n` +
-            `<b>Network:</b> <code>Ethereum</code>\n` +
+            `<b>Networks:</b> <code>${chainNames}</code>\n` +
             `<b>Monitoring:</b> <code>${poolsText}</code>\n` +
-            `<b>Token:</b>\n<code>${monitoredToken.slice(0, 8)}...${monitoredToken.slice(-6)}</code>\n` +
+            `<b>Token:</b> <code>${monitoredToken}</code>\n` +
             `<b>Threshold:</b> <code>$${settings.minThreshold}</code>\n` +
             `<b>Tracking:</b> <code>${trackedWallets.length}</code>\n\n` +
             `<i>✨ Only monitoring EAGLE swaps</i>\n` +
@@ -780,14 +786,16 @@ export class TelegramService {
     const monitoredToken = config.filters.monitoredToken.toLowerCase();
     const swapToken = (swap.token1Info?.address || '').toLowerCase();
     
-    if (swapToken !== monitoredToken) {
-      console.log(`⏭️  Skipping non-EAGLE token: ${swapToken}`);
+    // Also check against token0, just in case
+    const swapToken0 = (swap.token0Info?.address || '').toLowerCase();
+    
+    if (swapToken !== monitoredToken && swapToken0 !== monitoredToken) {
+      console.log(`⏭️  Skipping non-EAGLE token: ${swapToken} / ${swapToken0}`);
       return false;
     }
     
     // SECOND: Only notify for BUY transactions (not sells)
-    const isBuy = swap.amount1 > 0n; // amount1 > 0 means buying EAGLE
-    if (!isBuy) {
+    if (!swap.isBuy) {
       console.log(`⏭️  Skipping SELL transaction`);
       return false;
     }
@@ -926,8 +934,9 @@ export class TelegramService {
         return;
       }
 
-      // Render using modern UI system
-      const { text: message, keyboard } = await this.ui.renderTradeCard(swap);
+      const msgText = await this.formatSwapMessage(swap);
+      const msgKeyboard = await this.createInlineKeyboard(swap);
+
       const priority = await this.getNotificationPriority(swap);
       
       // Save notification history
@@ -943,11 +952,11 @@ export class TelegramService {
       
       // Add to queue instead of sending directly
       this.messageQueue.push({
-        message,
+        message: msgText,
         options: {
           parse_mode: 'HTML',
           link_preview_options: { is_disabled: true },
-          reply_markup: keyboard,
+          reply_markup: msgKeyboard.reply_markup, 
         },
         priority,
         timestamp: Date.now(),
@@ -960,7 +969,7 @@ export class TelegramService {
       
       // Log notification type
       const priorityEmoji = priority === 'high' ? '⚡' : priority === 'normal' ? '📬' : '📭';
-      console.log(`${priorityEmoji} Queued notification (${priority}) for ${swap.actualTrader.slice(0, 10)}...`);
+      console.log(`${priorityEmoji} Queued notification (${priority}) for ${swap.actualTrader.slice(0, 10)}... on ${swap.chainName}`);
     } catch (error: any) {
       console.error('❌ Error processing swap notification:', error.message);
     }
@@ -1028,6 +1037,7 @@ export class TelegramService {
   }
 
   private async createInlineKeyboard(swap: ProcessedSwap) {
+    const explorerUrl = this.getExplorerUrl(swap.chainName);
     const token0Address = swap.token0Info?.address === '0x0000000000000000000000000000000000000000' 
       ? 'ETH' 
       : swap.token0Info?.address || '';
@@ -1035,37 +1045,45 @@ export class TelegramService {
       ? 'ETH'
       : swap.token1Info?.address || '';
     
-    const etherscanTxUrl = `https://etherscan.io/tx/${swap.txHash}`;
-    const etherscanWalletUrl = `https://etherscan.io/address/${swap.actualTrader}`;
+    const txUrl = `${explorerUrl}/tx/${swap.txHash}`;
+    const walletUrl = `${explorerUrl}/address/${swap.actualTrader}`;
     const debankWalletUrl = `https://debank.com/profile/${swap.actualTrader}`;
-    const uniswapUrl = `https://app.uniswap.org/swap?chain=mainnet&inputCurrency=${token0Address}&outputCurrency=${token1Address}`;
-    const dexscreenerUrl = `https://dexscreener.com/ethereum/${token1Address}`;
-    const geckoTerminalUrl = `https://www.geckoterminal.com/eth/pools/${swap.poolId}`;
-    const etherscanTokenUrl = `https://etherscan.io/token/${token1Address}`;
+    const uniswapUrl = `https://app.uniswap.org/swap?chain=${swap.chainName.toLowerCase()}&inputCurrency=${token0Address}&outputCurrency=${token1Address}`;
+    
+    // Dexscreener needs chain slug. 'ethereum' or 'base'.
+    const chainSlug = swap.chainName.toLowerCase();
+    const dexscreenerUrl = `https://dexscreener.com/${chainSlug}/${token1Address}`;
+    
+    // GeckoTerminal also needs chain slug
+    const geckoChainSlug = chainSlug === 'ethereum' ? 'eth' : 'base';
+    const geckoTerminalUrl = `https://www.geckoterminal.com/${geckoChainSlug}/pools/${swap.poolId}`;
+    const tokenUrl = `${explorerUrl}/token/${token1Address}`;
     
     const isTracked = await this.isWalletTracked(swap.actualTrader);
     const isMuted = await this.isWalletMuted(swap.actualTrader);
     
     return {
-      inline_keyboard: [
-        [
-          { text: '📊 Chart', url: dexscreenerUrl },
-          { text: '🔍 Token', url: etherscanTokenUrl },
-          { text: '💦 Pool', url: geckoTerminalUrl },
+      reply_markup: {
+        inline_keyboard: [
+          [
+            { text: '📊 Chart', url: dexscreenerUrl },
+            { text: '🔍 Token', url: tokenUrl },
+            { text: '💦 Pool', url: geckoTerminalUrl },
+          ],
+          [
+            { text: '🔗 TX', url: txUrl },
+            { text: '👤 Wallet', url: walletUrl },
+            { text: '💼 DeBank', url: debankWalletUrl },
+          ],
+          [
+            { text: '🦄 Trade on Uniswap', url: uniswapUrl },
+          ],
+          [
+            { text: isTracked ? '❌ Untrack' : '⭐ Track', callback_data: `track_${swap.actualTrader}` },
+            { text: isMuted ? '🔊 Unmute' : '🔇 Mute', callback_data: `mute_${swap.actualTrader}` },
+          ],
         ],
-        [
-          { text: '🔗 TX', url: etherscanTxUrl },
-          { text: '👤 Wallet', url: etherscanWalletUrl },
-          { text: '💼 DeBank', url: debankWalletUrl },
-        ],
-        [
-          { text: '🦄 Trade on Uniswap', url: uniswapUrl },
-        ],
-        [
-          { text: isTracked ? '❌ Untrack' : '⭐ Track', callback_data: `track_${swap.actualTrader}` },
-          { text: isMuted ? '🔊 Unmute' : '🔇 Mute', callback_data: `mute_${swap.actualTrader}` },
-        ],
-      ],
+      }
     };
   }
 
@@ -1080,21 +1098,22 @@ export class TelegramService {
     const token0Symbol = swap.token0Info?.symbol || 'Token0';
     const token1Symbol = swap.token1Info?.symbol || 'Token1';
     
-    const isEagleBuy = swap.amount1 > 0n;
-    const action = isEagleBuy ? '🟢 BUY' : '🔴 SELL';
+    const action = swap.isBuy ? '🟢 BUY' : '🔴 SELL';
+    const networkEmoji = swap.chainName === 'Base' ? '🔵' : '🔷';
     
     const amount0Abs = swap.amount0 < 0n ? -swap.amount0 : swap.amount0;
     const amount1Abs = swap.amount1 < 0n ? -swap.amount1 : swap.amount1;
     
-    const amount0Formatted = this.formatNumber(
-      ethers.formatUnits(amount0Abs, swap.token0Info?.decimals || 18)
-    );
-    const amount1Formatted = this.formatNumber(
-      ethers.formatUnits(amount1Abs, swap.token1Info?.decimals || 18)
-    );
+    // Not using amount0Formatted in this version but kept calculation
+    // const amount0Formatted = this.formatNumber(
+    //   ethers.formatUnits(amount0Abs, swap.token0Info?.decimals || 18)
+    // );
+    // const amount1Formatted = this.formatNumber(
+    //   ethers.formatUnits(amount1Abs, swap.token1Info?.decimals || 18)
+    // );
     
-    const eagleAmount = amount1Formatted;
-    const ethAmount = amount0Formatted;
+    const eagleAmount = swap.buyAmount;
+    const ethAmount = swap.sellAmount;
     
     let usdPricePerToken = 'N/A';
     let totalValueUSD = 'N/A';
@@ -1109,7 +1128,6 @@ export class TelegramService {
     }
     
     const tier = this.getTier(swap.valueUSD);
-    const isTracked = await this.isWalletTracked(swap.actualTrader);
     const indicators = await this.getTradeIndicators(swap);
     
     // Get wallet info for classification
@@ -1118,18 +1136,18 @@ export class TelegramService {
     const classEmoji = this.getClassificationEmoji(classification);
     
     // Build mobile-friendly message
-    let message = `${action} ${tier.emoji}\n`;
+    let message = `${networkEmoji} ${action} ${tier.emoji}\n`;
     message += `━━━━━━━━━━━━\n\n`;
     
     // Main trade info - more compact
-    message += `<b>${eagleAmount} ${token1Symbol}</b>`;
+    message += `<b>${eagleAmount} ${swap.buyToken}</b>`;
     if (totalValueUSD !== 'N/A') {
       message += ` <b>($${totalValueUSD})</b>`;
     }
     message += `\n`;
     
     // Price info - single line
-    message += `💰 ${ethAmount} ${token0Symbol}`;
+    message += `💰 ${ethAmount} ${swap.sellToken}`;
     if (usdPricePerToken !== 'N/A') {
       message += ` · $${usdPricePerToken}`;
     }
@@ -1158,7 +1176,7 @@ export class TelegramService {
     }
     
     // Footer - more compact
-    message += `<i>${timeStr} · #${swap.blockNumber}</i>`;
+    message += `<i>${timeStr} · #${swap.blockNumber} · ${swap.chainName}</i>`;
     
     return message;
   }
@@ -1186,4 +1204,3 @@ export class TelegramService {
     console.log('✅ Telegram bot and database stopped');
   }
 }
-

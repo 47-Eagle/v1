@@ -27,6 +27,7 @@ export interface ProcessedSwap extends SwapEvent {
   valueUSD: number | null;
   token0Info?: { name: string; symbol: string; decimals: number; address: string };
   token1Info?: { name: string; symbol: string; decimals: number; address: string };
+  chainName: string;
 }
 
 export class PoolMonitor {
@@ -41,20 +42,11 @@ export class PoolMonitor {
 
   async startMonitoring(onSwap: (swap: ProcessedSwap) => void): Promise<void> {
     const poolManager = this.ethereumService.getPoolManagerContract();
+    const chainName = this.ethereumService.chainConfig.name;
     
-    console.log('Starting Uniswap V4 pool monitoring...');
-    console.log('Pool Manager:', config.uniswapV4.poolManager);
+    console.log(`Starting Uniswap V4 pool monitoring on ${chainName}...`);
+    console.log(`Pool Manager (${chainName}):`, this.ethereumService.chainConfig.poolManager);
     
-    // Pre-populate known pools to avoid RPC calls
-    // EAGLE/ETH pool
-    this.poolTokenCache.set(
-      '0xcf728b099b672c72d61f6ec4c4928c2f2a96cefdfd518c3470519d76545ed333',
-      {
-        token0: '0x0000000000000000000000000000000000000000', // ETH
-        token1: '0x474eD38C256A7FA0f3B8c48496CE1102ab0eA91E', // EAGLE
-      }
-    );
-
     // Listen for Swap events
     poolManager.on(
       'Swap',
@@ -71,9 +63,10 @@ export class PoolMonitor {
       ) => {
         try {
           // Filter by monitored pools if specified
+          const monitoredPools = this.ethereumService.chainConfig.monitoredPools;
           if (
-            config.uniswapV4.monitoredPools.length > 0 &&
-            !config.uniswapV4.monitoredPools.includes(poolId)
+            monitoredPools.length > 0 &&
+            !monitoredPools.includes(poolId)
           ) {
             // Silently skip pools not in monitored list
             return;
@@ -89,7 +82,7 @@ export class PoolMonitor {
           const txHash = tx.hash || event.transactionHash || 'unknown';
           
           if (txHash === 'unknown') {
-            console.warn('⚠️  Could not get transaction hash for swap event');
+            console.warn(`⚠️  Could not get transaction hash for swap event on ${chainName}`);
             return; // Skip this swap if we can't get the hash
           }
           
@@ -117,14 +110,14 @@ export class PoolMonitor {
             processedSwap.valueUSD < config.filters.minBuyAmountUSD
           ) {
             console.log(
-              `Swap value ($${processedSwap.valueUSD.toFixed(2)}) below minimum threshold, skipping...`
+              `Swap value ($${processedSwap.valueUSD.toFixed(2)}) below minimum threshold on ${chainName}, skipping...`
             );
             return;
           }
 
           onSwap(processedSwap);
         } catch (error) {
-          console.error('Error processing swap event:', error);
+          console.error(`Error processing swap event on ${chainName}:`, error);
         }
       }
     );
@@ -142,7 +135,7 @@ export class PoolMonitor {
         sqrtPriceX96: bigint,
         tick: number
       ) => {
-        console.log(`\n🆕 New pool initialized: ${poolId}`);
+        console.log(`\n🆕 New pool initialized on ${chainName}: ${poolId}`);
         console.log(`Token0: ${currency0}, Token1: ${currency1}`);
         
         this.poolTokenCache.set(poolId, {
@@ -152,7 +145,7 @@ export class PoolMonitor {
       }
     );
 
-    console.log('✅ Monitoring started successfully!');
+    console.log(`✅ Monitoring started successfully on ${chainName}!`);
   }
 
   private async processSwap(swap: SwapEvent): Promise<ProcessedSwap> {
@@ -161,13 +154,13 @@ export class PoolMonitor {
     
     if (!poolTokens) {
       // If not in cache, try to fetch from recent Initialize events
-      console.log(`Fetching pool info for ${swap.poolId}...`);
+      console.log(`Fetching pool info for ${swap.poolId} on ${this.ethereumService.chainConfig.name}...`);
       try {
         const poolManager = this.ethereumService.getPoolManagerContract();
         const filter = poolManager.filters.Initialize(swap.poolId);
         
-        // Try a small block range first (Alchemy free tier limit)
-        const events = await poolManager.queryFilter(filter, -10, 'latest');
+        // Try a small block range first (RPC limit)
+        const events = await poolManager.queryFilter(filter, -1000, 'latest'); // Increased range slightly
         
         if (events.length > 0 && 'args' in events[0]) {
           const args = events[0].args;
@@ -178,8 +171,7 @@ export class PoolMonitor {
           this.poolTokenCache.set(swap.poolId, poolTokens);
           console.log(`✅ Found pool info in cache`);
         } else {
-          // Pool initialized earlier - use fallback
-          console.log(`⚠️  Pool not found in recent blocks, using fallback`);
+           console.log(`⚠️  Pool not found in recent blocks, using fallback`);
           poolTokens = {
             token0: '0x0000000000000000000000000000000000000000',
             token1: '0x0000000000000000000000000000000000000000',
@@ -187,7 +179,6 @@ export class PoolMonitor {
         }
       } catch (error) {
         console.error(`Error fetching pool info:`, error);
-        // Use fallback
         poolTokens = {
           token0: '0x0000000000000000000000000000000000000000',
           token1: '0x0000000000000000000000000000000000000000',
@@ -195,9 +186,16 @@ export class PoolMonitor {
       }
     }
     
-    // Determine if this is a buy (amount1 < 0 means buying token0, amount0 < 0 means buying token1)
-    const isBuyingToken0 = swap.amount1 < 0n;
-    const isBuy = isBuyingToken0;
+    let isBuy = false;
+    const monitoredToken = config.filters.monitoredToken.toLowerCase();
+    
+    if (poolTokens.token0.toLowerCase() === monitoredToken) {
+        isBuy = swap.amount0 < 0n;
+    } else if (poolTokens.token1.toLowerCase() === monitoredToken) {
+        isBuy = swap.amount1 < 0n;
+    } else {
+        isBuy = swap.amount1 > 0n;
+    }
 
     // Fetch token information
     const [token0InfoRaw, token1InfoRaw] = await Promise.all([
@@ -216,37 +214,41 @@ export class PoolMonitor {
       swap.amount0,
       swap.amount1,
       token0Info.decimals,
-      token1Info.decimals
+      token1Info.decimals,
+      this.ethereumService.chainConfig.wethAddress
     );
 
-    const buyToken = isBuyingToken0 ? poolTokens.token0 : poolTokens.token1;
-    const sellToken = isBuyingToken0 ? poolTokens.token1 : poolTokens.token0;
+    const isBuyingToken0 = swap.amount0 < 0n; 
+    
+    const displayBuyToken = isBuyingToken0 ? poolTokens.token0 : poolTokens.token1;
+    const displaySellToken = isBuyingToken0 ? poolTokens.token1 : poolTokens.token0;
+    
     const buyAmount = this.ethereumService.formatAmount(
-      isBuyingToken0 ? swap.amount0 : swap.amount1,
+      isBuyingToken0 ? (swap.amount0 * -1n) : (swap.amount1 * -1n), // output amount is negative
       isBuyingToken0 ? token0Info.decimals : token1Info.decimals
     );
     const sellAmount = this.ethereumService.formatAmount(
-      isBuyingToken0 ? swap.amount1 : swap.amount0,
+      isBuyingToken0 ? swap.amount1 : swap.amount0, // input amount is positive
       isBuyingToken0 ? token1Info.decimals : token0Info.decimals
     );
 
     return {
       ...swap,
       isBuy,
-      buyToken,
-      buyAmount,
-      sellToken,
-      sellAmount,
+      buyToken: displayBuyToken,
+      buyAmount: buyAmount.replace('-', ''), // ensure no negative sign
+      sellToken: displaySellToken,
+      sellAmount: sellAmount,
       valueUSD,
       token0Info,
       token1Info,
+      chainName: this.ethereumService.chainConfig.name
     };
   }
 
   stopMonitoring(): void {
     const poolManager = this.ethereumService.getPoolManagerContract();
     poolManager.removeAllListeners();
-    console.log('Monitoring stopped');
+    console.log(`Monitoring stopped on ${this.ethereumService.chainConfig.name}`);
   }
 }
-

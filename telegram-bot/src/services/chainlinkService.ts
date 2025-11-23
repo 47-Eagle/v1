@@ -37,6 +37,7 @@ interface PriceFeedData {
   decimals: number;
   updatedAt: number;
   roundId: bigint;
+  timestamp?: number; // Optional timestamp (same as updatedAt but for caching consistency)
 }
 
 export class ChainlinkService {
@@ -45,17 +46,17 @@ export class ChainlinkService {
   private priceCache: Map<string, { data: PriceFeedData; timestamp: number }> = new Map();
   private readonly CACHE_DURATION = 30000; // 30 seconds cache (Chainlink updates every ~1 min)
 
-  constructor(provider: ethers.JsonRpcProvider | ethers.WebSocketProvider) {
+  constructor(provider: ethers.JsonRpcProvider | ethers.WebSocketProvider, feedAddress: string) {
     this.provider = provider;
     
-    // ETH/USD Price Feed on Ethereum Mainnet
+    // ETH/USD Price Feed
     this.ethUsdFeed = new ethers.Contract(
-      config.chainlink.ethUsdFeed,
+      feedAddress,
       CHAINLINK_AGGREGATOR_V3_ABI,
       this.provider
     );
 
-    console.log('📡 Chainlink Price Feed initialized:', config.chainlink.ethUsdFeed);
+    console.log(`📡 Chainlink Price Feed initialized: ${feedAddress}`);
   }
 
   /**
@@ -85,6 +86,7 @@ export class ChainlinkService {
         decimals: Number(decimals),
         updatedAt: Number(updatedAt),
         roundId: BigInt(roundId),
+        timestamp: Number(updatedAt)
       };
 
       // Cache the result
@@ -127,6 +129,7 @@ export class ChainlinkService {
         decimals: Number(decimals),
         updatedAt: Number(updatedAt),
         roundId: BigInt(roundId),
+        timestamp: Number(updatedAt)
       };
     } catch (error) {
       console.error('Error fetching price feed data:', error);
@@ -217,6 +220,7 @@ export class ChainlinkService {
           decimals: Number(decimals),
           updatedAt: Number(updatedAt),
           roundId: BigInt(roundId),
+          timestamp: Number(updatedAt)
         };
         
         this.priceCache.set(cacheKey, {
@@ -238,4 +242,3 @@ export class ChainlinkService {
     }
   }
 }
-

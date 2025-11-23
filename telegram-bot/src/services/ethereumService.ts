@@ -1,26 +1,28 @@
 import { ethers } from 'ethers';
-import { config } from '../config';
+import { ChainConfig } from '../config';
 import { POOL_MANAGER_ABI, ERC20_ABI } from '../contracts/uniswapV4';
 
 export class EthereumService {
   private provider: ethers.JsonRpcProvider | ethers.WebSocketProvider;
   private poolManagerContract: ethers.Contract;
+  public readonly chainConfig: ChainConfig;
 
-  constructor() {
+  constructor(chainConfig: ChainConfig) {
+    this.chainConfig = chainConfig;
     // Use WebSocket if URL starts with wss://, otherwise use HTTP with polling
-    if (config.ethereum.rpcUrl.startsWith('wss://') || config.ethereum.rpcUrl.startsWith('ws://')) {
-      console.log('🔌 Using WebSocket provider for real-time events');
-      this.provider = new ethers.WebSocketProvider(config.ethereum.rpcUrl);
+    if (chainConfig.rpcUrl.startsWith('wss://') || chainConfig.rpcUrl.startsWith('ws://')) {
+      console.log(`🔌 Using WebSocket provider for ${chainConfig.name}`);
+      this.provider = new ethers.WebSocketProvider(chainConfig.rpcUrl);
     } else {
-      console.log('🔌 Using HTTP provider with polling for events');
-      this.provider = new ethers.JsonRpcProvider(config.ethereum.rpcUrl, undefined, {
+      console.log(`🔌 Using HTTP provider with polling for ${chainConfig.name}`);
+      this.provider = new ethers.JsonRpcProvider(chainConfig.rpcUrl, undefined, {
         polling: true,
         pollingInterval: 4000, // Poll every 4 seconds
       });
     }
     
     this.poolManagerContract = new ethers.Contract(
-      config.uniswapV4.poolManager,
+      chainConfig.poolManager,
       POOL_MANAGER_ABI,
       this.provider
     );
@@ -59,7 +61,7 @@ export class EthereumService {
 
       return { name, symbol, decimals };
     } catch (error) {
-      console.error(`Error fetching token info for ${tokenAddress}:`, error);
+      console.error(`Error fetching token info for ${tokenAddress} on ${this.chainConfig.name}:`, error);
       return { name: 'Unknown', symbol: 'UNKNOWN', decimals: 18 };
     }
   }
@@ -81,7 +83,7 @@ export class EthereumService {
         liquidity,
       };
     } catch (error) {
-      console.error(`Error fetching pool info for ${poolId}:`, error);
+      console.error(`Error fetching pool info for ${poolId} on ${this.chainConfig.name}:`, error);
       throw error;
     }
   }
@@ -97,4 +99,3 @@ export class EthereumService {
     return price * price;
   }
 }
-

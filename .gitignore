@@ -52,6 +52,14 @@ lcov.info
 # Logs
 *.log
 logs/
+*.zip
+
+# Database files
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+telegram-bot/prisma/data/*.db
 
 # Temporary files
 *.tmp

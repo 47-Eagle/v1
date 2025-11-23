@@ -5,6 +5,7 @@ import { ArrowDown, Zap, Shield, Clock, ExternalLink, AlertCircle, CheckCircle2 
 import { NeoButton, NeoCard, NeoInput } from './neumorphic';
 import { CONTRACTS, BASE_CONTRACTS } from '../config/contracts';
 import { ICONS } from '../config/icons';
+import { useTokenPrices } from '../hooks/useTokenPrices';
 
 interface Props {
   provider: BrowserProvider | null;
@@ -56,6 +57,9 @@ const CHAIN_INFO = {
 };
 
 export default function CrossChainHub({ provider, account, onToast, onNavigateToVault, onNavigateToLP }: Props) {
+  // Fetch real token prices
+  const prices = useTokenPrices(provider);
+  
   // State
   const [sourceChain, setSourceChain] = useState<Chain>('base');
   const [destChain, setDestChain] = useState<Chain>('ethereum');
@@ -76,8 +80,38 @@ export default function CrossChainHub({ provider, account, onToast, onNavigateTo
   const MAX_SUPPLY_REACHED = true;
   const isDepositPaused = operation === 'deposit' && MAX_SUPPLY_REACHED;
 
-  // Mock Balances
-  const balance = sourceToken === 'EAGLE' ? '100.00' : '50.00'; // Replace with real data
+  // State for user balances
+  const [balance, setBalance] = useState<string>('0.00');
+
+  // Fetch real balances
+  useEffect(() => {
+    const fetchBalance = async () => {
+      if (!provider || !account) {
+        setBalance('0.00');
+        return;
+      }
+
+      try {
+        const tokenAddress = CHAIN_INFO[sourceChain].contracts[sourceToken];
+        const tokenContract = new Contract(
+          tokenAddress,
+          ['function balanceOf(address) view returns (uint256)'],
+          provider
+        );
+
+        // Note: This assumes the provider is connected to the correct chain.
+        // In a production app, you'd want to verify the chainId or switch networks.
+        // For now, we'll attempt the call and catch errors if on wrong chain.
+        const bal = await tokenContract.balanceOf(account);
+        setBalance(parseFloat(formatUnits(bal, 18)).toFixed(4)); // Assuming 18 decimals for EAGLE/WLFI
+      } catch (error) {
+        console.warn('Error fetching balance:', error);
+        setBalance('0.00');
+      }
+    };
+
+    fetchBalance();
+  }, [provider, account, sourceChain, sourceToken]);
 
   // Effects
   useEffect(() => {
@@ -173,11 +207,17 @@ export default function CrossChainHub({ provider, account, onToast, onNavigateTo
               </button>
             </div>
             
-            <div className="mt-3 flex justify-between items-center text-xs text-gray-500">
-               <span>${(parseFloat(amount || '0') * (sourceToken === 'EAGLE' ? 1.0 : 0.0001)).toFixed(2)}</span>
-               <div className="flex gap-2">
-                 <span>Bal: {balance}</span>
-                 <button onClick={() => setAmount(balance)} className="text-amber-500 font-bold hover:text-amber-600">MAX</button>
+            <div className="mt-3 flex justify-between items-center text-xs">
+               <div className="flex flex-col">
+                 <span className="text-gray-500">USD Value:</span>
+                 <span className="text-gray-700 dark:text-gray-300 font-semibold">${(parseFloat(amount || '0') * (sourceToken === 'EAGLE' ? 1.0 : (prices.WLFI || 0.132))).toFixed(2)}</span>
+               </div>
+               <div className="flex gap-2 items-center">
+                 <div className="flex flex-col items-end">
+                   <span className="text-gray-500">Balance:</span>
+                   <span className="text-gray-700 dark:text-gray-300 font-semibold">{balance} {sourceToken}</span>
+                 </div>
+                 <button onClick={() => setAmount(balance)} className="text-amber-500 font-bold hover:text-amber-600 px-2 py-1 rounded bg-amber-50 dark:bg-amber-900/20">MAX</button>
                </div>
             </div>
           </div>
@@ -229,8 +269,11 @@ export default function CrossChainHub({ provider, account, onToast, onNavigateTo
               </button>
             </div>
 
-            <div className="mt-3 flex justify-between items-center text-xs text-gray-500">
-               <span>${(parseFloat(estimatedOutput || '0') * (destToken === 'EAGLE' ? 1.0 : 0.0001)).toFixed(2)}</span>
+            <div className="mt-3 flex justify-between items-center text-xs">
+               <div className="flex flex-col">
+                 <span className="text-gray-500">USD Value:</span>
+                 <span className="text-gray-700 dark:text-gray-300 font-semibold">${(parseFloat(estimatedOutput || '0') * (destToken === 'EAGLE' ? 1.0 : (prices.WLFI || 0.132))).toFixed(2)}</span>
+               </div>
                {operation !== 'bridge' && (
                   <span className="flex items-center gap-1 text-amber-500 font-medium">
                     <Zap className="w-3 h-3" />

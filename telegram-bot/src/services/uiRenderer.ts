@@ -130,7 +130,11 @@ export class UIRenderer {
     }
 
     try {
-      const provider = new ethers.JsonRpcProvider(config.ethereum.rpcUrl);
+      // Use the first chain (Ethereum) RPC for token supply check usually
+      // Or iterate to find which chain the token is on.
+      // For simplicity, assume Ethereum for now or use config.chains[0]
+      const rpcUrl = config.chains[0].rpcUrl; 
+      const provider = new ethers.JsonRpcProvider(rpcUrl);
       const tokenContract = new ethers.Contract(
         tokenAddress,
         ['function totalSupply() view returns (uint256)'],
@@ -478,4 +482,3 @@ ${this.divider}`;
     this.theme = theme;
   }
 }
-

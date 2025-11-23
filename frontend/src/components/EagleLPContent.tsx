@@ -232,11 +232,13 @@ export default function EagleLPContent({ onNavigateDown, onNavigateToCrossChain 
                 href="https://dexscreener.com/ethereum/0xcf728b099b672c72d61f6ec4c4928c2f2a96cefdfd518c3470519d76545ed333" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="flex-1 sm:flex-none px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 active:from-amber-700 active:to-orange-800 text-white text-xs sm:text-sm font-semibold rounded-full shadow-neo-raised dark:shadow-neo-raised-dark transition-all duration-300 flex items-center justify-center gap-1.5 sm:gap-2 touch-manipulation"
+                className="flex-1 sm:flex-none px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-900 dark:bg-gray-800 hover:bg-gray-800 dark:hover:bg-gray-700 active:bg-gray-950 dark:active:bg-gray-900 text-white text-xs sm:text-sm font-semibold rounded-full shadow-neo-raised dark:shadow-neo-raised-dark transition-all duration-300 flex items-center justify-center gap-1.5 sm:gap-2 touch-manipulation"
               >
-                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                </svg>
+                <img 
+                  src="https://dexscreener.com/icon-192x192.png" 
+                  alt="DexScreener" 
+                  className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded"
+                />
                 <span className="hidden sm:inline">DexScreener</span>
                 <span className="sm:hidden">DEX</span>
               </a>

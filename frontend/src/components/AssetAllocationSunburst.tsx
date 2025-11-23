@@ -8,6 +8,7 @@ interface AssetAllocationSunburstProps {
   strategyWLFI: number; // Not used, kept for compatibility
   strategyUSD1: number;
   wlfiPrice: number;
+  wethPrice?: number; // WETH price in USD
   strategyWETH?: number;
   strategyWLFIinPool?: number;
   strategyUSD1InPool?: number;
@@ -27,6 +28,7 @@ export default function AssetAllocationSunburst({
   strategyWLFI,
   strategyUSD1,
   wlfiPrice,
+  wethPrice = 3000.0, // Default fallback
   strategyWETH = 0,
   strategyWLFIinPool = 0,
   strategyUSD1InPool = 0,
@@ -42,20 +44,34 @@ export default function AssetAllocationSunburst({
   const vaultUSD1InWLFI = wlfiPrice > 0 ? vaultUSD1 / wlfiPrice : 0;
   const strategyUSD1InWLFI = wlfiPrice > 0 ? strategyUSD1 / wlfiPrice : 0;
   
-  // Calculate totals (normalize to USD)
-  const totalVault = (vaultWLFI * 0.132) + vaultUSD1;
+  // Calculate totals (normalize to USD) using real prices
+  // Ensure all values are numbers - handle string inputs and edge cases
+  const strategyWETHNum = Math.max(0, Number(strategyWETH) || 0);
+  const strategyWLFIinPoolNum = Math.max(0, Number(strategyWLFIinPool) || 0);
+  
+  // Check if we have any WETH strategy data (even if very small)
+  const hasWETHStrategyData = strategyWETHNum > 0 || strategyWLFIinPoolNum > 0;
+  
+  const totalVault = (vaultWLFI * wlfiPrice) + vaultUSD1;
   const totalUSD1Strategy = strategyUSD1;
-  const totalWETHStrategy = (strategyWETH * 3500) + (strategyWLFIinPool * 0.132);
+  const totalWETHStrategy = (strategyWETHNum * wethPrice) + (strategyWLFIinPoolNum * wlfiPrice);
   const grandTotal = totalVault + totalUSD1Strategy + totalWETHStrategy;
   
   // Debug logging
-  console.log('[Sunburst] Data received:', {
-    vaultWLFI,
-    vaultUSD1,
-    strategyUSD1,
-    strategyWETH,
-    strategyWLFIinPool,
-  });
+  console.log('[Sunburst] ===== RAW DATA RECEIVED =====');
+  console.log('[Sunburst] vaultWLFI:', vaultWLFI, typeof vaultWLFI);
+  console.log('[Sunburst] vaultUSD1:', vaultUSD1, typeof vaultUSD1);
+  console.log('[Sunburst] strategyUSD1:', strategyUSD1, typeof strategyUSD1);
+  console.log('[Sunburst] strategyWETH:', strategyWETH, typeof strategyWETH);
+  console.log('[Sunburst] strategyWLFIinPool:', strategyWLFIinPool, typeof strategyWLFIinPool);
+  console.log('[Sunburst] wethPrice:', wethPrice, typeof wethPrice);
+  console.log('[Sunburst] wlfiPrice:', wlfiPrice, typeof wlfiPrice);
+  console.log('[Sunburst] ===== CONVERTED VALUES =====');
+  console.log('[Sunburst] strategyWETHNum:', strategyWETHNum, '> 0?', strategyWETHNum > 0);
+  console.log('[Sunburst] strategyWLFIinPoolNum:', strategyWLFIinPoolNum, '> 0?', strategyWLFIinPoolNum > 0);
+  console.log('[Sunburst] hasWETHStrategyData:', hasWETHStrategyData);
+  console.log('[Sunburst] Will show WETH strategy?', hasWETHStrategyData);
+  console.log('[Sunburst] ===== CALCULATED TOTALS =====');
   console.log('[Sunburst] Calculated totals (USD):', {
     totalVault: totalVault.toFixed(2),
     totalUSD1Strategy: totalUSD1Strategy.toFixed(2),
@@ -64,8 +80,8 @@ export default function AssetAllocationSunburst({
   });
   
   // Total in WLFI terms (convert everything to WLFI for display)
-  const strategyWETHInWLFI = wlfiPrice > 0 ? (strategyWETH * 3500) / wlfiPrice : 0;
-  const strategyWLFIinPoolWLFI = strategyWLFIinPool;
+  const strategyWETHInWLFI = wlfiPrice > 0 ? (strategyWETHNum * wethPrice) / wlfiPrice : 0;
+  const strategyWLFIinPoolWLFI = strategyWLFIinPoolNum;
   const totalInWLFI = vaultWLFI + vaultUSD1InWLFI + strategyUSD1InWLFI + strategyWETHInWLFI + strategyWLFIinPoolWLFI;
 
   useEffect(() => {
@@ -101,7 +117,7 @@ export default function AssetAllocationSunburst({
           name: 'Vault Reserves',
           color: '#F2D57C', // Primary Gold
           children: [
-            { name: 'Vault WLFI', value: vaultWLFI * 0.132, color: '#FFE7A3' }, // Highlight Gold (WLFI in USD)
+            { name: 'Vault WLFI', value: vaultWLFI * wlfiPrice, color: '#FFE7A3' }, // Highlight Gold (WLFI in USD)
             { name: 'Vault USD1', value: vaultUSD1, color: '#C9A854' } // Soft Gold (USD1 already in USD)
           ]
         },
@@ -110,17 +126,49 @@ export default function AssetAllocationSunburst({
           color: '#6366f1', // Indigo (USD1 Strategy)
           children: [
             { name: 'USD1 in Charm', value: strategyUSD1InPool, color: '#818cf8' }, // Light indigo (USD1 already in USD)
-            { name: 'WLFI in Charm', value: strategyWLFIinUSD1Pool * 0.132, color: '#a5b4fc' } // Lighter indigo (WLFI to USD)
+            { name: 'WLFI in Charm', value: strategyWLFIinUSD1Pool * wlfiPrice, color: '#a5b4fc' } // Lighter indigo (WLFI to USD)
           ]
         },
-        ...(strategyWETH > 0 ? [{
+        ...(hasWETHStrategyData ? (() => {
+          const wethChildren = strategyWETHNum > 0 ? [{ name: 'WETH in Pool', value: strategyWETHNum * wethPrice, color: '#1a1a1a' }] : [];
+          const wlfiChildren = strategyWLFIinPoolNum > 0 ? [{ name: 'WLFI in Pool', value: strategyWLFIinPoolNum * wlfiPrice, color: '#5a5a5a' }] : [];
+          const allChildren = [...wethChildren, ...wlfiChildren];
+          
+          console.log('[Sunburst] Building WETH/WLFI Strategy section:', {
+            strategyWETHNum,
+            strategyWLFIinPoolNum,
+            wethPrice,
+            wlfiPrice,
+            wethValueUSD: strategyWETHNum * wethPrice,
+            wlfiValueUSD: strategyWLFIinPoolNum * wlfiPrice,
+            childrenCount: allChildren.length,
+            children: allChildren,
+            hasWETHStrategyData
+          });
+          
+          // Ensure we always have at least one child if the section is being created
+          if (allChildren.length === 0) {
+            console.warn('[Sunburst] WARNING: WETH/WLFI Strategy section created but has no children!');
+            // Add a placeholder child with minimal value to ensure rendering
+            allChildren.push({ name: 'WETH in Pool', value: 0.01, color: '#1a1a1a' });
+          }
+          
+          return [{
           name: 'WETH/WLFI Strategy',
           color: '#3a3a3a', // Dark metallic gray (WETH Strategy)
-          children: [
-            { name: 'WETH in Pool', value: strategyWETH * 3500, color: '#1a1a1a' }, // Metallic black (WETH to USD)
-            { name: 'WLFI in Pool', value: strategyWLFIinPool * 0.132, color: '#5a5a5a' } // Light metallic gray (WLFI to USD)
-          ]
-        }] : [])
+            children: allChildren
+          }];
+        })() : (() => {
+          // Debug: Log why WETH strategy is not showing
+          console.log('[Sunburst] WETH/WLFI Strategy NOT showing because:', {
+            strategyWETHNum,
+            strategyWLFIinPoolNum,
+            hasWETHStrategyData,
+            strategyWETH,
+            strategyWLFIinPool
+          });
+          return [];
+        })())
       ]
     };
 
@@ -203,8 +251,30 @@ export default function AssetAllocationSunburst({
           .attr('opacity', 1)
           .style('filter', 'drop-shadow(0 8px 16px rgba(0, 0, 0, 0.4)) drop-shadow(0 0 20px ' + (d.data.color || '#666') + '80)');
         
-        // Show elegant tooltip with correct positioning
-        const percentage = grandTotal > 0 ? ((d.value || 0) / grandTotal * 100).toFixed(1) : '0';
+        // Calculate token quantity based on section name
+        const usdValue = d.value || 0;
+        const percentage = grandTotal > 0 ? ((usdValue / grandTotal * 100).toFixed(1)) : '0';
+        
+        let tokenQuantity = '';
+        let tokenSymbol = '';
+        
+        const sectionName = d.data.name.toLowerCase();
+        if (sectionName.includes('wlfi') && !sectionName.includes('weth')) {
+          // WLFI quantity
+          tokenQuantity = (usdValue / wlfiPrice).toFixed(2);
+          tokenSymbol = 'WLFI';
+        } else if (sectionName.includes('usd1')) {
+          // USD1 quantity (already in USD, so 1:1)
+          tokenQuantity = usdValue.toFixed(2);
+          tokenSymbol = 'USD1';
+        } else if (sectionName.includes('weth')) {
+          // WETH quantity
+          tokenQuantity = (usdValue / wethPrice).toFixed(4);
+          tokenSymbol = 'WETH';
+        } else {
+          // Parent sections or unknown - show USD only
+          tokenQuantity = null;
+        }
         
         d3.select('#tooltip')
           .style('left', (event.clientX + 15) + 'px')
@@ -218,14 +288,20 @@ export default function AssetAllocationSunburst({
               border: 1px solid rgba(255,255,255,0.2);
               box-shadow: 0 20px 40px rgba(0,0,0,0.5), 0 0 20px ${d.data.color}40;
               backdrop-filter: blur(10px);
-              min-width: 180px;
+              min-width: 200px;
             ">
-              <div style="color: ${d.data.color}; font-weight: 700; margin-bottom: 8px; font-size: 14px; letter-spacing: 0.5px;">${d.data.name.toUpperCase()}</div>
-              <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px;">
-                <span style="color: #9ca3af; font-size: 12px;">Amount:</span>
-                <span style="color: white; font-weight: 600; font-family: monospace; font-size: 13px;">${(d.value || 0).toFixed(2)}</span>
+              <div style="color: ${d.data.color}; font-weight: 700; margin-bottom: 10px; font-size: 14px; letter-spacing: 0.5px;">${d.data.name.toUpperCase()}</div>
+              <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px;">
+                <span style="color: #9ca3af; font-size: 12px;">USD Value:</span>
+                <span style="color: white; font-weight: 600; font-family: monospace; font-size: 13px;">$${usdValue.toFixed(2)}</span>
               </div>
-              <div style="display: flex; justify-content: space-between; align-items: baseline;">
+              ${tokenQuantity !== null ? `
+              <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px;">
+                <span style="color: #9ca3af; font-size: 12px;">Quantity:</span>
+                <span style="color: #eab308; font-weight: 600; font-family: monospace; font-size: 13px;">${tokenQuantity} ${tokenSymbol}</span>
+              </div>
+              ` : ''}
+              <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1);">
                 <span style="color: #9ca3af; font-size: 12px;">Share:</span>
                 <span style="color: #eab308; font-weight: 700; font-size: 16px;">${percentage}%</span>
               </div>
@@ -318,7 +394,7 @@ export default function AssetAllocationSunburst({
       .style('letter-spacing', '1.5px')
       .text('WLFI');
 
-  }, [vaultWLFI, vaultUSD1, strategyWLFI, strategyUSD1, grandTotal, selectedPath, animationKey, wlfiPrice, totalInWLFI]);
+  }, [vaultWLFI, vaultUSD1, strategyWLFI, strategyUSD1, strategyWETH, strategyWLFIinPool, strategyUSD1InPool, strategyWLFIinUSD1Pool, grandTotal, selectedPath, animationKey, wlfiPrice, wethPrice, totalInWLFI]);
 
   return (
     <>
@@ -433,7 +509,22 @@ export default function AssetAllocationSunburst({
               setSelectedPath(selectedPath?.includes('USD1') ? null : 'USD1/WLFI Strategy');
             }}
           >
-            <div className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-1.5 sm:mb-2 font-semibold">USD1/WLFI Strategy</div>
+            <div className="flex items-center justify-between mb-1.5 sm:mb-2">
+              <div className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wider font-semibold">USD1/WLFI Strategy</div>
+              <a
+                href="https://alpha.charm.fi/ethereum/vault/0x22828dbf15f5fba2394ba7cf8fa9a96bdb444b71"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="text-[10px] text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors flex items-center gap-1"
+                title="View on Charm Finance"
+              >
+                <span>Charm</span>
+                <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </a>
+            </div>
             
             {expandedSection === 'usd1' ? (
               <div className="space-y-1.5 sm:space-y-2">
@@ -465,7 +556,7 @@ export default function AssetAllocationSunburst({
           </div>
 
           {/* WETH/WLFI Strategy */}
-          {strategyWETH > 0 && (
+          {hasWETHStrategyData && (
             <div 
               className={`cursor-pointer p-3 sm:p-4 rounded-lg sm:rounded-xl transition-all duration-300 touch-manipulation active:scale-[0.98] ${
                 expandedSection === 'weth'
@@ -477,7 +568,22 @@ export default function AssetAllocationSunburst({
                 setSelectedPath(selectedPath?.includes('WETH') ? null : 'WETH/WLFI Strategy');
               }}
             >
-              <div className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-1.5 sm:mb-2 font-semibold">WETH/WLFI Strategy</div>
+              <div className="flex items-center justify-between mb-1.5 sm:mb-2">
+                <div className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wider font-semibold">WETH/WLFI Strategy</div>
+                <a
+                  href="https://alpha.charm.fi/ethereum/vault/0x3314e248f3f752cd16939773d83beb3a362f0aef"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="text-[10px] text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors flex items-center gap-1"
+                  title="View on Charm Finance"
+                >
+                  <span>Charm</span>
+                  <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </a>
+              </div>
               
               {expandedSection === 'weth' ? (
                 <div className="space-y-1.5 sm:space-y-2">
@@ -486,14 +592,14 @@ export default function AssetAllocationSunburst({
                       <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full shadow-neo-inset dark:shadow-neo-inset-dark bg-gradient-to-br from-gray-800 to-black flex-shrink-0"></div>
                       <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 font-medium">WETH</span>
                     </div>
-                    <span className="text-xs sm:text-sm font-mono text-gray-900 dark:text-gray-100 font-semibold">{strategyWETH.toFixed(4)}</span>
+                    <span className="text-xs sm:text-sm font-mono text-gray-900 dark:text-gray-100 font-semibold">{strategyWETHNum.toFixed(4)}</span>
                   </div>
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-1.5 sm:gap-2">
                       <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full shadow-neo-inset dark:shadow-neo-inset-dark bg-gradient-to-br from-gray-500 to-gray-600 flex-shrink-0"></div>
                       <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 font-medium">WLFI</span>
                     </div>
-                    <span className="text-xs sm:text-sm font-mono text-gray-900 dark:text-gray-100 font-semibold">{strategyWLFIinPool.toFixed(2)}</span>
+                    <span className="text-xs sm:text-sm font-mono text-gray-900 dark:text-gray-100 font-semibold">{strategyWLFIinPoolNum.toFixed(2)}</span>
                   </div>
                 </div>
               ) : (

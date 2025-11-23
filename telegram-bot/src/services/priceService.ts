@@ -61,7 +61,8 @@ export class PriceService {
     amount0: bigint,
     amount1: bigint,
     decimals0: number | bigint,
-    decimals1: number | bigint
+    decimals1: number | bigint,
+    wethAddress: string
   ): Promise<number | null> {
     try {
       // Ensure decimals are numbers (might come in as BigInt)
@@ -79,11 +80,10 @@ export class PriceService {
       // Normalize addresses
       const addr0 = token0Address.toLowerCase();
       const addr1 = token1Address.toLowerCase();
+      const weth = wethAddress.toLowerCase();
 
-      // Check for ETH or WETH
-      const WETH = '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2';
-      const isToken0ETH = addr0 === '0x0000000000000000000000000000000000000000' || addr0 === WETH;
-      const isToken1ETH = addr1 === '0x0000000000000000000000000000000000000000' || addr1 === WETH;
+      const isToken0ETH = addr0 === '0x0000000000000000000000000000000000000000' || addr0 === weth;
+      const isToken1ETH = addr1 === '0x0000000000000000000000000000000000000000' || addr1 === weth;
 
       // Get ETH price for the ETH/WETH side of the pair
       let ethPrice = null;
@@ -321,7 +321,8 @@ export class PriceService {
     amount1: bigint,
     decimals0: number | bigint,
     decimals1: number | bigint,
-    blockNumber: number
+    blockNumber: number,
+    wethAddress: string
   ): Promise<number | null> {
     try {
       // Ensure decimals are numbers
@@ -339,11 +340,10 @@ export class PriceService {
       // Normalize addresses
       const addr0 = token0Address.toLowerCase();
       const addr1 = token1Address.toLowerCase();
+      const weth = wethAddress.toLowerCase();
 
-      // Check for ETH or WETH
-      const WETH = '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2';
-      const isToken0ETH = addr0 === '0x0000000000000000000000000000000000000000' || addr0 === WETH;
-      const isToken1ETH = addr1 === '0x0000000000000000000000000000000000000000' || addr1 === WETH;
+      const isToken0ETH = addr0 === '0x0000000000000000000000000000000000000000' || addr0 === weth;
+      const isToken1ETH = addr1 === '0x0000000000000000000000000000000000000000' || addr1 === weth;
 
       // Get ETH price at the specific block from Chainlink
       let ethPrice = null;
@@ -377,7 +377,8 @@ export class PriceService {
     amount1: bigint,
     decimals0: number | bigint,
     decimals1: number | bigint,
-    timestamp: number
+    timestamp: number,
+    wethAddress: string
   ): Promise<number | null> {
     try {
       // Ensure decimals are numbers
@@ -395,11 +396,10 @@ export class PriceService {
       // Normalize addresses
       const addr0 = token0Address.toLowerCase();
       const addr1 = token1Address.toLowerCase();
+      const weth = wethAddress.toLowerCase();
 
-      // Check for ETH or WETH
-      const WETH = '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2';
-      const isToken0ETH = addr0 === '0x0000000000000000000000000000000000000000' || addr0 === WETH;
-      const isToken1ETH = addr1 === '0x0000000000000000000000000000000000000000' || addr1 === WETH;
+      const isToken0ETH = addr0 === '0x0000000000000000000000000000000000000000' || addr0 === weth;
+      const isToken1ETH = addr1 === '0x0000000000000000000000000000000000000000' || addr1 === weth;
 
       // Get historical ETH price at the time of the swap
       let ethPrice = null;
@@ -423,4 +423,3 @@ export class PriceService {
     }
   }
 }
-

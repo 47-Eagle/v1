@@ -7,14 +7,18 @@
     "start": "tsx src/ethereum-to-solana.ts",
     "dev": "tsx watch src/ethereum-to-solana.ts",
     "link": "tsx src/link-wallets.ts",
-    "test": "tsx src/test-connection.ts"
+    "test": "tsx src/test-connection.ts",
+    "test:setup": "tsx src/test-setup.ts",
+    "config:validate": "tsx src/config.ts"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.31.1",
+    "@project-serum/anchor": "^0.26.0",
     "@solana/web3.js": "^1.95.8",
     "@solana/spl-token": "^0.4.1",
     "ethers": "^6.13.4",
-    "dotenv": "^16.4.7"
+    "dotenv": "^16.4.7",
+    "bs58": "^5.0.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

@@ -55,24 +55,26 @@ export class BackfillService {
     this.isRunning = true;
 
     try {
-      log(`🔄 Starting backfill for last ${days} days...`);
+      const chainName = this.ethereumService.chainConfig.name;
+      log(`🔄 Starting backfill for last ${days} days on ${chainName}...`);
 
       const poolManager = this.ethereumService.getPoolManagerContract();
       const provider = this.ethereumService.getProvider();
       
       // Calculate block range
       const currentBlock = await provider.getBlockNumber();
-      const blocksPerDay = Math.floor((24 * 60 * 60) / 12); // ~12 second blocks
+      const blocksPerDay = Math.floor((24 * 60 * 60) / 12); // ~12 second blocks (Base is fast too)
       const blocksToFetch = blocksPerDay * days;
       const fromBlock = Math.max(0, currentBlock - blocksToFetch);
 
       log(`📦 Fetching from block ${fromBlock} to ${currentBlock} (${blocksToFetch.toLocaleString()} blocks)`);
 
       // Get all Swap events for the monitored pool
-      const poolId = config.uniswapV4.monitoredPools[0];
+      // Only using the first monitored pool for backfill for now
+      const poolId = this.ethereumService.chainConfig.monitoredPools[0];
       if (!poolId) {
         this.isRunning = false;
-        return { success: false, swapsProcessed: 0, error: 'No monitored pool configured' };
+        return { success: false, swapsProcessed: 0, error: 'No monitored pool configured for this chain' };
       }
 
       // Fetch events in chunks to avoid rate limits
@@ -182,11 +184,27 @@ export class BackfillService {
             amount0,
             amount1,
             token0Info?.decimals || 18,
-            token1Info?.decimals || 18
+            token1Info?.decimals || 18,
+            this.ethereumService.chainConfig.wethAddress
           );
 
-          // Determine buy/sell and format amounts
-          const isBuy = amount1 > 0n; // amount1 > 0 means EAGLE leaving pool = BUY
+          // Determine buy/sell
+          // If amount1 > 0, the pool RECEIVES Token1. If Token1 is EAGLE, user SELLS EAGLE.
+          // If amount1 < 0, the pool PAYS Token1. If Token1 is EAGLE, user BUYS EAGLE.
+          
+          let isBuy = false;
+          
+          // Check which token is monitored
+          if (token1Info.address.toLowerCase() === monitoredToken) {
+              // Token1 is Monitored Token (EAGLE)
+              isBuy = amount1 < 0n; // Pool pays EAGLE -> User Buy
+          } else if (token0Info.address.toLowerCase() === monitoredToken) {
+              // Token0 is Monitored Token
+              isBuy = amount0 < 0n; // Pool pays EAGLE -> User Buy
+          } else {
+              // Fallback (Assume Token1 is EAGLE if logic fails)
+              isBuy = amount1 < 0n; 
+          }
           const buyToken = isBuy ? (token1Info?.symbol || 'UNKNOWN') : (token0Info?.symbol || 'ETH');
           const sellToken = isBuy ? (token0Info?.symbol || 'ETH') : (token1Info?.symbol || 'UNKNOWN');
           const buyAmount = ethers.formatUnits(
@@ -220,6 +238,7 @@ export class BackfillService {
             token0Info,
             token1Info,
             valueUSD,
+            chainName: this.ethereumService.chainConfig.name
           };
 
           // Save to database (returns null if already exists)
@@ -313,4 +332,3 @@ export class BackfillService {
     }
   }
 }
-

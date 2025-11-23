@@ -66,10 +66,10 @@ function AppContent() {
   return (
     <motion.div 
       className="h-screen flex flex-col transition-colors duration-300 bg-[#0a0a0a]" // Match LandingPage bg
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.3 }}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.5, ease: "easeInOut" }}
     >
       {/* Fixed Header */}
       <div className="relative z-20 flex-shrink-0">
@@ -172,10 +172,10 @@ function AnimatedRoutes() {
       <Routes location={location} key={location.pathname.split('/')[1] || 'root'}>
         <Route path="/" element={
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.5, ease: "easeInOut" }}
           >
             <LandingPage />
           </motion.div>

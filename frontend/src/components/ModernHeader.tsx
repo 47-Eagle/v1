@@ -113,56 +113,8 @@ export default function ModernHeader() {
             </div>
           </motion.div>
 
-          {/* Center - Price Tickers with Neumorphic Style */}
+          {/* Center - EAGLE Price Ticker with Neumorphic Style */}
           <div className="hidden lg:flex items-center gap-3">
-            <motion.div 
-              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-br from-neo-bg-light to-gray-50 dark:from-neo-bg-dark dark:to-gray-900 rounded-full shadow-neo-raised dark:shadow-neo-raised-dark hover:shadow-neo-hover dark:hover:shadow-neo-hover-dark border border-gray-200/50 dark:border-gray-700/30 hover:border-gray-300/70 dark:hover:border-gray-600/50 transition-all duration-400"
-              whileHover={{ scale: 1.05, y: -2 }}
-              transition={{ type: "spring", stiffness: 500, damping: 20 }}
-              animate={priceChanged === 'wlfi' ? { scale: [1, 1.08, 1] } : {}}
-            >
-              <img 
-                src={ICONS.WLFI} 
-                alt="WLFI"
-                className="w-5 h-5"
-              />
-              <AnimatePresence mode="wait">
-                <motion.span 
-                  key={wlfiPrice}
-                  initial={{ y: 10, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: -10, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="text-sm font-mono text-gray-800 dark:text-gray-200 font-semibold min-w-[60px]"
-                >
-                  {wlfiPrice === '--' ? '--' : `$${wlfiPrice}`}
-                </motion.span>
-              </AnimatePresence>
-            </motion.div>
-            <motion.div 
-              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-br from-neo-bg-light to-gray-50 dark:from-neo-bg-dark dark:to-gray-900 rounded-full shadow-neo-raised dark:shadow-neo-raised-dark hover:shadow-neo-hover dark:hover:shadow-neo-hover-dark border border-gray-200/50 dark:border-gray-700/30 hover:border-gray-300/70 dark:hover:border-gray-600/50 transition-all duration-400"
-              whileHover={{ scale: 1.05, y: -2 }}
-              transition={{ type: "spring", stiffness: 500, damping: 20 }}
-              animate={priceChanged === 'usd1' ? { scale: [1, 1.08, 1] } : {}}
-            >
-              <img 
-                src={ICONS.USD1} 
-                alt="USD1"
-                className="w-5 h-5"
-              />
-              <AnimatePresence mode="wait">
-                <motion.span 
-                  key={usd1Price}
-                  initial={{ y: 10, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: -10, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="text-sm font-mono text-gray-800 dark:text-gray-200 font-semibold min-w-[60px]"
-                >
-                  {usd1Price === '--' ? '--' : `$${usd1Price}`}
-                </motion.span>
-              </AnimatePresence>
-            </motion.div>
             <motion.a
               href="https://dexscreener.com/ethereum/0xcf728b099b672c72d61f6ec4c4928c2f2a96cefdfd518c3470519d76545ed333"
               target="_blank"
@@ -209,46 +161,8 @@ export default function ModernHeader() {
           </div>
         </div>
         
-        {/* Mobile Price Tickers - Below header on small screens */}
+        {/* Mobile EAGLE Price Ticker - Below header on small screens */}
         <div className="lg:hidden flex items-center gap-2 mt-2 overflow-x-auto pb-1 scrollbar-hide">
-          <motion.div 
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-br from-neo-bg-light to-gray-50 dark:from-neo-bg-dark dark:to-gray-900 rounded-full shadow-neo-raised dark:shadow-neo-raised-dark border border-gray-200/50 dark:border-gray-700/30 whitespace-nowrap flex-shrink-0"
-            animate={priceChanged === 'wlfi' ? { scale: [1, 1.05, 1] } : {}}
-          >
-            <img src={ICONS.WLFI} alt="WLFI" className="w-4 h-4" />
-            <AnimatePresence mode="wait">
-              <motion.span 
-                key={wlfiPrice}
-                initial={{ y: 5, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: -5, opacity: 0 }}
-                transition={{ duration: 0.15 }}
-                className="text-xs font-mono text-gray-800 dark:text-gray-200 font-semibold"
-              >
-                {wlfiPrice === '--' ? '--' : `$${wlfiPrice}`}
-              </motion.span>
-            </AnimatePresence>
-          </motion.div>
-          
-          <motion.div 
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-br from-neo-bg-light to-gray-50 dark:from-neo-bg-dark dark:to-gray-900 rounded-full shadow-neo-raised dark:shadow-neo-raised-dark border border-gray-200/50 dark:border-gray-700/30 whitespace-nowrap flex-shrink-0"
-            animate={priceChanged === 'usd1' ? { scale: [1, 1.05, 1] } : {}}
-          >
-            <img src={ICONS.USD1} alt="USD1" className="w-4 h-4" />
-            <AnimatePresence mode="wait">
-              <motion.span 
-                key={usd1Price}
-                initial={{ y: 5, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: -5, opacity: 0 }}
-                transition={{ duration: 0.15 }}
-                className="text-xs font-mono text-gray-800 dark:text-gray-200 font-semibold"
-              >
-                {usd1Price === '--' ? '--' : `$${usd1Price}`}
-              </motion.span>
-            </AnimatePresence>
-          </motion.div>
-          
           <motion.a
             href="https://dexscreener.com/ethereum/0xcf728b099b672c72d61f6ec4c4928c2f2a96cefdfd518c3470519d76545ed333"
             target="_blank"
