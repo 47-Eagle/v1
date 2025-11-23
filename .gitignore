@@ -17,6 +17,11 @@ broadcast/
 target/
 Cargo.lock
 
+# Solana keypairs (NEVER commit private keys!)
+target/deploy/*-keypair.json
+*.keypair.json
+*keypair.json
+
 # Environment files
 .env
 .env.local
