@@ -1,42 +1,41 @@
 # 🦅 Eagle Vault Frontend
 
-Beautiful, modern frontend for the Eagle Vault omnichain DeFi vault system.
+Modern, production-ready frontend for the Eagle Omnichain Vault - a dual-token DeFi vault with Charm Finance integration and LayerZero cross-chain capabilities.
 
-## Features
+**Live:** [https://test.47eagle.com](https://test.47eagle.com)
 
-- 💰 **Deposit/Withdraw** - Deposit WLFI + USD1, withdraw at any time
-- 🔄 **Wrap/Unwrap** - Convert vEAGLE shares ↔ EAGLE tradable tokens
-- 📊 **Live Stats** - Real-time vault TVL, utilization, and performance
-- 🎯 **Strategy View** - Monitor Charm Finance strategy performance
-- 🔐 **Wallet Connection** - MetaMask integration
-- 🎨 **Modern UI** - Dark theme with Tailwind CSS
+## ✨ Features
 
-## Tech Stack
+- 💰 **Vault Management** - Deposit WLFI + USD1, withdraw at any time
+- 🔄 **Cross-Chain Bridge** - Wrap/unwrap vEAGLE ↔ EAGLE tokens
+- 📊 **Real-Time Analytics** - Live APY, TVL, and performance metrics
+- 🎯 **Strategy Monitoring** - Track Charm Finance strategy performance
+- 🔐 **Multi-Wallet Support** - MetaMask, WalletConnect, Safe App integration
+- 🎨 **Modern UI** - Neumorphic design with dark mode support
+- 📱 **Responsive** - Works on desktop and mobile
 
-- **React 18** + TypeScript
-- **Vite** - Fast dev server and build
-- **ethers.js v6** - Ethereum interaction
-- **Tailwind CSS** - Modern styling
-- **Lucide React** - Beautiful icons
+## 🚀 Quick Start
 
-## Quick Start
+### Prerequisites
 
-### Install Dependencies
+- Node.js 18+ 
+- npm or pnpm
+
+### Installation
 
 ```bash
-cd frontend
 npm install
 ```
 
-### Run Development Server
+### Development
 
 ```bash
 npm run dev
 ```
 
-Opens at `http://localhost:3000`
+Opens at `http://localhost:5173`
 
-### Build for Production
+### Build
 
 ```bash
 npm run build
@@ -44,182 +43,138 @@ npm run build
 
 Output in `dist/` folder.
 
-## Project Structure
+## 🏗️ Project Structure
 
 ```
 frontend/
 ├── src/
-│   ├── components/
-│   │   ├── Header.tsx        # Navigation and wallet connection
-│   │   ├── VaultStats.tsx    # Live vault statistics
-│   │   ├── DepositTab.tsx    # Deposit/withdraw interface
-│   │   ├── WrapTab.tsx       # Wrap/unwrap interface
-│   │   └── StrategyTab.tsx   # Strategy performance view
-│   ├── config/
-│   │   └── contracts.ts      # Contract addresses
-│   ├── App.tsx               # Main app component
-│   ├── main.tsx              # Entry point
-│   └── index.css             # Global styles
-├── public/
-├── index.html
-├── package.json
-├── vite.config.ts
-└── tailwind.config.js
+│   ├── components/          # React components
+│   │   ├── VaultView.tsx   # Main vault interface
+│   │   ├── AdminPanel.tsx  # Admin controls
+│   │   └── neumorphic/     # Design system components
+│   ├── hooks/              # Custom React hooks
+│   │   ├── useCharmVaultData.ts
+│   │   └── useTokenPrices.ts
+│   ├── config/             # Configuration
+│   │   └── contracts.ts    # Contract addresses
+│   ├── pages/              # Page components
+│   └── styles/             # Design system
+├── api/                    # API routes (Vercel)
+├── public/                 # Static assets
+└── package.json
 ```
 
-## Contract Addresses
+## 🔗 Contract Addresses
 
-All contract addresses are configured in `src/config/contracts.ts`:
+All addresses configured in `src/config/contracts.ts`:
 
-- **EagleOVault:** `0xf7eDdA9959249D96773BB2858bE1011C7E424855`
-- **EagleShareOFT:** `0x05D8Fe8B549bC8F45615FDAc1BF77eE7F4033569`
-- **EagleVaultWrapper:** `0xA3d9e8f0de77241267A9d162c535C2A69385792A`
-- **CharmStrategy:** `0xd548CbC1D0A8723838993a763f1ca20533ed0c12`
+- **EagleOVault:** `0x47b3ef629D9cB8DFcF8A6c61058338f4e99d7953`
+- **EagleShareOFT:** `0x474eD38C256A7FA0f3B8c48496CE1102ab0eA91E`
+- **EagleVaultWrapper:** `0x47dAc5063c526dBc6f157093DD1D62d9DE8891c5`
+- **CharmStrategyUSD1:** `0x47B2659747d6A7E00c8251c3C3f7e92625a8cf6f`
+- **CharmStrategyWETH:** `0x5c525Af4153B1c43f9C06c31D32a84637c617FfE`
 
-## Features Breakdown
+## 🛠️ Tech Stack
 
-### Deposit/Withdraw Tab
+- **React 18** + TypeScript
+- **Vite** - Fast build tool
+- **Wagmi** + **RainbowKit** - Wallet integration
+- **Ethers.js v6** - Ethereum interactions
+- **Tailwind CSS** - Styling
+- **Recharts** - Data visualization
+- **Framer Motion** - Animations
 
-- Deposit WLFI + USD1 to receive vEAGLE shares
-- Withdraw vEAGLE to receive WLFI + USD1
-- Auto-approves tokens before transactions
-- Shows transaction progress
+## 📦 Key Features
 
-### Wrap/Unwrap Tab
+### Vault Operations
+- Deposit WLFI + USD1 tokens
+- Withdraw vEAGLE shares
+- Real-time balance tracking
+- Transaction history
 
-- Wrap vEAGLE → EAGLE (1% fee, 0% for whitelisted)
-- Unwrap EAGLE → vEAGLE (2% fee, 0% for whitelisted)
-- Shows fee calculations
-- Whitelist status indicator
+### Cross-Chain Bridge
+- Wrap vEAGLE → EAGLE (tradable tokens)
+- Unwrap EAGLE → vEAGLE (vault shares)
+- Fee calculations
+- Whitelist status
 
-### Strategy Tab
-
-- Real-time Charm strategy performance
-- Token breakdown (WLFI/WETH)
-- Total value locked in strategy
-- Link to Charm vault
-- Strategy explanation
-
-### Vault Stats
-
+### Analytics Dashboard
+- Current APY calculation from Charm Finance
 - Total Value Locked (TVL)
-- Total vEAGLE shares
-- EAGLE circulating supply
-- Vault utilization percentage
-- Total fees collected
+- Strategy performance metrics
+- Asset allocation visualization
+- Historical data charts
 
-## Customization
+### Admin Features
+- Capital injection controls
+- Strategy management
+- Safe App integration for multi-sig
 
-### Colors
+## 🔧 Configuration
 
-Edit `tailwind.config.js` to change the color scheme:
+### Environment Variables
 
-```js
-colors: {
-  eagle: {
-    500: '#ed721f', // Primary color
-    600: '#de5815', // Hover color
-    // ...
-  }
-}
-```
-
-### Contract Addresses
-
-Update `src/config/contracts.ts` when deploying to different networks.
-
-### Add New Features
-
-1. Create component in `src/components/`
-2. Add to `App.tsx`
-3. Update navigation
-
-## Environment Variables
-
-Create `.env` file for custom RPC:
+Create `.env.local`:
 
 ```env
 VITE_RPC_URL=https://eth-mainnet.g.alchemy.com/v2/YOUR_KEY
+VITE_CHARM_VAULT_USD1_ADDRESS=0x22828Dbf15f5FBa2394Ba7Cf8fA9A96BdB444B71
+VITE_CHARM_VAULT_WETH_ADDRESS=0x3314e248F3F752Cd16939773D83bEb3a362F0AEF
 ```
 
-## Deployment
+### Customization
 
-### Vercel/Netlify
+- **Colors:** Edit `tailwind.config.js`
+- **Contracts:** Update `src/config/contracts.ts`
+- **Design System:** Modify `src/styles/design-system.ts`
 
-```bash
-npm run build
-# Deploy dist/ folder
-```
-
-### IPFS
-
-```bash
-npm run build
-# Upload dist/ to IPFS
-```
-
-### GitHub Pages
-
-```bash
-npm run build
-# Configure base path in vite.config.ts
-```
-
-## Browser Support
-
-- Chrome/Edge (latest)
-- Firefox (latest)
-- Safari (latest)
-- MetaMask required for wallet connection
-
-## Performance
+## 📊 Performance
 
 - Lighthouse Score: 95+
 - First Contentful Paint: <1s
-- Time to Interactive: <2s
-- Bundle size: ~150KB gzipped
+- Bundle Size: ~200KB gzipped
+- Optimized for production
 
-## Security
+## 🔒 Security
 
 - All transactions require user approval
 - No private keys stored
-- Contract interactions audited
+- Safe App integration for multi-sig
 - HTTPS required for production
 
-## Troubleshooting
+## 🚢 Deployment
 
-**Wallet not connecting?**
-- Ensure MetaMask is installed
-- Check you're on Ethereum mainnet
-- Refresh page
+### Vercel
 
-**Transactions failing?**
-- Check token approvals
-- Ensure sufficient balance
-- Verify gas prices
+```bash
+npm run build
+# Deploy via Vercel CLI or GitHub integration
+```
 
-**Stats not loading?**
-- Check RPC connection
-- Verify contract addresses
-- Open browser console for errors
+### Other Platforms
 
-## Contributing
+```bash
+npm run build
+# Deploy dist/ folder to your hosting provider
+```
 
-1. Fork repository
-2. Create feature branch
-3. Make changes
-4. Test thoroughly
-5. Submit pull request
-
-## License
+## 📝 License
 
 MIT
 
-## Support
+## 🤝 Contributing
 
-- Docs: Coming soon
-- Twitter: @EagleVault
-- Discord: Coming soon
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## 📞 Support
+
+- **Documentation:** See main repository README
+- **Issues:** GitHub Issues
+- **Contract Addresses:** [Etherscan](https://etherscan.io)
 
 ---
 

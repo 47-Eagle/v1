@@ -1,0 +1,83 @@
+# Vercel Environment Variables
+
+Add these environment variables to your Vercel project settings.
+
+## Contract Addresses
+
+### Core Contracts
+- `VITE_VAULT_ADDRESS` = `0x47b3ef629D9cB8DFcF8A6c61058338f4e99d7953` (EagleOVault)
+- `VITE_WRAPPER_ADDRESS` = `0x47dAc5063c526dBc6f157093DD1D62d9DE8891c5`
+- `VITE_OFT_ADDRESS` = `0x474eD38C256A7FA0f3B8c48496CE1102ab0eA91E`
+- `VITE_EAGLE_REGISTRY` = `0x47c81c9a70CA7518d3b911bC8C8b11000e92F59e`
+- `VITE_COMPOSER_ADDRESS` = `0x3A91B3e863C0bd6948088e8A0A9B1D22d6D05da9`
+
+### Strategy Contracts
+- `VITE_STRATEGY_USD1_ADDRESS` = `0x47B2659747d6A7E00c8251c3C3f7e92625a8cf6f` (WLFI/USD1 Strategy)
+- `VITE_STRATEGY_WETH_ADDRESS` = `0x997feaa69a60c536f8449f0d5adf997fd83adf39` (WETH/WLFI Strategy)
+- `VITE_STRATEGY_ADDRESS` = `0x47B2659747d6A7E00c8251c3C3f7e92625a8cf6f` (Legacy)
+
+### Token Addresses
+- `VITE_WLFI_ADDRESS` = `0xdA5e1988097297dCdc1f90D4dFE7909e847CBeF6`
+- `VITE_USD1_ADDRESS` = `0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d`
+- `VITE_WETH_ADDRESS` = `0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2`
+
+### Charm Finance Vaults
+- `VITE_CHARM_VAULT_USD1_ADDRESS` = `0x22828Dbf15f5FBa2394Ba7Cf8fA9A96BdB444B71` (WLFI/USD1 Charm Vault)
+- `VITE_CHARM_VAULT_WETH_ADDRESS` = `0x3314e248F3F752Cd16939773D83bEb3a362F0AEF` (WETH/WLFI Charm Vault)
+
+### Uniswap V3 Pools - WLFI/USD1
+- `VITE_UNISWAP_V3_POOL_USD1_1PCT` = `0xf9f5E6f7A44Ee10c72E67Bded6654afAf4D0c85d` (1% Fee Tier)
+- `VITE_UNISWAP_V3_POOL_USD1_03PCT` = `0x4637ea6ecf7e16c99e67e941ab4d7d52eac7c73d` (0.3% Fee Tier)
+
+### Uniswap V3 Pools - WETH/WLFI
+- `VITE_UNISWAP_V3_POOL_WETH_1PCT` = `0xCa2e972f081764c30Ae5F012A29D5277EEf33838` (1% Fee Tier)
+- `VITE_UNISWAP_V3_POOL_WETH_03PCT` = `0xcdf9f50519eb0a9995730ddb6e7d3a8b1d8ffa07` (0.3% Fee Tier)
+
+### Other Uniswap Pools
+- `VITE_WLFI_USD1_POOL` = `0x4637ea6ecf7e16c99e67e941ab4d7d52eac7c73d`
+- `VITE_WLFI_USDC_POOL` = `0x6e5930d139a848e0446ff11e0d30f964eec8df76`
+- `VITE_WLFI_USDT_POOL` = `0x238f00fcfd4f0c5930028237c6a1b395f4c0fc74`
+- `VITE_UNISWAP_V3_ROUTER` = `0xE592427A0AEce92De3Edee1F18E0157C05861564`
+
+## External Services
+
+### WalletConnect
+- `VITE_WALLETCONNECT_PROJECT_ID` = `d93762120258cc136c10e2503d26bfdc`
+
+### RPC Endpoints
+- `VITE_ETHEREUM_RPC` = `https://eth-mainnet.g.alchemy.com/v2/omeyMm6mGtblMX7rCT-QTGQvTLFD4J9F`
+
+### Chainlink Oracles
+- `VITE_USD1_PRICE_FEED` = `0xF0d9bb015Cd7BfAb877B7156146dc09Bf461370d`
+
+### External APIs
+- `VITE_ETHERSCAN_API_KEY` = `I94XWYKMNGJPS7BBRNZUYP5E2E9PQSBNRE`
+
+### Google Authentication
+- `VITE_GOOGLE_CLIENT_ID` = `210963243141-0ud7vuqa1p7l2d17s94bam0q4gs65j7v.apps.googleusercontent.com`
+- `VITE_ALLOWED_DOMAIN` = `47eagle.com`
+
+## Chain Configuration
+
+### Chain IDs
+- `VITE_ETHEREUM_CHAIN_ID` = `1`
+- `VITE_ARBITRUM_CHAIN_ID` = `42161`
+- `VITE_BASE_CHAIN_ID` = `8453`
+- `VITE_AVALANCHE_CHAIN_ID` = `43114`
+- `VITE_BSC_CHAIN_ID` = `56`
+- `VITE_SONIC_CHAIN_ID` = `146`
+
+### LayerZero Endpoint IDs
+- `VITE_ETHEREUM_EID` = `30101`
+- `VITE_ARBITRUM_EID` = `30110`
+- `VITE_BASE_EID` = `30184`
+- `VITE_AVALANCHE_EID` = `30106`
+- `VITE_BSC_EID` = `30102`
+- `VITE_SONIC_EID` = `30332`
+
+## Notes
+
+- All addresses are for Ethereum Mainnet
+- Make sure to add these to all environments (Production, Preview, Development) in Vercel
+- The `VITE_` prefix is required for Vite to expose these variables to the browser
+

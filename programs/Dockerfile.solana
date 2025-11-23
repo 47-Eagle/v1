@@ -1,8 +1,0 @@
-FROM node:20
-
-# Install Solana CLI
-RUN sh -c "$(curl -sSfL https://release.solana.com/stable/install)"
-ENV PATH="/root/.local/share/solana/install/active_release/bin:${PATH}"
-
-WORKDIR /work
-CMD ["/bin/bash"]

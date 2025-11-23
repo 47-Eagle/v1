@@ -1,6 +1,0 @@
-{
-  "scripts": {
-    "vercel-build": "npm run build"
-  }
-}
-
