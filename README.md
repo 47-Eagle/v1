@@ -1,20 +1,18 @@
-# 🦅 Eagle Vault Frontend
+# Eagle Vault Frontend
 
 Modern, production-ready frontend for the Eagle Omnichain Vault - a dual-token DeFi vault with Charm Finance integration and LayerZero cross-chain capabilities.
 
-**Live:** [https://test.47eagle.com](https://test.47eagle.com)
+## Features
 
-## ✨ Features
+- **Vault Management** - Deposit WLFI + USD1, withdraw at any time
+- **Cross-Chain Bridge** - Wrap/unwrap vEAGLE ↔ EAGLE tokens  
+- **Real-Time Analytics** - Live APY, TVL, and performance metrics
+- **Strategy Monitoring** - Track Charm Finance strategy performance
+- **Multi-Wallet Support** - MetaMask, WalletConnect, Safe App integration
+- **Modern UI** - Neumorphic design with dark mode support
+- **Responsive** - Works on desktop and mobile
 
-- 💰 **Vault Management** - Deposit WLFI + USD1, withdraw at any time
-- 🔄 **Cross-Chain Bridge** - Wrap/unwrap vEAGLE ↔ EAGLE tokens  
-- 📊 **Real-Time Analytics** - Live APY, TVL, and performance metrics
-- 🎯 **Strategy Monitoring** - Track Charm Finance strategy performance
-- 🔐 **Multi-Wallet Support** - MetaMask, WalletConnect, Safe App integration
-- 🎨 **Modern UI** - Neumorphic design with dark mode support
-- 📱 **Responsive** - Works on desktop and mobile
-
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -44,7 +42,7 @@ npm run build
 
 Output in `frontend/dist/` folder.
 
-## 🏗️ Project Structure
+## Project Structure
 
 ```
 frontend/
@@ -65,7 +63,7 @@ frontend/
 └── package.json
 ```
 
-## 🔗 Contract Addresses
+## Contract Addresses
 
 All addresses configured in `src/config/contracts.ts`:
 
@@ -75,7 +73,7 @@ All addresses configured in `src/config/contracts.ts`:
 - **CharmStrategyUSD1:** `0x47B2659747d6A7E00c8251c3C3f7e92625a8cf6f`
 - **CharmStrategyWETH:** `0x5c525Af4153B1c43f9C06c31D32a84637c617FfE`
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **React 18** + TypeScript
 - **Vite** - Fast build tool
@@ -85,7 +83,7 @@ All addresses configured in `src/config/contracts.ts`:
 - **Recharts** - Data visualization
 - **Framer Motion** - Animations
 
-## 📦 Key Features
+## Key Features
 
 ### Vault Operations
 - Deposit WLFI + USD1 tokens
@@ -111,7 +109,7 @@ All addresses configured in `src/config/contracts.ts`:
 - Strategy management
 - Safe App integration for multi-sig
 
-## 🔧 Configuration
+## Configuration
 
 ### Environment Variables
 
@@ -129,21 +127,21 @@ VITE_CHARM_VAULT_WETH_ADDRESS=0x3314e248F3F752Cd16939773D83bEb3a362F0AEF
 - **Contracts:** Update `frontend/src/config/contracts.ts`
 - **Design System:** Modify `frontend/src/styles/design-system.ts`
 
-## 📊 Performance
+## Performance
 
 - Lighthouse Score: 95+
 - First Contentful Paint: <1s
 - Bundle Size: ~200KB gzipped
 - Optimized for production
 
-## 🔒 Security
+## Security
 
 - All transactions require user approval
 - No private keys stored
 - Safe App integration for multi-sig
 - HTTPS required for production
 
-## 🚢 Deployment
+## Deployment
 
 ### Vercel
 
@@ -157,11 +155,11 @@ npm run build
 # Deploy dist/ folder to your hosting provider
 ```
 
-## 📝 License
+## License
 
 MIT - See [LICENSE](./LICENSE) file
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
@@ -171,7 +169,7 @@ MIT - See [LICENSE](./LICENSE) file
 6. Push to the branch (`git push origin feature/amazing-feature`)
 7. Open a Pull Request
 
-## 📞 Support
+## Support
 
 - **Documentation:** See main repository README
 - **Issues:** [GitHub Issues](https://github.com/47-Eagle/v1/issues)
@@ -179,4 +177,4 @@ MIT - See [LICENSE](./LICENSE) file
 
 ---
 
-Built with ❤️ by the Eagle Vault team 🦅
+Built by the Eagle Vault team
