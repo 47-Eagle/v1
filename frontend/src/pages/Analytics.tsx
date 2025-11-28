@@ -14,59 +14,70 @@ interface Props {
 
 export default function Analytics({ provider, account, onNavigateUp }: Props) {
   const [selectedVault, setSelectedVault] = useState<'USD1_WLFI' | 'WETH_WLFI' | 'combined'>('combined');
-  const { data, loading, error, refetch, source } = useAnalyticsData(90);
+  const { data, loading, error, refetch } = useAnalyticsData(90);
 
-  // Get metrics based on selected vault
-  const getDisplayMetrics = () => {
+  // Get combined metrics
+  const getCombinedMetrics = () => {
     if (!data) return null;
-
-    if (selectedVault === 'combined') {
-      const usd1 = data.vaults.USD1_WLFI.metrics;
-      const weth = data.vaults.WETH_WLFI.metrics;
-
-      return {
-        tvlToken0: `${usd1?.tvlToken0 || '0'} + ${weth?.tvlToken0 || '0'}`,
-        tvlToken1: `${usd1?.tvlToken1 || '0'} + ${weth?.tvlToken1 || '0'}`,
-        totalSupply: 'Combined',
-        snapshotCount: (usd1?.snapshotCount || 0) + (weth?.snapshotCount || 0),
-        firstSnapshotDate: usd1?.firstSnapshotDate || weth?.firstSnapshotDate,
-        lastSnapshotDate: usd1?.lastSnapshotDate || weth?.lastSnapshotDate,
-      };
+    
+    const usd1 = data.vaults.USD1_WLFI;
+    const weth = data.vaults.WETH_WLFI;
+    
+    const usd1Tvl = usd1.historicalSnapshots.slice(-1)[0]?.tvlUsd || 0;
+    const wethTvl = weth.historicalSnapshots.slice(-1)[0]?.tvlUsd || 0;
+    const combinedTvl = usd1Tvl + wethTvl;
+    
+    // Weight APY by TVL
+    const usd1Apy = usd1.metrics?.weeklyApy ? parseFloat(usd1.metrics.weeklyApy) : null;
+    const wethApy = weth.metrics?.weeklyApy ? parseFloat(weth.metrics.weeklyApy) : null;
+    
+    let weightedApy: number | null = null;
+    if (usd1Apy !== null && wethApy !== null && combinedTvl > 0) {
+      weightedApy = (usd1Apy * usd1Tvl + wethApy * wethTvl) / combinedTvl;
+    } else if (usd1Apy !== null) {
+      weightedApy = usd1Apy;
+    } else if (wethApy !== null) {
+      weightedApy = wethApy;
     }
+    
+    return {
+      tvlUsd: formatUsd(combinedTvl),
+      weeklyApy: weightedApy !== null ? `${weightedApy.toFixed(2)}%` : null,
+      monthlyApy: null, // Would need more complex weighting
+      inceptionApy: null,
+      snapshotCount: (usd1.metrics?.snapshotCount || 0) + (weth.metrics?.snapshotCount || 0),
+    };
+  };
 
+  // Get current vault metrics
+  const getMetrics = () => {
+    if (!data) return null;
+    if (selectedVault === 'combined') return getCombinedMetrics();
     return data.vaults[selectedVault]?.metrics || null;
   };
 
-  const metrics = getDisplayMetrics();
+  const metrics = getMetrics();
+  const currentVault = selectedVault !== 'combined' ? data?.vaults[selectedVault] : null;
 
   // Get historical data for chart
   const getHistoricalData = () => {
     if (!data) return [];
-
     if (selectedVault === 'combined') {
-      const usd1 = data.vaults.USD1_WLFI.historicalSnapshots || [];
-      return usd1; // Use USD1 as primary for combined view
+      // Combine both vaults' TVL
+      const usd1 = data.vaults.USD1_WLFI.historicalSnapshots;
+      const weth = data.vaults.WETH_WLFI.historicalSnapshots;
+      
+      // Use timestamps from the vault with more data
+      const base = usd1.length >= weth.length ? usd1 : weth;
+      return base.map((snap, i) => ({
+        ...snap,
+        tvlUsd: (usd1[i]?.tvlUsd || 0) + (weth[i]?.tvlUsd || 0),
+      }));
     }
-
     return data.vaults[selectedVault]?.historicalSnapshots || [];
   };
 
   const historicalData = getHistoricalData();
-
-  // Get vault info
-  const getVaultInfo = () => {
-    if (!data || selectedVault === 'combined') {
-      return { token0: 'Token0', token1: 'Token1', name: 'Combined Vaults' };
-    }
-    const vault = data.vaults[selectedVault];
-    return {
-      token0: vault.token0Symbol,
-      token1: vault.token1Symbol,
-      name: vault.name,
-    };
-  };
-
-  const vaultInfo = getVaultInfo();
 
   return (
     <div className="bg-neo-bg min-h-screen pb-24">
@@ -105,10 +116,10 @@ export default function Analytics({ provider, account, onNavigateUp }: Props) {
           <div className="flex-1">
             <h1 className="text-3xl font-bold text-gray-900 mb-1">Vault Analytics</h1>
             <p className="text-sm text-gray-600">
-              TVL and vault activity data
-              {source && (
+              Real-time TVL and yield performance
+              {data?.meta?.priceSource && (
                 <span className="ml-2 text-xs text-gray-400">
-                  (via {source === 'cache' ? 'cached data' : 'live GraphQL'})
+                  (prices via {data.meta.priceSource})
                 </span>
               )}
             </p>
@@ -159,46 +170,54 @@ export default function Analytics({ provider, account, onNavigateUp }: Props) {
           </div>
         )}
 
-        {/* TVL Stats */}
+        {/* Main Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <NeoStatCard
-            label={selectedVault === 'combined' ? 'USD1 TVL' : `${vaultInfo.token0} TVL`}
-            value={metrics?.tvlToken0 || (loading ? '...' : 'N/A')}
-            subtitle="Token 0 balance"
-          />
-          <NeoStatCard
-            label={selectedVault === 'combined' ? 'WLFI TVL' : `${vaultInfo.token1} TVL`}
-            value={metrics?.tvlToken1 || (loading ? '...' : 'N/A')}
-            subtitle="Token 1 balance"
-          />
-          <NeoStatCard
-            label="Vault Shares"
-            value={metrics?.totalSupply || (loading ? '...' : 'N/A')}
-            subtitle="Total supply"
-          />
-          <NeoStatCard
-            label="Snapshots"
-            value={metrics?.snapshotCount?.toString() || (loading ? '...' : '0')}
+            label="Total Value Locked"
+            value={selectedVault === 'combined' 
+              ? metrics?.tvlUsd || (loading ? '...' : '$0')
+              : currentVault?.metrics?.tvlUsd || (loading ? '...' : '$0')}
             highlighted
-            subtitle="Data points"
+            subtitle="In USD"
+          />
+          <NeoStatCard
+            label="Weekly APY"
+            value={metrics?.weeklyApy || (loading ? '...' : 'Calculating...')}
+            subtitle={metrics?.weeklyApy ? '7-day annualized' : 'Need more data'}
+          />
+          <NeoStatCard
+            label="Monthly APY"
+            value={selectedVault !== 'combined' && currentVault?.metrics?.monthlyApy 
+              ? currentVault.metrics.monthlyApy 
+              : (loading ? '...' : 'Calculating...')}
+            subtitle={currentVault?.metrics?.monthlyApy ? '30-day annualized' : 'Need more data'}
+          />
+          <NeoStatCard
+            label="Since Inception"
+            value={selectedVault !== 'combined' && currentVault?.metrics?.inceptionApy 
+              ? currentVault.metrics.inceptionApy 
+              : (loading ? '...' : 'Calculating...')}
+            subtitle="All-time performance"
           />
         </div>
 
-        {/* Info Banner */}
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-8">
-          <div className="flex items-start gap-3">
-            <svg className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <div>
-              <p className="text-amber-800 font-semibold text-sm">APY Calculation Note</p>
-              <p className="text-amber-700 text-xs mt-1">
-                Accurate APY calculation requires USD price feeds for both tokens. The TVL shown above is in raw token amounts. 
-                For real-time APY, visit the Charm Finance vaults directly.
-              </p>
+        {/* Token Prices */}
+        {data?.prices && (
+          <div className="grid grid-cols-3 gap-4 mb-8">
+            <div className="bg-white/50 shadow-neo rounded-xl p-4 text-center">
+              <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">WLFI Price</p>
+              <p className="text-xl font-bold text-gray-900">${data.prices.WLFI.toFixed(4)}</p>
+            </div>
+            <div className="bg-white/50 shadow-neo rounded-xl p-4 text-center">
+              <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">USD1 Price</p>
+              <p className="text-xl font-bold text-gray-900">${data.prices.USD1.toFixed(2)}</p>
+            </div>
+            <div className="bg-white/50 shadow-neo rounded-xl p-4 text-center">
+              <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">ETH Price</p>
+              <p className="text-xl font-bold text-gray-900">${data.prices.WETH.toFixed(0)}</p>
             </div>
           </div>
-        </div>
+        )}
 
         {/* TVL Chart */}
         <NeoCard className="mb-8">
@@ -219,31 +238,26 @@ export default function Analytics({ provider, account, onNavigateUp }: Props) {
                       </linearGradient>
                     </defs>
                     
-                    {/* Calculate max TVL for scaling */}
                     {(() => {
-                      const maxTvl = Math.max(...historicalData.map(s => s.tvlToken0 + s.tvlToken1));
-                      const minTvl = Math.min(...historicalData.map(s => s.tvlToken0 + s.tvlToken1));
+                      const tvlValues = historicalData.map(s => s.tvlUsd);
+                      const maxTvl = Math.max(...tvlValues);
+                      const minTvl = Math.min(...tvlValues);
                       const range = maxTvl - minTvl || 1;
                       
                       return (
                         <>
-                          {/* Area under curve */}
                           <polygon
                             points={`0,30 ${historicalData.map((snap, i) => {
                               const x = (i / Math.max(historicalData.length - 1, 1)) * 100;
-                              const tvl = snap.tvlToken0 + snap.tvlToken1;
-                              const y = 30 - ((tvl - minTvl) / range) * 25;
+                              const y = 30 - ((snap.tvlUsd - minTvl) / range) * 25;
                               return `${x},${y}`;
                             }).join(' ')} 100,30`}
                             fill="url(#area-gradient)"
                           />
-                          
-                          {/* Line */}
                           <polyline
                             points={historicalData.map((snap, i) => {
                               const x = (i / Math.max(historicalData.length - 1, 1)) * 100;
-                              const tvl = snap.tvlToken0 + snap.tvlToken1;
-                              const y = 30 - ((tvl - minTvl) / range) * 25;
+                              const y = 30 - ((snap.tvlUsd - minTvl) / range) * 25;
                               return `${x},${y}`;
                             }).join(' ')}
                             fill="none"
@@ -257,9 +271,11 @@ export default function Analytics({ provider, account, onNavigateUp }: Props) {
                     })()}
                   </svg>
                   
-                  {/* X-axis labels */}
                   <div className="flex justify-between text-xs text-gray-500 mt-2">
                     <span>{historicalData[0]?.date}</span>
+                    <span className="font-medium text-gray-700">
+                      Current: {formatUsd(historicalData[historicalData.length - 1]?.tvlUsd || 0)}
+                    </span>
                     <span>{historicalData[historicalData.length - 1]?.date}</span>
                   </div>
                 </div>
@@ -273,11 +289,38 @@ export default function Analytics({ provider, account, onNavigateUp }: Props) {
             </div>
             {historicalData.length > 0 && (
               <p className="text-xs text-gray-500 mt-2">
-                {historicalData.length} snapshots • {metrics?.firstSnapshotDate} to {metrics?.lastSnapshotDate}
+                {historicalData.length} data points • Updated {new Date(data?.meta?.generatedAt || '').toLocaleTimeString()}
               </p>
             )}
           </div>
         </NeoCard>
+
+        {/* Vault Details (when specific vault selected) */}
+        {selectedVault !== 'combined' && currentVault?.metrics && (
+          <NeoCard className="mb-8">
+            <div className="p-6">
+              <h3 className="text-gray-900 font-bold text-xl mb-4">{currentVault.name}</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-white/50 shadow-neo-inset rounded-xl p-4">
+                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{currentVault.metrics.token0Symbol}</p>
+                  <p className="text-lg font-bold text-gray-900">{currentVault.metrics.token0Amount}</p>
+                </div>
+                <div className="bg-white/50 shadow-neo-inset rounded-xl p-4">
+                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{currentVault.metrics.token1Symbol}</p>
+                  <p className="text-lg font-bold text-gray-900">{currentVault.metrics.token1Amount}</p>
+                </div>
+                <div className="bg-white/50 shadow-neo-inset rounded-xl p-4">
+                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Share Price</p>
+                  <p className="text-lg font-bold text-gray-900">{currentVault.metrics.sharePrice}</p>
+                </div>
+                <div className="bg-white/50 shadow-neo-inset rounded-xl p-4">
+                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Total Shares</p>
+                  <p className="text-lg font-bold text-gray-900">{currentVault.metrics.totalShares}</p>
+                </div>
+              </div>
+            </div>
+          </NeoCard>
+        )}
 
         {/* Fee Breakdown */}
         <NeoCard>
@@ -326,7 +369,7 @@ export default function Analytics({ provider, account, onNavigateUp }: Props) {
                     <p className="text-xs text-gray-600 mt-1">Uniswap V3 • 1% Fee Tier</p>
                     {data?.vaults.USD1_WLFI.metrics && (
                       <p className="text-xs text-amber-600 mt-1 font-medium">
-                        TVL: {data.vaults.USD1_WLFI.metrics.tvlToken0} USD1 + {data.vaults.USD1_WLFI.metrics.tvlToken1} WLFI
+                        TVL: {data.vaults.USD1_WLFI.metrics.tvlUsd}
                       </p>
                     )}
                   </div>
@@ -337,15 +380,9 @@ export default function Analytics({ provider, account, onNavigateUp }: Props) {
                     <p className="text-xs text-gray-600 mt-1">Uniswap V3 • 1% Fee Tier</p>
                     {data?.vaults.WETH_WLFI.metrics && (
                       <p className="text-xs text-amber-600 mt-1 font-medium">
-                        TVL: {data.vaults.WETH_WLFI.metrics.tvlToken0} WETH + {data.vaults.WETH_WLFI.metrics.tvlToken1} WLFI
+                        TVL: {data.vaults.WETH_WLFI.metrics.tvlUsd}
                       </p>
                     )}
-                  </div>
-                  
-                  <div className="bg-white/50 shadow-neo-inset rounded-xl p-4">
-                    <div className="text-xs text-gray-600 uppercase tracking-wider mb-2 font-semibold">Rebalancing</div>
-                    <p className="text-gray-900 font-bold">Automatic</p>
-                    <p className="text-xs text-gray-600 mt-1">Matches Charm's ratio before deposit</p>
                   </div>
                 </div>
               </div>
@@ -354,9 +391,9 @@ export default function Analytics({ provider, account, onNavigateUp }: Props) {
             {/* Data Source */}
             <div className="mt-6 pt-6 border-t border-gray-300">
               <p className="text-xs text-gray-600">
-                <span className="font-semibold">Data Source:</span> Charm Finance Subgraph
+                <span className="font-semibold">Data Sources:</span> Charm Finance Subgraph (TVL) • CoinGecko (Prices)
                 {data?.meta?.totalSnapshots && (
-                  <span className="ml-2">• {data.meta.totalSnapshots} total snapshots</span>
+                  <span className="ml-2">• {data.meta.totalSnapshots} snapshots</span>
                 )}
               </p>
               <div className="flex gap-4 mt-2">
@@ -366,7 +403,7 @@ export default function Analytics({ provider, account, onNavigateUp }: Props) {
                   rel="noopener noreferrer"
                   className="text-xs text-amber-700 hover:text-amber-800 font-medium inline-flex items-center gap-1"
                 >
-                  USD1/WLFI Vault on Charm
+                  USD1/WLFI on Charm
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                   </svg>
@@ -377,7 +414,7 @@ export default function Analytics({ provider, account, onNavigateUp }: Props) {
                   rel="noopener noreferrer"
                   className="text-xs text-amber-700 hover:text-amber-800 font-medium inline-flex items-center gap-1"
                 >
-                  WETH/WLFI Vault on Charm
+                  WETH/WLFI on Charm
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                   </svg>
@@ -393,105 +430,66 @@ export default function Analytics({ provider, account, onNavigateUp }: Props) {
             <h3 className="text-gray-900 font-bold text-xl mb-6">Contract Addresses</h3>
             
             <div className="space-y-4">
-              {/* USD1/WLFI Pool */}
-              <div className="bg-white/50 shadow-neo-inset rounded-xl p-4">
-                <div className="text-xs text-gray-600 uppercase tracking-wider mb-2 font-semibold">
-                  USD1/WLFI Charm Vault
-                </div>
-                <div className="flex items-center gap-2">
-                  <code className="text-gray-900 font-mono text-sm bg-gray-100 px-3 py-2 rounded-lg flex-1 break-all">
-                    {CONTRACTS.CHARM_VAULT}
-                  </code>
-                  <button
-                    onClick={() => navigator.clipboard.writeText(CONTRACTS.CHARM_VAULT)}
-                    className="p-2 hover:bg-gray-200 rounded-lg transition-colors flex-shrink-0"
-                    title="Copy to clipboard"
-                  >
-                    <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                    </svg>
-                  </button>
-                  <a
-                    href={`https://etherscan.io/address/${CONTRACTS.CHARM_VAULT}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-2 hover:bg-gray-200 rounded-lg transition-colors flex-shrink-0"
-                    title="View on Etherscan"
-                  >
-                    <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    </svg>
-                  </a>
-                </div>
-              </div>
-
-              {/* WETH/WLFI Vault */}
-              <div className="bg-white/50 shadow-neo-inset rounded-xl p-4">
-                <div className="text-xs text-gray-600 uppercase tracking-wider mb-2 font-semibold">
-                  WETH/WLFI Charm Vault
-                </div>
-                <div className="flex items-center gap-2">
-                  <code className="text-gray-900 font-mono text-sm bg-gray-100 px-3 py-2 rounded-lg flex-1 break-all">
-                    0x3314e248F3F752Cd16939773D83bEb3a362F0AEF
-                  </code>
-                  <button
-                    onClick={() => navigator.clipboard.writeText('0x3314e248F3F752Cd16939773D83bEb3a362F0AEF')}
-                    className="p-2 hover:bg-gray-200 rounded-lg transition-colors flex-shrink-0"
-                    title="Copy to clipboard"
-                  >
-                    <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                    </svg>
-                  </button>
-                  <a
-                    href="https://etherscan.io/address/0x3314e248F3F752Cd16939773D83bEb3a362F0AEF"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-2 hover:bg-gray-200 rounded-lg transition-colors flex-shrink-0"
-                    title="View on Etherscan"
-                  >
-                    <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    </svg>
-                  </a>
-                </div>
-              </div>
-
-              {/* Eagle Vault */}
-              <div className="bg-white/50 shadow-neo-inset rounded-xl p-4">
-                <div className="text-xs text-gray-600 uppercase tracking-wider mb-2 font-semibold">
-                  Eagle OVault Contract
-                </div>
-                <div className="flex items-center gap-2">
-                  <code className="text-gray-900 font-mono text-sm bg-gray-100 px-3 py-2 rounded-lg flex-1 break-all">
-                    0x47b3ef629D9cB8DFcF8A6c61058338f4e99d7953
-                  </code>
-                  <button
-                    onClick={() => navigator.clipboard.writeText('0x47b3ef629D9cB8DFcF8A6c61058338f4e99d7953')}
-                    className="p-2 hover:bg-gray-200 rounded-lg transition-colors flex-shrink-0"
-                    title="Copy to clipboard"
-                  >
-                    <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                    </svg>
-                  </button>
-                  <a
-                    href="https://etherscan.io/address/0x47b3ef629D9cB8DFcF8A6c61058338f4e99d7953"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-2 hover:bg-gray-200 rounded-lg transition-colors flex-shrink-0"
-                    title="View on Etherscan"
-                  >
-                    <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    </svg>
-                  </a>
-                </div>
-              </div>
+              <ContractAddress 
+                label="USD1/WLFI Charm Vault"
+                address={CONTRACTS.CHARM_VAULT}
+              />
+              <ContractAddress 
+                label="WETH/WLFI Charm Vault"
+                address="0x3314e248F3F752Cd16939773D83bEb3a362F0AEF"
+              />
+              <ContractAddress 
+                label="Eagle OVault Contract"
+                address="0x47b3ef629D9cB8DFcF8A6c61058338f4e99d7953"
+              />
             </div>
           </div>
         </NeoCard>
       </div>
     </div>
   );
+}
+
+// Helper component for contract addresses
+function ContractAddress({ label, address }: { label: string; address: string }) {
+  return (
+    <div className="bg-white/50 shadow-neo-inset rounded-xl p-4">
+      <div className="text-xs text-gray-600 uppercase tracking-wider mb-2 font-semibold">
+        {label}
+      </div>
+      <div className="flex items-center gap-2">
+        <code className="text-gray-900 font-mono text-sm bg-gray-100 px-3 py-2 rounded-lg flex-1 break-all">
+          {address}
+        </code>
+        <button
+          onClick={() => navigator.clipboard.writeText(address)}
+          className="p-2 hover:bg-gray-200 rounded-lg transition-colors flex-shrink-0"
+          title="Copy to clipboard"
+        >
+          <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          </svg>
+        </button>
+        <a
+          href={`https://etherscan.io/address/${address}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="p-2 hover:bg-gray-200 rounded-lg transition-colors flex-shrink-0"
+          title="View on Etherscan"
+        >
+          <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          </svg>
+        </a>
+      </div>
+    </div>
+  );
+}
+
+// Helper function
+function formatUsd(value: number): string {
+  if (value >= 1e9) return `$${(value / 1e9).toFixed(2)}B`;
+  if (value >= 1e6) return `$${(value / 1e6).toFixed(2)}M`;
+  if (value >= 1e3) return `$${(value / 1e3).toFixed(2)}K`;
+  return `$${value.toFixed(2)}`;
 }
