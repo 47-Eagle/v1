@@ -244,7 +244,7 @@ export default function EagleLPContent({ onNavigateDown, onNavigateToCrossChain 
               </a>
               
               <a 
-                href="https://t.me/Eagle_community_47" 
+                href="https://t.me/EagleDeFi" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="flex-1 sm:flex-none px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-[#229ED9] to-[#0088cc] hover:from-[#0088cc] hover:to-[#006699] active:from-[#007BB3] active:to-[#005580] text-white text-xs sm:text-sm font-semibold rounded-full shadow-neo-raised dark:shadow-neo-raised-dark transition-all duration-300 flex items-center justify-center gap-1.5 sm:gap-2 touch-manipulation"

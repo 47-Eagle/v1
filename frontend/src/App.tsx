@@ -5,13 +5,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAccount } from 'wagmi';
 import ModernHeader from './components/ModernHeader';
 import EagleEcosystemWithRoutes from './components/EagleEcosystemWithRoutes';
-import { Showcase } from './pages/Showcase';
 import LandingPage from './pages/LandingPage';
 import { ICONS } from './config/icons';
 import { SafeProvider } from './components/SafeProvider';
 import { useSafeApp } from './hooks/useSafeApp';
 import { useEthersProvider } from './hooks/useEthersProvider';
-import { CharmStatsProvider } from './context/CharmStatsContext';
 
 interface Toast {
   id: number;
@@ -119,7 +117,7 @@ function AppContent() {
                 Twitter
               </a>
               <a 
-                href="https://t.me/Eagle_community_47" 
+                href="https://t.me/EagleDeFi" 
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 hover:text-[#F2D57C] dark:hover:text-[#FFE7A3] transition-colors font-medium"
@@ -181,7 +179,6 @@ function AnimatedRoutes() {
             <LandingPage />
           </motion.div>
         } />
-        <Route path="/showcase" element={<Showcase />} />
         <Route path="/app/*" element={<AppContent />} />
         <Route path="/*" element={<LandingPage />} />
       </Routes>
@@ -192,16 +189,14 @@ function AnimatedRoutes() {
 export default function App() {
   return (
     <SafeProvider>
-      <CharmStatsProvider>
-        <BrowserRouter
-          future={{
-            v7_startTransition: true,
-            v7_relativeSplatPath: true,
-          }}
-        >
-          <AnimatedRoutes />
-        </BrowserRouter>
-      </CharmStatsProvider>
+      <BrowserRouter
+        future={{
+          v7_startTransition: true,
+          v7_relativeSplatPath: true,
+        }}
+      >
+        <AnimatedRoutes />
+      </BrowserRouter>
     </SafeProvider>
   );
 }

@@ -172,7 +172,7 @@ export default function EagleHomeContent({ onNavigateUp, onNavigateDown, provide
             Twitter
           </motion.a>
           <motion.a 
-            href="https://t.me/Eagle_community_47" 
+            href="https://t.me/EagleDeFi" 
             target="_blank" 
             rel="noopener noreferrer" 
             whileHover={{ scale: 1.05, y: -2 }}
