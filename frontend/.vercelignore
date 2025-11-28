@@ -1,0 +1,7 @@
+# Vercel ignore file
+.env
+.env.local
+node_modules
+.next
+
+Build: 1760089688

@@ -1,0 +1,162 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* 🌟 Refined Web3-Friendly Gold Palette */
+  --eagle-gold: #F2D57C;        /* Primary Gold (Bright, Clean) */
+  --eagle-gold-soft: #C9A854;   /* Secondary Gold (Softer Token Gold) */
+  --eagle-gold-light: #FFE7A3;  /* Highlight Gold (for glows, edges) */
+  --eagle-gold-dark: #A69348;   /* Shadow Gold (depth without brown) */
+  
+  /* 🎨 Premium UI Colors */
+  --ui-bg: #0C0F14;             /* Background Deep */
+  --ui-surface: #161A21;        /* Surface */
+  --ui-card: #1E222C;           /* Card */
+  --ui-border: #2F3742;         /* Border Subtle */
+  --ui-text: #FFFFFF;           /* Text Primary */
+  --ui-text-soft: #C9CED7;      /* Text Secondary */
+  
+  /* Light Mode (Default) */
+  --bg-light: #e8ebef;
+  --text-light: #1a1a1a;
+  --text-secondary-light: #4b5563;
+  
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.75;
+  font-weight: 400;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'kern' 1, 'liga' 1;
+  letter-spacing: -0.01em;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Light mode (default) */
+body {
+  min-height: 100vh;
+  background-color: #e8ebef;
+  color: #1a1a1a;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Dark mode - Using new deep background */
+body.dark {
+  background-color: #0C0F14;
+  color: #C9CED7;
+}
+
+.dark {
+  color-scheme: dark;
+}
+
+/* Custom scrollbar - Light mode */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #d1d5db;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #9ca3af;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+
+/* Custom scrollbar - Dark mode */
+.dark ::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #404040;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #525252;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #ffffff;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0%, 100% { 
+    background-position: 0% 50%; 
+  }
+  50% { 
+    background-position: 100% 50%; 
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.shimmer-effect {
+  background-size: 200% 200%;
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+/* Glassmorphism - Using new Web3-friendly gold */
+.glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(242, 213, 124, 0.2);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card:hover {
+  border-color: rgba(242, 213, 124, 0.4);
+  box-shadow: 0 0 12px rgba(242, 213, 124, 0.18), 0 0 18px rgba(242, 213, 124, 0.12);
+  transform: translateY(-2px);
+}
+
+/* Focus styles */
+input:focus, 
+textarea:focus, 
+button:focus {
+  outline: 2px solid var(--eagle-gold);
+  outline-offset: 2px;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
