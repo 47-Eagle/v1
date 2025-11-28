@@ -8,6 +8,7 @@ interface VaultMetrics {
   inceptionApy: string | null;
   weeklyFeeApr: string | null;
   snapshotCount: number;
+  tvl: string | null;
 }
 
 interface HistoricalSnapshot {
@@ -15,6 +16,7 @@ interface HistoricalSnapshot {
   feeApr: string | null;
   annualVsHold: string | null;
   tvl?: string;
+  valuePerShare?: number;
 }
 
 interface VaultData {
@@ -76,81 +78,135 @@ async function fetchFromGraphQLDirect(vaultAddress: string) {
   return result.data?.vault?.snapshot || [];
 }
 
-// Calculate APY from TVL growth (value per share over time)
+// Calculate value per share - normalize to avoid precision issues
 function calculateValuePerShare(snapshot: any): number {
   const totalSupply = parseFloat(snapshot.totalSupply || '0');
   if (totalSupply === 0) return 0;
   
+  // Both amounts are in wei (18 decimals)
   const amount0 = parseFloat(snapshot.totalAmount0 || '0');
   const amount1 = parseFloat(snapshot.totalAmount1 || '0');
   
-  // Simple sum of both token amounts (assumes similar value for now)
-  // In production, you'd want to price these in USD
+  // Value per share = total value / total supply
+  // Since all are in same decimals, this gives us a normalized ratio
   return (amount0 + amount1) / totalSupply;
 }
 
+// Format large numbers for display
+function formatTVL(amount0: string, amount1: string): string {
+  const a0 = parseFloat(amount0) / 1e18;
+  const a1 = parseFloat(amount1) / 1e18;
+  const total = a0 + a1;
+  
+  if (total >= 1e9) return `${(total / 1e9).toFixed(2)}B`;
+  if (total >= 1e6) return `${(total / 1e6).toFixed(2)}M`;
+  if (total >= 1e3) return `${(total / 1e3).toFixed(2)}K`;
+  return total.toFixed(2);
+}
+
 function calculateMetricsFromSnapshots(snapshots: any[]): VaultMetrics | null {
-  if (!snapshots || snapshots.length === 0) return null;
+  if (!snapshots || snapshots.length < 2) {
+    return {
+      currentFeeApr: null,
+      weeklyApy: null,
+      monthlyApy: null,
+      inceptionApy: null,
+      weeklyFeeApr: null,
+      snapshotCount: snapshots?.length || 0,
+      tvl: null,
+    };
+  }
 
   const now = Date.now() / 1000;
   const oneWeekAgo = now - (7 * 24 * 60 * 60);
   const oneMonthAgo = now - (30 * 24 * 60 * 60);
 
+  // Get the latest snapshot
   const current = snapshots[snapshots.length - 1];
-  const weeklySnapshots = snapshots.filter((s: any) => parseInt(s.timestamp) >= oneWeekAgo);
-  const monthlySnapshots = snapshots.filter((s: any) => parseInt(s.timestamp) >= oneMonthAgo);
+  const currentVPS = calculateValuePerShare(current);
+  const currentTime = parseInt(current.timestamp);
 
-  // Calculate APY from value per share growth
-  const calculateGrowthApy = (startSnap: any, endSnap: any): number | null => {
-    if (!startSnap || !endSnap) return null;
+  // Find snapshots closest to our target times
+  const findClosestSnapshot = (targetTime: number) => {
+    let closest = snapshots[0];
+    let minDiff = Math.abs(parseInt(snapshots[0].timestamp) - targetTime);
     
-    const startValue = calculateValuePerShare(startSnap);
-    const endValue = calculateValuePerShare(endSnap);
+    for (const snap of snapshots) {
+      const diff = Math.abs(parseInt(snap.timestamp) - targetTime);
+      if (diff < minDiff) {
+        minDiff = diff;
+        closest = snap;
+      }
+    }
+    return closest;
+  };
+
+  // Calculate APY between two snapshots
+  const calculateAPY = (startSnap: any, endSnap: any): number | null => {
+    const startVPS = calculateValuePerShare(startSnap);
+    const endVPS = calculateValuePerShare(endSnap);
     
-    if (startValue === 0) return null;
+    if (startVPS === 0 || endVPS === 0) return null;
     
     const startTime = parseInt(startSnap.timestamp);
     const endTime = parseInt(endSnap.timestamp);
-    const daysDiff = (endTime - startTime) / (24 * 60 * 60);
+    const secondsDiff = endTime - startTime;
     
-    if (daysDiff < 1) return null;
+    // Need at least 1 hour of data
+    if (secondsDiff < 3600) return null;
     
-    // Calculate percentage growth
-    const growth = (endValue - startValue) / startValue;
+    // Calculate growth rate
+    const growthRate = (endVPS - startVPS) / startVPS;
     
-    // Annualize it
-    const annualizedGrowth = growth * (365 / daysDiff);
+    // Annualize: (1 + rate) ^ (seconds_per_year / seconds_elapsed) - 1
+    const secondsPerYear = 365 * 24 * 60 * 60;
+    const annualizedRate = Math.pow(1 + growthRate, secondsPerYear / secondsDiff) - 1;
     
-    return annualizedGrowth * 100; // Return as percentage
+    // Return as percentage, capped at reasonable bounds
+    const percentage = annualizedRate * 100;
+    
+    // Sanity check - APY should be between -100% and +10000%
+    if (percentage < -100 || percentage > 10000) {
+      console.warn('[calculateAPY] Unreasonable APY calculated:', percentage, { startVPS, endVPS, growthRate });
+      return null;
+    }
+    
+    return percentage;
   };
 
-  // Get first snapshot from each period for comparison
-  const weekStart = weeklySnapshots.length > 0 ? weeklySnapshots[0] : null;
-  const monthStart = monthlySnapshots.length > 0 ? monthlySnapshots[0] : null;
-  const inceptionStart = snapshots.length > 0 ? snapshots[0] : null;
+  // Find reference snapshots
+  const weekAgoSnap = findClosestSnapshot(oneWeekAgo);
+  const monthAgoSnap = findClosestSnapshot(oneMonthAgo);
+  const inceptionSnap = snapshots[0];
 
-  const weeklyApy = calculateGrowthApy(weekStart, current);
-  const monthlyApy = calculateGrowthApy(monthStart, current);
-  const inceptionApy = calculateGrowthApy(inceptionStart, current);
+  // Only calculate if we have meaningful time differences
+  const weeklyApy = parseInt(weekAgoSnap.timestamp) < oneWeekAgo + 86400 
+    ? calculateAPY(weekAgoSnap, current) 
+    : null;
+    
+  const monthlyApy = parseInt(monthAgoSnap.timestamp) < oneMonthAgo + 86400 
+    ? calculateAPY(monthAgoSnap, current) 
+    : null;
+    
+  const inceptionApy = calculateAPY(inceptionSnap, current);
 
-  // For feeApr, use the subgraph data if available, otherwise estimate from growth
-  const avgApr = (snaps: any[]) => {
-    const valid = snaps.filter(s => s.feeApr && parseFloat(s.feeApr) > 0);
-    if (valid.length === 0) return null;
-    return (valid.reduce((sum, s) => sum + parseFloat(s.feeApr || '0'), 0) / valid.length * 100).toFixed(2);
-  };
+  // Get TVL
+  const tvl = formatTVL(current.totalAmount0, current.totalAmount1);
 
-  const currentFeeApr = current?.feeApr && parseFloat(current.feeApr) > 0
+  // Use feeApr from subgraph if available and valid
+  const validFeeApr = current?.feeApr && parseFloat(current.feeApr) > 0;
+  const currentFeeApr = validFeeApr 
     ? (parseFloat(current.feeApr) * 100).toFixed(2)
-    : weeklyApy ? weeklyApy.toFixed(2) : null;
+    : weeklyApy !== null ? weeklyApy.toFixed(2) : null;
 
   return {
     currentFeeApr,
     weeklyApy: weeklyApy !== null ? weeklyApy.toFixed(2) : null,
     monthlyApy: monthlyApy !== null ? monthlyApy.toFixed(2) : null,
     inceptionApy: inceptionApy !== null ? inceptionApy.toFixed(2) : null,
-    weeklyFeeApr: avgApr(weeklySnapshots),
+    weeklyFeeApr: currentFeeApr,
     snapshotCount: snapshots.length,
+    tvl,
   };
 }
 
@@ -193,21 +249,26 @@ export function useAnalyticsData(days: number = 30): UseAnalyticsDataResult {
         fetchFromGraphQLDirect('0x3314e248f3f752cd16939773d83beb3a362f0aef'),
       ]);
 
-      // Calculate value per share for historical chart
-      const mapSnapshots = (snapshots: any[]) => {
-        const firstValue = snapshots.length > 0 ? calculateValuePerShare(snapshots[0]) : 1;
+      // Map snapshots with normalized value per share for charting
+      const mapSnapshots = (snapshots: any[]): HistoricalSnapshot[] => {
+        if (snapshots.length === 0) return [];
+        
+        // Use first snapshot's VPS as baseline (= 1.0)
+        const baselineVPS = calculateValuePerShare(snapshots[0]);
+        
         return snapshots.map((s: any) => {
-          const currentValue = calculateValuePerShare(s);
-          const growthPercent = firstValue > 0 ? ((currentValue - firstValue) / firstValue) * 100 : 0;
+          const currentVPS = calculateValuePerShare(s);
+          // Normalize: growth from baseline as percentage
+          const normalizedGrowth = baselineVPS > 0 
+            ? ((currentVPS / baselineVPS) - 1) * 100 
+            : 0;
+          
           return {
             timestamp: parseInt(s.timestamp),
-            feeApr: s.feeApr && parseFloat(s.feeApr) > 0 
-              ? (parseFloat(s.feeApr) * 100).toFixed(2) 
-              : growthPercent.toFixed(2),
-            annualVsHold: s.annualVsHoldPerfSince && s.annualVsHoldPerfSince !== 'NaN'
-              ? (parseFloat(s.annualVsHoldPerfSince) * 100).toFixed(2) 
-              : growthPercent.toFixed(2),
-            tvl: (parseFloat(s.totalAmount0 || '0') + parseFloat(s.totalAmount1 || '0')).toString(),
+            feeApr: normalizedGrowth.toFixed(2),
+            annualVsHold: normalizedGrowth.toFixed(2),
+            tvl: formatTVL(s.totalAmount0, s.totalAmount1),
+            valuePerShare: currentVPS,
           };
         });
       };
@@ -284,4 +345,3 @@ export function useCombinedApy(): {
     loading: false,
   };
 }
-
