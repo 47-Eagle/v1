@@ -56,20 +56,70 @@ Eagle OVault is deployed across **8+ blockchains** with full LayerZero V2 integr
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                       EagleOVault                           │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐ │
-│  │ WLFI/USD1   │  │ WETH/WLFI   │  │  EagleShareOFT      │ │
-│  │ Strategy    │  │ Strategy    │  │  (LayerZero V2)     │ │
-│  │ (50%)       │  │ (50%)       │  │                     │ │
-│  └──────┬──────┘  └──────┬──────┘  └──────────┬──────────┘ │
-│         │                │                     │            │
-│         └────────────────┴─────────────────────┘            │
-│                          │                                  │
-│                    Charm Alpha Vaults                       │
-│                    (Uniswap V3 LP)                         │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+graph TB
+    %% User Interface
+    subgraph "User Interface"
+        UI[👤 Users<br/>Deposit WLFI + USD1]
+    end
+
+    %% Core Protocol
+    subgraph "Ethereum Mainnet (Hub)"
+        EV[EagleOVault<br/>💰 Main Vault Contract]
+        ES[EagleShareOFT<br/>🌐 LayerZero V2 Bridge]
+
+        subgraph "Yield Strategies (50/50 Split)"
+            S1[WLFI/USD1 Strategy<br/>📈 50% Allocation]
+            S2[WETH/WLFI Strategy<br/>📈 50% Allocation]
+        end
+    end
+
+    %% Cross-Chain Destinations
+    subgraph "Cross-Chain Networks"
+        B[Base<br/>🔄 Spoke Chain]
+        A[Arbitrum<br/>🔄 Spoke Chain]
+        M[Monad<br/>🔄 Spoke Chain]
+        S[Sonic<br/>🔄 Spoke Chain]
+        H[HyperEVM<br/>🔄 Spoke Chain]
+        BSC[BSC<br/>🔄 Spoke Chain]
+        AV[Avalanche<br/>🔄 Spoke Chain]
+    end
+
+    %% External Protocols
+    subgraph "External Protocols"
+        CV[Charm Alpha Vaults<br/>🎯 Uniswap V3 LP<br/>Yield Generation]
+    end
+
+    %% Connections
+    UI --> EV
+    EV --> S1
+    EV --> S2
+    S1 --> CV
+    S2 --> CV
+    EV --> ES
+
+    ES --> B
+    ES --> A
+    ES --> M
+    ES --> S
+    ES --> H
+    ES --> BSC
+    ES --> AV
+
+    %% Styling
+    classDef vault fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef strategy fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef oft fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px
+    classDef network fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    classDef external fill:#fce4ec,stroke:#880e4f,stroke-width:2px
+    classDef ui fill:#f5f5f5,stroke:#424242,stroke-width:2px
+
+    class EV vault
+    class S1,S2 strategy
+    class ES oft
+    class B,A,M,S,H,BSC,AV network
+    class CV external
+    class UI ui
 ```
 
 ## Quick Start
