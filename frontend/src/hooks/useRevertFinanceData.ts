@@ -39,21 +39,42 @@ export function useRevertFinanceData(): RevertFinanceDataByStrategy {
   });
 
   useEffect(() => {
+    let isMounted = true;
+    const abortControllers: AbortController[] = [];
+    
     async function fetchPoolData(poolAddress: string): Promise<RevertFinanceData> {
+      const abortController = new AbortController();
+      abortControllers.push(abortController);
+      
+      // Set timeout to prevent hanging requests
+      const timeoutId = setTimeout(() => abortController.abort(), 10000); // 10 second timeout
+      
       try {
-        console.log(`[useRevertFinanceData] Fetching for pool ${poolAddress}...`);
         const response = await fetch(
-          `/api/revert-finance?pool=${poolAddress}&days=30&network=mainnet`
+          `/api/revert-finance?pool=${poolAddress}&days=30&network=mainnet`,
+          {
+            signal: abortController.signal,
+          }
         );
         
-        console.log(`[useRevertFinanceData] Response status for ${poolAddress}:`, response.status);
+        clearTimeout(timeoutId);
         
         if (!response.ok) {
+          // Don't throw for 404 or other client errors, just return empty data
+          if (response.status === 404 || response.status >= 400) {
+            return {
+              tvl: 0,
+              avgAPR: 0,
+              maxAPR: 0,
+              avgVolume: 0,
+              loading: false,
+              error: null, // Silently fail
+            };
+          }
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         
         const result = await response.json();
-        console.log(`[useRevertFinanceData] Raw result for ${poolAddress}:`, result);
         
         if (result.success && result.data && result.data.length > 0) {
           const latestDay = result.data[result.data.length - 1];
@@ -71,7 +92,7 @@ export function useRevertFinanceData(): RevertFinanceDataByStrategy {
           // Use max APR from last 7 days
           const maxAPR = Math.max(...last7Days.map((d: any) => d.fees_apr));
           
-          const calculatedData = {
+          return {
             tvl: latestDay.tvl_usd || 0,
             avgAPR,
             maxAPR,
@@ -79,50 +100,70 @@ export function useRevertFinanceData(): RevertFinanceDataByStrategy {
             loading: false,
             error: null,
           };
-          
-          console.log(`[useRevertFinanceData] Calculated data for ${poolAddress}:`, calculatedData);
-          
-          return calculatedData;
         } else {
-          console.log(`[useRevertFinanceData] No data available for ${poolAddress}`);
+          // No data available - return empty data silently
           return {
             tvl: 0,
             avgAPR: 0,
             maxAPR: 0,
             avgVolume: 0,
             loading: false,
-            error: 'No data available',
+            error: null,
           };
         }
       } catch (err: any) {
-        console.error(`[useRevertFinanceData] Error for ${poolAddress}:`, err);
+        clearTimeout(timeoutId);
+        // Silently handle errors (timeout, network errors, etc.)
+        // Only log if it's not an abort/timeout error
+        if (err.name !== 'AbortError' && err.name !== 'TimeoutError') {
+          console.warn(`[useRevertFinanceData] Error for ${poolAddress}:`, err.message);
+        }
         return {
           tvl: 0,
           avgAPR: 0,
           maxAPR: 0,
           avgVolume: 0,
           loading: false,
-          error: err.message || 'Failed to fetch data',
+          error: null, // Don't show error to user
         };
       }
     }
 
     async function fetchAllData() {
-      const [strategy1Data, strategy2Data] = await Promise.all([
-        fetchPoolData(POOL_ADDRESS_USD1_WLFI),
-        fetchPoolData(POOL_ADDRESS_WETH_WLFI),
-      ]);
+      if (!isMounted) return;
+      
+      try {
+        const [strategy1Data, strategy2Data] = await Promise.all([
+          fetchPoolData(POOL_ADDRESS_USD1_WLFI),
+          fetchPoolData(POOL_ADDRESS_WETH_WLFI),
+        ]);
 
-      setData({
-        strategy1: strategy1Data,
-        strategy2: strategy2Data,
-      });
+        if (isMounted) {
+          setData({
+            strategy1: strategy1Data,
+            strategy2: strategy2Data,
+          });
+        }
+      } catch (err) {
+        // Silently handle errors
+        if (isMounted) {
+          setData(prev => ({
+            strategy1: prev.strategy1.loading ? { ...prev.strategy1, loading: false, error: null } : prev.strategy1,
+            strategy2: prev.strategy2.loading ? { ...prev.strategy2, loading: false, error: null } : prev.strategy2,
+          }));
+        }
+      }
     }
 
     fetchAllData();
-    // Refresh every 5 minutes
-    const interval = setInterval(fetchAllData, 5 * 60 * 1000);
-    return () => clearInterval(interval);
+    // Refresh every 10 minutes (reduced frequency)
+    const interval = setInterval(fetchAllData, 10 * 60 * 1000);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+      // Abort any pending requests
+      abortControllers.forEach(controller => controller.abort());
+    };
   }, []);
 
   return data;

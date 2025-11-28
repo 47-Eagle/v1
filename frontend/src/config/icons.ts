@@ -8,8 +8,14 @@ export const ICONS = {
   EAGLE: 'https://tomato-abundant-urial-204.mypinata.cloud/ipfs/bafybeigzyatm2pgrkqbnskyvflnagtqli6rgh7wv7t2znaywkm2pixmkxy',
   
   // Networks
-  ETHEREUM: 'https://tomato-abundant-urial-204.mypinata.cloud/ipfs/bafkreiagnmvgbx3g7prmcg57pu3safks7ut6j3okopfmji7h5pndz2zeqy',
-  BNB: 'https://tomato-abundant-urial-204.mypinata.cloud/ipfs/bafkreigqndf7kfutndj6e6ms2ic6pci7fi3wsch3nvxv5w5m6end6bmmme',
+  ETHEREUM: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/info/logo.png',
+  BNB: 'https://tomato-abundant-urial-204.mypinata.cloud/ipfs/bafkreify74oobnnpfywzxt26zcp63vjcib47j5zgpyyg4i7i22iqet2674',
+  AVAX: 'https://tomato-abundant-urial-204.mypinata.cloud/ipfs/bafkreihmd577vqyqd3iaqpsjupgjr4utcqxx3wrkuc3lvwfbbhbzkgp4qy',
+  ARBITRUM: 'https://tomato-abundant-urial-204.mypinata.cloud/ipfs/bafkreibj4e6paq7dbdflyhzevcgrteks345og7klpt34i4em65boofi5we',
+  BASE: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/base/info/logo.png',
+  MONAD: 'https://tomato-abundant-urial-204.mypinata.cloud/ipfs/bafkreibsvmotzz6oddu4ouyusdal7z4a233hs4bordnaebg7abgkqozuxe',
+  HYPEREVM: 'https://tomato-abundant-urial-204.mypinata.cloud/ipfs/bafkreico6h2tttoti4x5llr47tspt4wyl33uowd244vbshuv4xqxdij7kq',
+  SONIC: 'https://raw.githubusercontent.com/soniclabs/assets/main/logo.png',
   
   // Protocols
   CHARM: 'https://tomato-abundant-urial-204.mypinata.cloud/ipfs/bafkreid3difftzksqy3xlummzzobhk674ece35d7drmgo3ftt7wrix6dwu',

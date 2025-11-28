@@ -44,11 +44,104 @@ export const CONTRACTS = {
   MULTISIG: '0xe5a1d534eb7f00397361F645f0F39e5D16cc1De3',   // Multisig (Owner)
 } as const;
 
-// Cross-Chain Configuration
+// Cross-Chain Configuration - EAGLE OFT deployed on all chains at same address ✨
+export const EAGLE_OFT_ADDRESS = '0x474eD38C256A7FA0f3B8c48496CE1102ab0eA91E';
+
 export const BASE_CONTRACTS = {
-  EAGLE_OFT: '0x474eD38C256A7FA0f3B8c48496CE1102ab0eA91E', // Same address as Mainnet ✨
-  WLFI_OFT: '0x47af3595BFBE6c86E59a13d5db91AEfbFF0eA91e',  // WLFI OFT on Base
+  EAGLE_OFT: EAGLE_OFT_ADDRESS,
+  WLFI_OFT: '0x47af3595BFBE6c86E59a13d5db91AEfbFF0eA91e',
 } as const;
+
+export const MONAD_CONTRACTS = {
+  EAGLE_OFT: EAGLE_OFT_ADDRESS,
+  REGISTRY: '0x47c81c9a70CA7518d3b911bC8C8b11000e92F59e',
+} as const;
+
+// Chain IDs and LayerZero EIDs - All 8 supported chains
+export const CHAIN_CONFIG = {
+  ethereum: {
+    chainId: 1,
+    eid: 30101,
+    name: 'Ethereum',
+    symbol: 'ETH',
+    explorer: 'https://etherscan.io',
+    rpc: import.meta.env.VITE_ETHEREUM_RPC || 'https://eth.llamarpc.com',
+    color: '#627EEA',
+    contracts: { EAGLE: EAGLE_OFT_ADDRESS, WLFI: CONTRACTS.WLFI }
+  },
+  base: {
+    chainId: 8453,
+    eid: 30184,
+    name: 'Base',
+    symbol: 'ETH',
+    explorer: 'https://basescan.org',
+    rpc: import.meta.env.VITE_BASE_RPC || 'https://mainnet.base.org',
+    color: '#0052FF',
+    contracts: { EAGLE: EAGLE_OFT_ADDRESS, WLFI: BASE_CONTRACTS.WLFI_OFT }
+  },
+  monad: {
+    chainId: 143,
+    eid: 30390,
+    name: 'Monad',
+    symbol: 'MON',
+    explorer: 'https://monad.blockscout.com',
+    rpc: import.meta.env.VITE_MONAD_RPC || 'https://rpc-mainnet.monadinfra.com',
+    color: '#836EF9',
+    contracts: { EAGLE: EAGLE_OFT_ADDRESS }
+  },
+  arbitrum: {
+    chainId: 42161,
+    eid: 30110,
+    name: 'Arbitrum',
+    symbol: 'ETH',
+    explorer: 'https://arbiscan.io',
+    rpc: import.meta.env.VITE_ARBITRUM_RPC || 'https://arb1.arbitrum.io/rpc',
+    color: '#12AAFF',
+    contracts: { EAGLE: EAGLE_OFT_ADDRESS }
+  },
+  bsc: {
+    chainId: 56,
+    eid: 30102,
+    name: 'BNB Chain',
+    symbol: 'BNB',
+    explorer: 'https://bscscan.com',
+    rpc: import.meta.env.VITE_BSC_RPC || 'https://bsc-dataseed.binance.org',
+    color: '#F0B90B',
+    contracts: { EAGLE: EAGLE_OFT_ADDRESS }
+  },
+  avalanche: {
+    chainId: 43114,
+    eid: 30106,
+    name: 'Avalanche',
+    symbol: 'AVAX',
+    explorer: 'https://snowtrace.io',
+    rpc: import.meta.env.VITE_AVALANCHE_RPC || 'https://api.avax.network/ext/bc/C/rpc',
+    color: '#E84142',
+    contracts: { EAGLE: EAGLE_OFT_ADDRESS }
+  },
+  hyperevm: {
+    chainId: 999,
+    eid: 30367, // HyperEVM LayerZero V2 EID (confirmed)
+    name: 'HyperEVM',
+    symbol: 'HYPE',
+    explorer: 'https://purrsec.com/hyperliquid',
+    rpc: import.meta.env.VITE_HYPEREVM_RPC || 'https://rpc.hyperliquid.xyz/evm',
+    color: '#00D395',
+    contracts: { EAGLE: EAGLE_OFT_ADDRESS }
+  },
+  sonic: {
+    chainId: 146,
+    eid: 30332, // Sonic LayerZero V2 EID (confirmed)
+    name: 'Sonic',
+    symbol: 'S',
+    explorer: 'https://sonicscan.org',
+    rpc: import.meta.env.VITE_SONIC_RPC || 'https://rpc.soniclabs.com',
+    color: '#1E90FF',
+    contracts: { EAGLE: EAGLE_OFT_ADDRESS }
+  },
+} as const;
+
+export type SupportedChain = keyof typeof CHAIN_CONFIG;
 
 // Token metadata for UI
 export const TOKENS = {

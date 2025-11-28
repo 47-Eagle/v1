@@ -19,6 +19,7 @@ import {
 import { NeoButton } from '../components/neumorphic/NeoButton';
 import { NeoCard } from '../components/neumorphic/NeoCard';
 import { NeoStatCard } from '../components/neumorphic/NeoStatCard';
+import { ChainIcon } from '../components/ChainIcon';
 import { ICONS } from '../config/icons';
 
 // --- Constants ---
@@ -54,19 +55,10 @@ const CHARM_STRATEGIES = [
 // --- SVGs for Partners ---
 const Logos = {
   Base: () => (
-    <svg viewBox="0 0 111 111" className="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M54.921 110.034C85.359 110.034 110.034 85.402 110.034 55.017C110.034 24.6319 85.359 0 54.921 0C26.0432 0 2.35281 22.1714 0 50.3923H72.8467V59.6416H3.9565e-07C2.35281 87.8625 26.0432 110.034 54.921 110.034Z" fill="#0052FF"/>
-    </svg>
+    <ChainIcon chain="base" className="w-full h-full" />
   ),
   Ethereum: () => (
-    <svg viewBox="0 0 256 417" className="w-full h-full" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid">
-      <path fill="#627EEA" d="M127.961 0l-2.795 9.5v275.668l2.795 2.79 127.962-75.638z" fillOpacity=".602"/>
-      <path fill="#627EEA" d="M127.962 0L0 212.32l127.962 75.639V154.158z"/>
-      <path fill="#627EEA" d="M127.961 312.187l-1.575 1.92v98.199l1.575 4.6L256 236.587z" fillOpacity=".602"/>
-      <path fill="#627EEA" d="M127.962 416.905v-104.72L0 236.585z"/>
-      <path fill="#627EEA" d="M127.961 287.958l127.96-75.637-127.96-58.162z" fillOpacity=".2"/>
-      <path fill="#627EEA" d="M0 212.32l127.96 75.638v-133.8z" fillOpacity=".602"/>
-    </svg>
+    <ChainIcon chain="ethereum" className="w-full h-full" />
   )
 };
 

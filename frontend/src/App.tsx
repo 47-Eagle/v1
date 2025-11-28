@@ -11,6 +11,7 @@ import { ICONS } from './config/icons';
 import { SafeProvider } from './components/SafeProvider';
 import { useSafeApp } from './hooks/useSafeApp';
 import { useEthersProvider } from './hooks/useEthersProvider';
+import { CharmStatsProvider } from './context/CharmStatsContext';
 
 interface Toast {
   id: number;
@@ -191,14 +192,16 @@ function AnimatedRoutes() {
 export default function App() {
   return (
     <SafeProvider>
-      <BrowserRouter
-        future={{
-          v7_startTransition: true,
-          v7_relativeSplatPath: true,
-        }}
-      >
-        <AnimatedRoutes />
-      </BrowserRouter>
+      <CharmStatsProvider>
+        <BrowserRouter
+          future={{
+            v7_startTransition: true,
+            v7_relativeSplatPath: true,
+          }}
+        >
+          <AnimatedRoutes />
+        </BrowserRouter>
+      </CharmStatsProvider>
     </SafeProvider>
   );
 }

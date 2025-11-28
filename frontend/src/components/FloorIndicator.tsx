@@ -1,0 +1,198 @@
+import { motion } from 'framer-motion';
+import type { Floor } from './EagleEcosystemWithRoutes';
+
+interface Props {
+  current: Floor;
+  onChange: (floor: Floor) => void;
+  isTransitioning: boolean;
+}
+
+const floors: Array<{ id: Floor; label: string; icon: JSX.Element; color: string; status?: string }> = [
+  {
+    id: 'lp',
+    label: 'LP Pool',
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+      </svg>
+    ),
+    color: 'from-blue-500 to-purple-500',
+    status: 'Live'
+  },
+  {
+    id: 'bridge',
+    label: 'Bridge',
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+      </svg>
+    ),
+    color: 'from-emerald-500 to-cyan-500',
+    status: 'New'
+  },
+  {
+    id: 'vault',
+    label: 'Vault',
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    ),
+    color: 'from-amber-500 to-orange-600',
+    status: 'Active'
+  }
+];
+
+export default function FloorIndicator({ current, onChange, isTransitioning }: Props) {
+  return (
+    <>
+      {/* Desktop: Vertical sidebar on right */}
+      <div className="hidden md:block fixed right-8 top-1/2 -translate-y-1/2 z-50">
+        {/* Neumorphic container */}
+        <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 backdrop-blur-xl rounded-3xl p-4 border border-gray-200/50 dark:border-gray-600/50 shadow-neo-raised dark:shadow-neo-raised-dark">
+          <div className="space-y-4">
+            {floors.map((floor, index) => {
+              const isActive = current === floor.id;
+              
+              return (
+                <div key={floor.id} className="relative">
+                  <button
+                    onClick={() => onChange(floor.id)}
+                    disabled={isTransitioning}
+                    className={`
+                      relative w-16 h-16 rounded-2xl
+                      transition-all duration-300 group
+                      border backdrop-blur-sm
+                      ${isActive 
+                        ? `bg-gradient-to-br ${floor.color} border-transparent shadow-neo-glow dark:shadow-neo-glow-dark` 
+                        : 'bg-white/50 dark:bg-gray-800/80 border-gray-200/50 dark:border-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700/70 hover:border-gray-300 dark:hover:border-gray-600/60 shadow-neo-inset dark:shadow-neo-inset-dark'
+                      }
+                      ${isTransitioning ? 'cursor-wait opacity-50' : 'cursor-pointer'}
+                    `}
+                    title={floor.label}
+                  >
+                  {/* Active glow effect */}
+                  {isActive && (
+                    <motion.div
+                      className={`absolute inset-0 bg-gradient-to-br ${floor.color} rounded-2xl opacity-40 blur-xl -z-10`}
+                      animate={{
+                        scale: [1, 1.2, 1],
+                        opacity: [0.4, 0.2, 0.4]
+                      }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                      }}
+                    />
+                  )}
+                  
+                  <div className={`
+                    absolute inset-0 flex items-center justify-center
+                    ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-gray-200'}
+                    transition-colors
+                  `}>
+                    {floor.icon}
+                  </div>
+
+                    {/* Label tooltip on hover */}
+                    <div className="absolute right-full mr-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none whitespace-nowrap">
+                      <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 border border-gray-200/50 dark:border-gray-600/50 rounded-xl px-4 py-2 backdrop-blur-xl shadow-neo-raised dark:shadow-neo-raised-dark">
+                        <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{floor.label}</p>
+                        {floor.status && (
+                          <p className={`text-xs mt-0.5 font-medium ${
+                            floor.status === 'Live' ? 'text-emerald-500' :
+                            floor.status === 'New' ? 'text-cyan-500' :
+                            floor.status === 'Active' ? 'text-[#D4B474]' :
+                            floor.status === 'Beta' ? 'text-violet-500' :
+                            'text-gray-500'
+                          }`}>{floor.status}</p>
+                        )}
+                      </div>
+                      {/* Arrow */}
+                      <div className="absolute left-full top-1/2 -translate-y-1/2 -ml-1 w-3 h-3 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 border-r border-b border-gray-200/50 dark:border-gray-600/50 rotate-[-45deg]"></div>
+                    </div>
+                  </button>
+
+                  {/* Connection line between floors */}
+                  {index < floors.length - 1 && (
+                    <div className="absolute left-1/2 -translate-x-1/2 w-px h-4 bg-gradient-to-b from-gray-300 to-gray-400 dark:from-gray-600 dark:to-gray-700" />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Current floor label */}
+          <div className="mt-5 pt-4 border-t border-gray-300/50 dark:border-gray-700/30">
+            <p className="text-xs text-gray-700 dark:text-gray-300 text-center font-semibold tracking-widest uppercase">
+              {floors.find(f => f.id === current)?.label}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile: Horizontal bottom navigation */}
+      <div className="md:hidden fixed bottom-20 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-md">
+        <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 backdrop-blur-xl rounded-2xl p-2 border border-gray-200/50 dark:border-gray-600/50 shadow-neo-raised dark:shadow-neo-raised-dark">
+          <div className="flex items-center justify-around gap-2">
+            {floors.map((floor) => {
+              const isActive = current === floor.id;
+              
+              return (
+                <button
+                  key={floor.id}
+                  onClick={() => onChange(floor.id)}
+                  disabled={isTransitioning}
+                  className={`
+                    relative flex-1 h-14 rounded-xl
+                    transition-all duration-300
+                    border backdrop-blur-sm
+                    touch-manipulation
+                    ${isActive 
+                      ? `bg-gradient-to-br ${floor.color} border-transparent shadow-neo-glow dark:shadow-neo-glow-dark` 
+                      : 'bg-white/50 dark:bg-gray-800/80 border-gray-200/50 dark:border-gray-700/50 active:bg-gray-100 dark:active:bg-gray-700/70 shadow-neo-inset dark:shadow-neo-inset-dark'
+                    }
+                    ${isTransitioning ? 'opacity-50' : ''}
+                  `}
+                >
+                  {/* Active glow effect */}
+                  {isActive && (
+                    <motion.div
+                      className={`absolute inset-0 bg-gradient-to-br ${floor.color} rounded-xl opacity-40 blur-lg -z-10`}
+                      animate={{
+                        scale: [1, 1.1, 1],
+                        opacity: [0.4, 0.2, 0.4]
+                      }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                      }}
+                    />
+                  )}
+                  
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
+                    <div className={`
+                      ${isActive ? 'text-white' : 'text-gray-400'}
+                      transition-colors
+                    `}>
+                      {floor.icon}
+                    </div>
+                    <span className={`
+                      text-[10px] font-semibold tracking-wider uppercase
+                      ${isActive ? 'text-white' : 'text-gray-600 dark:text-gray-400'}
+                      transition-colors
+                    `}>
+                      {floor.label}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}

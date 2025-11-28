@@ -19,20 +19,8 @@ const queryClient = new QueryClient({
   },
 });
 
-// Suppress MetaMask provider collision warnings
-const originalConsoleError = console.error;
-console.error = (...args) => {
-  if (
-    typeof args[0] === 'string' &&
-    (args[0].includes('MetaMask encountered an error') ||
-     args[0].includes('Cannot redefine property') ||
-     args[0].includes('isZerion'))
-  ) {
-    // Silently ignore wallet extension conflicts
-    return;
-  }
-  originalConsoleError.apply(console, args);
-};
+// Note: Ethereum object patch and console error suppression are now in index.html
+// to run BEFORE React loads and prevent __SECRET_INTERNALS errors
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
