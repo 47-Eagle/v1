@@ -13,11 +13,179 @@ import { useRevertFinanceData } from '../hooks/useRevertFinanceData';
 import { useSafeApp } from '../hooks/useSafeApp';
 import { ComposerPanel } from './ComposerPanel';
 import { useCharmStats } from '../context/CharmStatsContext';
+import { useAnalyticsData } from '../hooks/useAnalyticsData';
 
 // Lazy load 3D visualization
 const VaultVisualization = lazy(() => import('./VaultVisualization'));
 
 // Strategy Row Component with Dropdown
+
+// Analytics Tab Content Component
+function AnalyticsTabContent() {
+  const { data, loading, error, refetch } = useAnalyticsData(90);
+  const [selectedVault, setSelectedVault] = useState<'combined' | 'USD1_WLFI' | 'WETH_WLFI'>('combined');
+
+  const formatUsd = (value: number) => {
+    if (value >= 1000000) return `$${(value / 1000000).toFixed(2)}M`;
+    if (value >= 1000) return `$${(value / 1000).toFixed(1)}K`;
+    return `$${value.toFixed(2)}`;
+  };
+
+  const getCombinedMetrics = () => {
+    if (!data) return null;
+    const usd1 = data.vaults.USD1_WLFI;
+    const weth = data.vaults.WETH_WLFI;
+    const usd1Tvl = usd1.historicalSnapshots.slice(-1)[0]?.tvlUsd || 0;
+    const wethTvl = weth.historicalSnapshots.slice(-1)[0]?.tvlUsd || 0;
+    const combinedTvl = usd1Tvl + wethTvl;
+    const usd1Apy = usd1.metrics?.weeklyApy ? parseFloat(usd1.metrics.weeklyApy) : null;
+    const wethApy = weth.metrics?.weeklyApy ? parseFloat(weth.metrics.weeklyApy) : null;
+    let weightedApy: number | null = null;
+    if (usd1Apy !== null && wethApy !== null && combinedTvl > 0) {
+      weightedApy = (usd1Apy * usd1Tvl + wethApy * wethTvl) / combinedTvl;
+    } else if (usd1Apy !== null) {
+      weightedApy = usd1Apy;
+    } else if (wethApy !== null) {
+      weightedApy = wethApy;
+    }
+    return {
+      tvlUsd: formatUsd(combinedTvl),
+      weeklyApy: weightedApy !== null ? `${weightedApy.toFixed(2)}%` : null,
+    };
+  };
+
+  const getMetrics = () => {
+    if (!data) return null;
+    if (selectedVault === 'combined') return getCombinedMetrics();
+    return data.vaults[selectedVault]?.metrics || null;
+  };
+
+  const metrics = getMetrics();
+  const currentVault = selectedVault !== 'combined' ? data?.vaults[selectedVault] : null;
+
+  const getHistoricalData = () => {
+    if (!data) return [];
+    if (selectedVault === 'combined') {
+      const usd1 = data.vaults.USD1_WLFI.historicalSnapshots;
+      const weth = data.vaults.WETH_WLFI.historicalSnapshots;
+      const base = usd1.length >= weth.length ? usd1 : weth;
+      return base.map((snap, i) => ({
+        ...snap,
+        tvlUsd: (usd1[i]?.tvlUsd || 0) + (weth[i]?.tvlUsd || 0),
+      }));
+    }
+    return data.vaults[selectedVault]?.historicalSnapshots || [];
+  };
+
+  const historicalData = getHistoricalData();
+
+  return (
+    <div className="space-y-4">
+      {/* Vault Selector */}
+      <div className="flex gap-2 flex-wrap">
+        {[
+          { key: 'combined', label: 'Combined' },
+          { key: 'USD1_WLFI', label: 'USD1/WLFI' },
+          { key: 'WETH_WLFI', label: 'WETH/WLFI' },
+        ].map(({ key, label }) => (
+          <button
+            key={key}
+            onClick={() => setSelectedVault(key as any)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+              selectedVault === key
+                ? 'bg-amber-500 text-white shadow-lg'
+                : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+        <button
+          onClick={refetch}
+          disabled={loading}
+          className="ml-auto px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all"
+        >
+          {loading ? '...' : '↻ Refresh'}
+        </button>
+      </div>
+
+      {error && (
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
+          <p className="text-red-700 dark:text-red-400 text-xs">{error}</p>
+        </div>
+      )}
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-3 text-center">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">TVL</p>
+          <p className="text-lg font-bold text-gray-900 dark:text-white">
+            {metrics?.tvlUsd || (loading ? '...' : '$0')}
+          </p>
+        </div>
+        <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-3 text-center">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Weekly APY</p>
+          <p className="text-lg font-bold text-green-600 dark:text-green-400">
+            {metrics?.weeklyApy || (loading ? '...' : 'N/A')}
+          </p>
+        </div>
+      </div>
+
+      {/* Token Prices */}
+      {data?.prices && (
+        <div className="grid grid-cols-3 gap-2">
+          <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-2 text-center">
+            <p className="text-[10px] text-gray-500 dark:text-gray-400">WLFI</p>
+            <p className="text-sm font-semibold text-gray-900 dark:text-white">${data.prices.WLFI.toFixed(4)}</p>
+          </div>
+          <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-2 text-center">
+            <p className="text-[10px] text-gray-500 dark:text-gray-400">USD1</p>
+            <p className="text-sm font-semibold text-gray-900 dark:text-white">${data.prices.USD1.toFixed(2)}</p>
+          </div>
+          <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-2 text-center">
+            <p className="text-[10px] text-gray-500 dark:text-gray-400">ETH</p>
+            <p className="text-sm font-semibold text-gray-900 dark:text-white">${data.prices.WETH.toFixed(0)}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Mini TVL Chart */}
+      {historicalData.length > 0 && (
+        <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-3">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">TVL Over Time</p>
+          <div className="h-24">
+            <svg className="w-full h-full" viewBox="0 0 100 30" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="tvl-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor="#eab308" stopOpacity="0.3" />
+                  <stop offset="100%" stopColor="#eab308" stopOpacity="0" />
+                </linearGradient>
+              </defs>
+              {(() => {
+                const tvlValues = historicalData.map(s => s.tvlUsd);
+                const maxTvl = Math.max(...tvlValues);
+                const minTvl = Math.min(...tvlValues);
+                const range = maxTvl - minTvl || 1;
+                const points = historicalData.map((snap, i) => {
+                  const x = (i / (historicalData.length - 1)) * 100;
+                  const y = 30 - ((snap.tvlUsd - minTvl) / range) * 28;
+                  return `${x},${y}`;
+                }).join(' ');
+                return (
+                  <>
+                    <polygon points={`0,30 ${points} 100,30`} fill="url(#tvl-grad)" />
+                    <polyline points={points} fill="none" stroke="#eab308" strokeWidth="1.5" />
+                  </>
+                );
+              })()}
+            </svg>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function StrategyRow({ strategy, wlfiPrice, revertData, onToast }: { strategy: any; wlfiPrice?: string; revertData?: any; onToast: any }) {
   const [isExpanded, setIsExpanded] = useState(false);
   
@@ -417,7 +585,7 @@ interface Props {
 }
 
 export default function VaultView({ provider, account, onToast, onNavigateUp, onNavigateToWrapper, onNavigateToCrossChain, onNavigateToAnalytics }: Props) {
-  const [infoTab, setInfoTab] = useState<'vault' | 'strategies'>('vault');
+  const [infoTab, setInfoTab] = useState<'vault' | 'strategies' | 'analytics'>('vault');
   const [wlfiAmount, setWlfiAmount] = useState('');
   const [usd1Amount, setUsd1Amount] = useState('');
   const [withdrawAmount, setWithdrawAmount] = useState('');
@@ -2140,9 +2308,10 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
                   tabs={[
                     { id: 'vault', label: 'Assets' },
                     { id: 'strategies', label: 'Strategies' },
+                    { id: 'analytics', label: 'Analytics' },
                   ]}
                   defaultTab={infoTab}
-                  onChange={(tabId) => setInfoTab(tabId as 'vault' | 'strategies')}
+                  onChange={(tabId) => setInfoTab(tabId as 'vault' | 'strategies' | 'analytics')}
                 />
               </div>
 
@@ -2329,6 +2498,10 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
                       />
                     ))}
                   </div>
+                )}
+
+                {infoTab === 'analytics' && (
+                  <AnalyticsTabContent />
                 )}
               </div>
             </NeoCard>
