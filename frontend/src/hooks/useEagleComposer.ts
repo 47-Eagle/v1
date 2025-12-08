@@ -501,3 +501,54 @@ export function useEagleComposer() {
   };
 }
 
+
+    
+    try {
+      const signer = await getSigner();
+      if (!signer) {
+        throw new Error('Failed to get signer');
+      }
+      
+      const tokenAddress = token === 'wlfi' ? ADDRESSES.WLFI : ADDRESSES.EAGLE;
+      const tokenContract = new Contract(tokenAddress, ERC20_ABI, signer);
+      
+      console.log(`Approving ${token.toUpperCase()}...`);
+      const tx = await tokenContract.approve(ADDRESSES.COMPOSER, amount);
+      await tx.wait();
+      console.log(`✅ ${token.toUpperCase()} approved`);
+      
+      onSuccess?.();
+      setLoading(false);
+      return true;
+      
+    } catch (err: any) {
+      console.error('Approval failed:', err);
+      const errorMsg = err.reason || err.message || 'Approval failed';
+      setError(errorMsg);
+      onError?.(errorMsg);
+      setLoading(false);
+      return false;
+    }
+  }, [getSigner, address]);
+  
+  return {
+    // Functions
+    previewDeposit,
+    previewRedeem,
+    depositWLFI,
+    redeemEAGLE,
+    getBalances,
+    checkAllowance,
+    approveToken,
+    checkMaxSupply,
+    
+    // State
+    loading,
+    error,
+    isConnected: !!address,
+    
+    // Addresses (for reference)
+    addresses: ADDRESSES
+  };
+}
+

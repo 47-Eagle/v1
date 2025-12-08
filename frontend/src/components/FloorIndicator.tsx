@@ -145,10 +145,11 @@ export default function FloorIndicator({ current, onChange, isTransitioning }: P
                   onClick={() => onChange(floor.id)}
                   disabled={isTransitioning}
                   className={`
-                    relative flex-1 h-14 rounded-xl
+                    relative flex-1 h-16 rounded-xl
                     transition-all duration-300
                     border backdrop-blur-sm
                     touch-manipulation
+                    min-h-[64px]
                     ${isActive 
                       ? `bg-gradient-to-br ${floor.color} border-transparent shadow-neo-glow dark:shadow-neo-glow-dark` 
                       : 'bg-white/50 dark:bg-gray-800/80 border-gray-200/50 dark:border-gray-700/50 active:bg-gray-100 dark:active:bg-gray-700/70 shadow-neo-inset dark:shadow-neo-inset-dark'

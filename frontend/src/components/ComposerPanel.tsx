@@ -148,12 +148,12 @@ export function ComposerPanel() {
   };
   
   return (
-    <NeoCard className="mt-6">
+    <NeoCard className="mt-3 sm:mt-6">
       {/* Header */}
-      <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-300/50 dark:border-gray-700/30">
+      <div className="px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-300/50 dark:border-gray-700/30">
         <div>
-          <h3 className="text-xl font-bold text-gray-900 dark:text-white">Eagle Composer</h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400">One-click vault operations</p>
+          <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Eagle Composer</h3>
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">One-click vault operations</p>
         </div>
       </div>
       
@@ -174,7 +174,7 @@ export function ComposerPanel() {
       </div>
       
       {/* Content */}
-      <div className="p-4 sm:p-6 space-y-4">
+      <div className="p-3 sm:p-6 space-y-3 sm:space-y-4">
         {!isConnected ? (
           <div className="text-center py-8">
             <p className="text-gray-600 dark:text-gray-400">
@@ -185,17 +185,17 @@ export function ComposerPanel() {
           <>
             {/* Max Supply Warning - only show for deposits */}
             {activeTab === 'deposit' && isMaxSupplyReached && (
-              <div className="bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800/50 rounded-xl p-4 animate-pulse">
-                <div className="flex items-start gap-3">
-                  <div className="text-2xl">🚫</div>
-                  <div className="flex-1">
-                    <h4 className="font-bold text-red-800 dark:text-red-200 text-sm mb-1">
+              <div className="bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800/50 rounded-xl p-4 sm:p-5 animate-pulse">
+                <div className="flex items-start gap-3 sm:gap-4">
+                  <div className="text-3xl sm:text-2xl flex-shrink-0">🚫</div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-bold text-red-800 dark:text-red-200 text-base sm:text-sm mb-2 sm:mb-1">
                       Deposits Disabled
                     </h4>
-                    <p className="text-xs text-red-700 dark:text-red-300">
+                    <p className="text-sm sm:text-xs text-red-700 dark:text-red-300 leading-relaxed">
                       Maximum supply of {maxSupplyInfo ? (Number(maxSupplyInfo.maxSupply) / 1e18).toLocaleString() : '50,000,000'} EAGLE has been reached.
                     </p>
-                    <p className="text-xs text-red-600 dark:text-red-400 mt-2">
+                    <p className="text-sm sm:text-xs text-red-600 dark:text-red-400 mt-3 sm:mt-2 leading-relaxed">
                       You can still redeem EAGLE tokens for WLFI.
                     </p>
                   </div>
@@ -204,17 +204,17 @@ export function ComposerPanel() {
             )}
             
             {/* Balance Display with Fee */}
-            <div className="flex justify-between items-center text-sm">
-              <div className="flex items-center gap-2">
-                <span className="text-gray-600 dark:text-gray-400">Balance:</span>
-                <span className="font-mono text-gray-900 dark:text-white">
+            <div className="flex justify-between items-center text-sm sm:text-sm">
+              <div className="flex items-center gap-2 min-w-0 flex-1">
+                <span className="text-gray-600 dark:text-gray-400 flex-shrink-0">Balance:</span>
+                <span className="font-mono text-gray-900 dark:text-white truncate">
                   {activeTab === 'deposit' 
                     ? `${Number(formatEther(balances.wlfi)).toFixed(2)} WLFI`
                     : `${Number(formatEther(balances.eagle)).toFixed(2)} EAGLE`
                   }
                 </span>
               </div>
-              <div className={`text-xs font-medium px-2 py-0.5 rounded ${
+              <div className={`text-xs sm:text-xs font-medium px-3 py-1.5 sm:px-2 sm:py-0.5 rounded-lg sm:rounded flex-shrink-0 ${
                 activeTab === 'deposit'
                   ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
                   : 'text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20'
@@ -230,11 +230,11 @@ export function ComposerPanel() {
                 placeholder="0.0"
                 value={inputAmount}
                 onChange={setInputAmount}
-                className="pr-16"
+                className="pr-20 sm:pr-16 text-2xl sm:text-xl font-semibold text-center amount-input"
               />
               <button
                 onClick={handleMaxClick}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-gray-600 dark:text-gray-400 hover:text-[#A27D46] dark:hover:text-[#D4B474] transition-colors uppercase tracking-wider"
+                className="absolute right-3 top-1/2 -translate-y-1/2 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center text-sm sm:text-xs font-bold text-gray-600 dark:text-gray-400 hover:text-[#A27D46] dark:hover:text-[#D4B474] active:scale-95 transition-all uppercase tracking-wider bg-gray-100 dark:bg-gray-800 sm:bg-transparent rounded-lg sm:rounded-none px-3 sm:px-0"
               >
                 Max
               </button>
@@ -251,25 +251,25 @@ export function ComposerPanel() {
             
             {/* Preview */}
             {preview && (
-              <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4 space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600 dark:text-gray-400">You'll receive:</span>
-                  <span className="font-bold text-gray-900 dark:text-white">
-                    {Number(formatEther(preview.outputAmount)).toFixed(4)}{' '}
+              <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4 sm:p-4 space-y-3 sm:space-y-2">
+                <div className="flex justify-between items-baseline">
+                  <span className="text-sm sm:text-sm text-gray-600 dark:text-gray-400">You'll receive:</span>
+                  <span className="font-bold text-lg sm:text-base text-gray-900 dark:text-white tabular-nums">
+                    {Number(formatEther(preview.outputAmount)).toLocaleString('en-US', { maximumFractionDigits: 2 })}{' '}
                     {activeTab === 'deposit' ? 'EAGLE' : 'WLFI'}
                   </span>
                 </div>
                 
-                <div className="flex justify-between text-xs">
+                <div className="flex justify-between text-sm sm:text-xs pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-200 dark:border-gray-800">
                   <span className="text-gray-500 dark:text-gray-500">Conversion rate:</span>
-                  <span className="text-gray-700 dark:text-gray-300">
+                  <span className="text-gray-700 dark:text-gray-300 font-medium">
                     {preview.conversionRate.toFixed(2)}%
                   </span>
                 </div>
                 
-                <div className="flex justify-between text-xs">
+                <div className="flex justify-between text-sm sm:text-xs">
                   <span className="text-gray-500 dark:text-gray-500">Fees:</span>
-                  <span className="text-gray-700 dark:text-gray-300">
+                  <span className="text-gray-700 dark:text-gray-300 font-medium">
                     ~{preview.feePercentage.toFixed(2)}%
                   </span>
                 </div>
@@ -278,7 +278,7 @@ export function ComposerPanel() {
             
             {/* Status */}
             {txStatus && (
-              <div className={`p-3 rounded-lg text-sm text-center ${
+              <div className={`p-4 sm:p-3 rounded-xl sm:rounded-lg text-base sm:text-sm text-center leading-relaxed ${
                 txStatus.includes('✅') 
                   ? 'bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300'
                   : txStatus.includes('❌')
@@ -291,7 +291,7 @@ export function ComposerPanel() {
             
             {/* Error */}
             {error && (
-              <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 text-sm">
+              <div className="p-4 sm:p-3 rounded-xl sm:rounded-lg bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 text-base sm:text-sm leading-relaxed">
                 {error}
               </div>
             )}
@@ -303,6 +303,47 @@ export function ComposerPanel() {
               className="w-full"
             >
               {loading 
+                ? 'Processing...'
+                : needsApproval
+                  ? `Approve ${activeTab === 'deposit' ? 'WLFI' : 'EAGLE'}`
+                  : activeTab === 'deposit' && isMaxSupplyReached
+                    ? 'Deposits Disabled (Max Supply Reached)'
+                    : activeTab === 'deposit'
+                      ? 'Deposit'
+                      : 'Redeem'
+              }
+            </NeoButton>
+            
+            {/* Info */}
+            <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
+              {activeTab === 'deposit' ? (
+                <>
+                  <p>• Converts WLFI → vEAGLE → EAGLE in one transaction</p>
+                  <p>• Includes vault deposit fee + wrapper fee</p>
+                  <p>• EAGLE can be used for cross-chain operations</p>
+                  {maxSupplyInfo && !isMaxSupplyReached && (
+                    <p>• Remaining supply: {(Number(maxSupplyInfo.remaining) / 1e18).toLocaleString()} EAGLE</p>
+                  )}
+                  {isMaxSupplyReached && (
+                    <p className="text-red-500 dark:text-red-400">⚠️ Max supply reached - deposits disabled</p>
+                  )}
+                </>
+              ) : (
+                <>
+                  <p>• Converts EAGLE → vEAGLE → WLFI in one transaction</p>
+                  <p>• Includes wrapper fee + vault withdrawal fee</p>
+                  <p>• Receive WLFI directly in your wallet</p>
+                </>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+    </NeoCard>
+  );
+}
+
+
                 ? 'Processing...'
                 : needsApproval
                   ? `Approve ${activeTab === 'deposit' ? 'WLFI' : 'EAGLE'}`
