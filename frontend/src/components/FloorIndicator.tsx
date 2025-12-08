@@ -13,10 +13,13 @@ const floors: Array<{ id: Floor; label: string; icon: JSX.Element; color: string
     label: 'LP Pool',
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6h18M3 12h18M3 18h18" />
+        <circle cx="7" cy="6" r="1.5" fill="currentColor" />
+        <circle cx="17" cy="12" r="1.5" fill="currentColor" />
+        <circle cx="12" cy="18" r="1.5" fill="currentColor" />
       </svg>
     ),
-    color: 'from-blue-500 to-purple-500',
+    color: 'from-amber-400 to-yellow-600',
     status: 'Live'
   },
   {
@@ -24,10 +27,11 @@ const floors: Array<{ id: Floor; label: string; icon: JSX.Element; color: string
     label: 'Bridge',
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16V8M4 8C4 6.895 4.895 6 6 6h12c1.105 0 2 .895 2 2v8M4 8h16m0 8v-8M4 16h16m0 0v2c0 1.105-.895 2-2 2H6c-1.105 0-2-.895-2-2v-2" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 16V8m6 8V8" />
       </svg>
     ),
-    color: 'from-emerald-500 to-cyan-500',
+    color: 'from-amber-400 to-yellow-600',
     status: 'New'
   },
   {
@@ -35,10 +39,11 @@ const floors: Array<{ id: Floor; label: string; icon: JSX.Element; color: string
     label: 'Vault',
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+        <circle cx="12" cy="13" r="1.5" fill="currentColor" />
       </svg>
     ),
-    color: 'from-amber-500 to-orange-600',
+    color: 'from-amber-400 to-yellow-600',
     status: 'Active'
   }
 ];
