@@ -2415,30 +2415,6 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
                         </div>
 
                       </div>
-                      
-                      {/* Active Strategies - Show in Vault Tab */}
-                      <div className="mt-4 pt-4 border-t border-gray-200/50 dark:border-gray-700/30">
-                        <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Active Strategies</div>
-                        <div className="space-y-2">
-                          {/* USD1/WLFI Strategy */}
-                          <div className="flex items-center justify-between bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg px-3 py-2.5 border border-blue-200/50 dark:border-blue-800/30">
-                            <div className="flex items-center gap-2">
-                              <div className="w-2 h-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-500"></div>
-                              <span className="text-xs font-semibold text-gray-900 dark:text-white">USD1/WLFI Charm Alpha</span>
-                            </div>
-                            <span className="text-xs font-mono text-gray-700 dark:text-gray-300">{data.strategyUSD1 ? `$${Number(data.strategyUSD1).toLocaleString(undefined, { maximumFractionDigits: 0 })}` : '$0'}</span>
-                          </div>
-                          
-                          {/* WETH/WLFI Strategy */}
-                          <div className="flex items-center justify-between bg-gradient-to-r from-emerald-50 to-cyan-50 dark:from-emerald-900/20 dark:to-cyan-900/20 rounded-lg px-3 py-2.5 border border-emerald-200/50 dark:border-emerald-800/30">
-                            <div className="flex items-center gap-2">
-                              <div className="w-2 h-2 rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500"></div>
-                              <span className="text-xs font-semibold text-gray-900 dark:text-white">WETH/WLFI Charm Alpha</span>
-                            </div>
-                            <span className="text-xs font-mono text-gray-700 dark:text-gray-300">{data.strategyWLFI ? `$${Number(data.strategyWLFI).toLocaleString(undefined, { maximumFractionDigits: 0 })}` : '$0'}</span>
-                          </div>
-                        </div>
-                      </div>
                     </div>
                   </div>
                 )}

@@ -91,10 +91,11 @@ export default function EagleLPContent({ onNavigateDown, onNavigateToCrossChain 
   return (
     <div className="h-full overflow-y-auto bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50 dark:from-gray-900 dark:via-gray-850 dark:to-gray-900">
       <div className="container mx-auto px-3 sm:px-6 py-3 sm:py-6 md:py-8 max-w-7xl">
-        {/* Stats - Horizontal scroll on mobile, grid on desktop */}
+        {/* Stats - Horizontal scroll on mobile (centered), grid on desktop */}
         <div 
-          className="flex sm:grid sm:grid-cols-2 md:grid-cols-4 gap-1.5 sm:gap-3 md:gap-4 mb-4 sm:mb-6 overflow-x-auto pb-2 sm:pb-0 justify-center scrollbar-hide"
+          className="flex sm:grid sm:grid-cols-2 md:grid-cols-4 gap-1.5 sm:gap-3 md:gap-4 mb-4 sm:mb-6 overflow-x-auto pb-2 sm:pb-0 scrollbar-hide"
         >
+          <div className="flex gap-1.5 mx-auto sm:contents">
           <NeoStatCard
             label="Total Liquidity"
             value={poolData.liquidity}
@@ -120,6 +121,7 @@ export default function EagleLPContent({ onNavigateDown, onNavigateToCrossChain 
             subtitle={`FDV: ${poolData.fdv}`}
             className="min-w-[110px] sm:min-w-0 flex-shrink-0"
           />
+          </div>
         </div>
 
         {/* Pool Info & Actions - Compact */}
