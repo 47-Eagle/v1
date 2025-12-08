@@ -27,14 +27,40 @@ const VaultVisualization = lazy(() => import('./VaultVisualization'));
 function AnalyticsTabContent({ vaultData }: { vaultData: any }) {
   const [viewMode, setViewMode] = useState<'total' | 'breakdown'>('total');
   
-  // Calculate current WLFI holdings
+  // Get prices
+  const wlfiPrice = Number(vaultData.wlfiPrice) || 0.132;
+  const wethPrice = Number(vaultData.wethPrice) || 3500;
+  
+  // Calculate current WLFI holdings (actual WLFI tokens)
   const currentVaultWLFI = Number(vaultData.vaultLiquidWLFI) || 0;
   const currentStrategyWLFI = (Number(vaultData.strategyWLFIinUSD1Pool) || 0) + (Number(vaultData.strategyWLFIinPool) || 0);
   const totalWLFI = currentVaultWLFI + currentStrategyWLFI;
   
+  // Calculate USD1 holdings
   const currentUSD1 = Number(vaultData.vaultLiquidUSD1) || 0;
   const currentStrategyUSD1 = Number(vaultData.strategyUSD1InPool) || 0;
   const totalUSD1 = currentUSD1 + currentStrategyUSD1;
+  
+  // Calculate WETH holdings
+  const currentStrategyWETH = Number(vaultData.strategyWETH) || 0;
+  
+  // Convert everything to WLFI equivalents
+  const wlfiFromUSD1 = totalUSD1 / wlfiPrice; // USD1 is ~$1, so USD1 / WLFI price = WLFI equivalent
+  const wlfiFromWETH = wlfiPrice > 0 ? (currentStrategyWETH * wethPrice) / wlfiPrice : 0;
+  
+  // Total vault worth in WLFI terms
+  const totalVaultWorthInWLFI = totalWLFI + wlfiFromUSD1 + wlfiFromWETH;
+  
+  console.log('[Analytics] Vault Worth Calculation:', {
+    totalWLFI,
+    totalUSD1,
+    wlfiFromUSD1,
+    currentStrategyWETH,
+    wlfiFromWETH,
+    totalVaultWorthInWLFI,
+    wlfiPrice,
+    wethPrice
+  });
   
   // Mock historical data - In production, fetch from backend
   const generateHistoricalData = () => {
@@ -47,9 +73,15 @@ function AnalyticsTabContent({ vaultData }: { vaultData: any }) {
       const timestamp = now - (i * dayMs);
       const progress = (points - i) / points;
       
-      // Simulate growth from 3000 to current
+      // Simulate growth from starting values to current
       const vaultWLFI = 3000 + (currentVaultWLFI - 3000) * progress;
       const strategyWLFI = (currentStrategyWLFI * progress);
+      const usd1 = (totalUSD1 * progress);
+      const weth = (currentStrategyWETH * progress);
+      
+      // Calculate WLFI equivalents
+      const wlfiFromUSD1Hist = usd1 / wlfiPrice;
+      const wlfiFromWETHHist = wlfiPrice > 0 ? (weth * wethPrice) / wlfiPrice : 0;
       
       data.push({
         timestamp,
@@ -57,6 +89,9 @@ function AnalyticsTabContent({ vaultData }: { vaultData: any }) {
         vaultWLFI: vaultWLFI,
         strategyWLFI: strategyWLFI,
         totalWLFI: vaultWLFI + strategyWLFI,
+        wlfiFromUSD1: wlfiFromUSD1Hist,
+        wlfiFromWETH: wlfiFromWETHHist,
+        totalVaultWorthInWLFI: vaultWLFI + strategyWLFI + wlfiFromUSD1Hist + wlfiFromWETHHist,
       });
     }
     return data;
@@ -93,24 +128,51 @@ function AnalyticsTabContent({ vaultData }: { vaultData: any }) {
         </div>
       </div>
 
-      {/* Current Holdings Stats */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 rounded-xl p-4 border border-amber-200 dark:border-amber-800">
-          <p className="text-xs text-gray-600 dark:text-gray-400 mb-1 font-medium">Total WLFI</p>
-          <p className="text-2xl font-bold text-amber-700 dark:text-amber-400">
-            {totalWLFI.toFixed(2)}
+      {/* Primary Stat - Total Vault Worth in WLFI */}
+      <div className="bg-gradient-to-br from-amber-500 to-yellow-600 rounded-2xl p-6 shadow-lg border-2 border-amber-300 dark:border-amber-700">
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-sm text-white/90 font-bold uppercase tracking-wide">Total Vault Worth</p>
+          <div className="px-2 py-1 bg-white/20 rounded-lg text-xs text-white font-semibold">
+            in WLFI
+          </div>
+        </div>
+        <p className="text-4xl font-bold text-white mb-2">
+          {totalVaultWorthInWLFI.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+        </p>
+        <div className="flex items-center gap-2 text-xs text-white/80">
+          <span>≈ ${(totalVaultWorthInWLFI * wlfiPrice).toLocaleString(undefined, { maximumFractionDigits: 0 })} USD</span>
+          <span>•</span>
+          <span>@ ${wlfiPrice.toFixed(3)}/WLFI</span>
+        </div>
+      </div>
+      
+      {/* Breakdown Stats */}
+      <div className="grid grid-cols-3 gap-2">
+        <div className="bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 rounded-lg p-3 border border-amber-200 dark:border-amber-800">
+          <p className="text-[10px] text-gray-600 dark:text-gray-400 mb-1 font-medium uppercase tracking-wide">WLFI Tokens</p>
+          <p className="text-lg font-bold text-amber-700 dark:text-amber-400">
+            {totalWLFI.toFixed(0)}
           </p>
-          <p className="text-[10px] text-gray-500 dark:text-gray-500 mt-1">
-            Vault: {currentVaultWLFI.toFixed(2)} • Strategies: {currentStrategyWLFI.toFixed(2)}
+          <p className="text-[9px] text-gray-500 dark:text-gray-500 mt-0.5">
+            {((totalWLFI / totalVaultWorthInWLFI) * 100).toFixed(1)}% of total
           </p>
         </div>
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
-          <p className="text-xs text-gray-600 dark:text-gray-400 mb-1 font-medium">Total USD1</p>
-          <p className="text-2xl font-bold text-blue-700 dark:text-blue-400">
-            {totalUSD1.toFixed(2)}
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-3 border border-blue-200 dark:border-blue-800">
+          <p className="text-[10px] text-gray-600 dark:text-gray-400 mb-1 font-medium uppercase tracking-wide">USD1 (as WLFI)</p>
+          <p className="text-lg font-bold text-blue-700 dark:text-blue-400">
+            {wlfiFromUSD1.toFixed(0)}
           </p>
-          <p className="text-[10px] text-gray-500 dark:text-gray-500 mt-1">
-            Vault: {currentUSD1.toFixed(2)} • Strategies: {currentStrategyUSD1.toFixed(2)}
+          <p className="text-[9px] text-gray-500 dark:text-gray-500 mt-0.5">
+            {totalUSD1.toFixed(0)} USD1
+          </p>
+        </div>
+        <div className="bg-gradient-to-br from-gray-50 to-slate-50 dark:from-gray-900/20 dark:to-slate-900/20 rounded-lg p-3 border border-gray-200 dark:border-gray-800">
+          <p className="text-[10px] text-gray-600 dark:text-gray-400 mb-1 font-medium uppercase tracking-wide">WETH (as WLFI)</p>
+          <p className="text-lg font-bold text-gray-700 dark:text-gray-400">
+            {wlfiFromWETH.toFixed(0)}
+          </p>
+          <p className="text-[9px] text-gray-500 dark:text-gray-500 mt-0.5">
+            {currentStrategyWETH.toFixed(4)} WETH
           </p>
         </div>
       </div>
@@ -119,10 +181,10 @@ function AnalyticsTabContent({ vaultData }: { vaultData: any }) {
       <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between mb-3">
           <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-            WLFI Holdings Over Time (30 Days)
+            Total Vault Worth in WLFI (30 Days)
           </p>
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            {viewMode === 'total' ? 'Combined' : 'Vault vs Strategies'}
+            All assets converted to WLFI
           </p>
         </div>
         
@@ -154,16 +216,17 @@ function AnalyticsTabContent({ vaultData }: { vaultData: any }) {
             <line x1="0" y1="30" x2="100" y2="30" stroke="currentColor" strokeWidth="0.1" opacity="0.1" />
             
             {(() => {
-              const wlfiValues = historicalData.map(s => s.totalWLFI);
-              const maxWLFI = Math.max(...wlfiValues);
-              const minWLFI = Math.min(...wlfiValues);
-              const range = maxWLFI - minWLFI || 1;
+              // Use totalVaultWorthInWLFI for the chart
+              const vaultWorthValues = historicalData.map(s => s.totalVaultWorthInWLFI);
+              const maxValue = Math.max(...vaultWorthValues);
+              const minValue = Math.min(...vaultWorthValues);
+              const range = maxValue - minValue || 1;
               
               if (viewMode === 'total') {
-                // Single line for total WLFI
+                // Single line for total vault worth in WLFI
                 const points = historicalData.map((snap, i) => {
                   const x = (i / (historicalData.length - 1)) * 100;
-                  const y = 35 - ((snap.totalWLFI - minWLFI) / range) * 30;
+                  const y = 35 - ((snap.totalVaultWorthInWLFI - minValue) / range) * 30;
                   return `${x},${y}`;
                 }).join(' ');
                 
@@ -174,28 +237,37 @@ function AnalyticsTabContent({ vaultData }: { vaultData: any }) {
                   </>
                 );
               } else {
-                // Stacked area for vault + strategies
-                const vaultPoints = historicalData.map((snap, i) => {
+                // Stacked area showing WLFI, USD1 (as WLFI), and WETH (as WLFI)
+                const wlfiOnlyPoints = historicalData.map((snap, i) => {
                   const x = (i / (historicalData.length - 1)) * 100;
-                  const y = 35 - ((snap.vaultWLFI - minWLFI) / range) * 30;
+                  const y = 35 - ((snap.totalWLFI - minValue) / range) * 30;
+                  return `${x},${y}`;
+                }).join(' ');
+                
+                const wlfiPlusUSD1Points = historicalData.map((snap, i) => {
+                  const x = (i / (historicalData.length - 1)) * 100;
+                  const y = 35 - ((snap.totalWLFI + snap.wlfiFromUSD1 - minValue) / range) * 30;
                   return `${x},${y}`;
                 }).join(' ');
                 
                 const totalPoints = historicalData.map((snap, i) => {
                   const x = (i / (historicalData.length - 1)) * 100;
-                  const y = 35 - ((snap.totalWLFI - minWLFI) / range) * 30;
+                  const y = 35 - ((snap.totalVaultWorthInWLFI - minValue) / range) * 30;
                   return `${x},${y}`;
                 }).join(' ');
                 
                 return (
                   <>
-                    {/* Vault area */}
-                    <polygon points={`0,40 ${vaultPoints} 100,40`} fill="url(#vault-grad)" />
-                    <polyline points={vaultPoints} fill="none" stroke="#3b82f6" strokeWidth="0.5" />
+                    {/* WLFI tokens base */}
+                    <polygon points={`0,40 ${wlfiOnlyPoints} 100,40`} fill="url(#vault-grad)" />
+                    <polyline points={wlfiOnlyPoints} fill="none" stroke="#f59e0b" strokeWidth="0.5" />
                     
-                    {/* Strategy area (on top) */}
-                    <polygon points={`${vaultPoints.split(' ').reverse().join(' ')} ${totalPoints}`} fill="url(#strategy-grad)" />
-                    <polyline points={totalPoints} fill="none" stroke="#10b981" strokeWidth="0.5" />
+                    {/* USD1 layer (middle) */}
+                    <polygon points={`${wlfiOnlyPoints.split(' ').reverse().join(' ')} ${wlfiPlusUSD1Points}`} fill="url(#strategy-grad)" opacity="0.6" />
+                    
+                    {/* WETH layer (top) */}
+                    <polygon points={`${wlfiPlusUSD1Points.split(' ').reverse().join(' ')} ${totalPoints}`} fill="#6b7280" opacity="0.3" />
+                    <polyline points={totalPoints} fill="none" stroke="#374151" strokeWidth="0.5" />
                   </>
                 );
               }
@@ -204,8 +276,8 @@ function AnalyticsTabContent({ vaultData }: { vaultData: any }) {
           
           {/* Y-axis labels */}
           <div className="absolute left-0 top-0 bottom-0 flex flex-col justify-between text-[9px] text-gray-500 dark:text-gray-400 -ml-12">
-            <span>{Math.max(...historicalData.map(s => s.totalWLFI)).toFixed(0)}</span>
-            <span>{(Math.max(...historicalData.map(s => s.totalWLFI)) / 2).toFixed(0)}</span>
+            <span>{Math.max(...historicalData.map(s => s.totalVaultWorthInWLFI)).toFixed(0)}</span>
+            <span>{(Math.max(...historicalData.map(s => s.totalVaultWorthInWLFI)) / 2).toFixed(0)}</span>
             <span>0</span>
           </div>
         </div>
@@ -219,23 +291,35 @@ function AnalyticsTabContent({ vaultData }: { vaultData: any }) {
         
         {/* Legend */}
         {viewMode === 'breakdown' && (
-          <div className="flex items-center justify-center gap-4 mt-3 text-xs">
+          <div className="flex items-center justify-center gap-3 mt-3 text-xs flex-wrap">
             <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-sm bg-blue-500"></div>
-              <span className="text-gray-600 dark:text-gray-400">Vault Liquid</span>
+              <div className="w-3 h-3 rounded-sm bg-amber-500"></div>
+              <span className="text-gray-600 dark:text-gray-400">WLFI Tokens</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-sm bg-green-500"></div>
-              <span className="text-gray-600 dark:text-gray-400">Deployed in Strategies</span>
+              <div className="w-3 h-3 rounded-sm bg-green-500 opacity-60"></div>
+              <span className="text-gray-600 dark:text-gray-400">USD1 (as WLFI)</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-sm bg-gray-500 opacity-30"></div>
+              <span className="text-gray-600 dark:text-gray-400">WETH (as WLFI)</span>
             </div>
           </div>
         )}
       </div>
       
       {/* Additional Info */}
-      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
-        <p className="text-xs text-blue-800 dark:text-blue-300">
-          <span className="font-semibold">📊 Note:</span> Historical data shows WLFI token holdings across vault reserves and deployed strategies. This represents the actual backing of ERC-4626 shares.
+      <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+        <p className="text-xs text-amber-800 dark:text-amber-300">
+          <span className="font-semibold">💎 Total Vault Worth (in WLFI):</span> This metric shows the vault's total value denominated in WLFI tokens. It includes:
+        </p>
+        <ul className="text-xs text-amber-800 dark:text-amber-300 mt-2 space-y-1 ml-4">
+          <li>• <strong>WLFI tokens</strong> held in vault and strategies</li>
+          <li>• <strong>USD1 converted</strong> to WLFI equivalent (USD1 / WLFI price)</li>
+          <li>• <strong>WETH converted</strong> to WLFI equivalent (WETH × ETH price / WLFI price)</li>
+        </ul>
+        <p className="text-xs text-amber-700 dark:text-amber-400 mt-2 italic">
+          This represents the total backing of ERC-4626 vault shares in WLFI terms.
         </p>
       </div>
     </div>
