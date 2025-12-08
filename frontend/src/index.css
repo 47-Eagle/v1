@@ -347,11 +347,11 @@ html {
   }
 }
 
-/* Mobile content spacing - no bottom nav needed */
+/* Mobile content spacing - minimized nav + footer */
 @media (max-width: 768px) {
-  /* Standard bottom padding for mobile */
+  /* Bottom padding for mobile to clear minimized nav and footer */
   main, .main-content, [role="main"] {
-    padding-bottom: 4rem !important; /* Standard spacing */
+    padding-bottom: 5rem !important; /* Space for footer + minimized nav */
   }
 }
 

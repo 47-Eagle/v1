@@ -132,10 +132,10 @@ export default function FloorIndicator({ current, onChange, isTransitioning }: P
         </div>
       </div>
 
-      {/* Mobile: Horizontal bottom navigation - HIDDEN */}
-      <div className="hidden md:hidden fixed bottom-28 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-md">
-        <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 backdrop-blur-xl rounded-2xl p-2 border border-gray-200/50 dark:border-gray-600/50 shadow-neo-raised dark:shadow-neo-raised-dark">
-          <div className="flex items-center justify-around gap-2">
+      {/* Mobile: Minimized bottom navigation - Compact dots */}
+      <div className="md:hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-50">
+        <div className="bg-gradient-to-br from-white/80 to-gray-50/80 dark:from-gray-800/80 dark:to-gray-850/80 backdrop-blur-xl rounded-full px-3 py-2 border border-gray-200/30 dark:border-gray-600/30 shadow-lg">
+          <div className="flex items-center gap-2">
             {floors.map((floor) => {
               const isActive = current === floor.id;
               
@@ -145,49 +145,40 @@ export default function FloorIndicator({ current, onChange, isTransitioning }: P
                   onClick={() => onChange(floor.id)}
                   disabled={isTransitioning}
                   className={`
-                    relative flex-1 h-16 rounded-xl
-                    transition-all duration-300
-                    border backdrop-blur-sm
-                    touch-manipulation
-                    min-h-[64px]
+                    relative rounded-full transition-all duration-300 touch-manipulation
                     ${isActive 
-                      ? `bg-gradient-to-br ${floor.color} border-transparent shadow-neo-glow dark:shadow-neo-glow-dark` 
-                      : 'bg-white/50 dark:bg-gray-800/80 border-gray-200/50 dark:border-gray-700/50 active:bg-gray-100 dark:active:bg-gray-700/70 shadow-neo-inset dark:shadow-neo-inset-dark'
+                      ? 'w-8 h-8' 
+                      : 'w-6 h-6 opacity-50 hover:opacity-100'
                     }
-                    ${isTransitioning ? 'opacity-50' : ''}
+                    ${isTransitioning ? 'opacity-30' : ''}
                   `}
+                  title={floor.label}
                 >
-                  {/* Active glow effect */}
-                  {isActive && (
-                    <motion.div
-                      className={`absolute inset-0 bg-gradient-to-br ${floor.color} rounded-xl opacity-40 blur-lg -z-10`}
-                      animate={{
-                        scale: [1, 1.1, 1],
-                        opacity: [0.4, 0.2, 0.4]
-                      }}
-                      transition={{
-                        duration: 2,
-                        repeat: Infinity,
-                        ease: "easeInOut"
-                      }}
-                    />
+                  {/* Active indicator with gradient */}
+                  {isActive ? (
+                    <>
+                      <div className={`absolute inset-0 bg-gradient-to-br ${floor.color} rounded-full shadow-lg`} />
+                      <motion.div
+                        className={`absolute inset-0 bg-gradient-to-br ${floor.color} rounded-full opacity-40 blur-md -z-10`}
+                        animate={{
+                          scale: [1, 1.3, 1],
+                          opacity: [0.4, 0.2, 0.4]
+                        }}
+                        transition={{
+                          duration: 2,
+                          repeat: Infinity,
+                          ease: "easeInOut"
+                        }}
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center text-white">
+                        <div className="w-3 h-3">
+                          {floor.icon}
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="absolute inset-0 bg-gray-300 dark:bg-gray-600 rounded-full" />
                   )}
-                  
-                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
-                    <div className={`
-                      ${isActive ? 'text-white' : 'text-gray-400'}
-                      transition-colors
-                    `}>
-                      {floor.icon}
-                    </div>
-                    <span className={`
-                      text-[10px] font-semibold tracking-wider uppercase
-                      ${isActive ? 'text-white' : 'text-gray-600 dark:text-gray-400'}
-                      transition-colors
-                    `}>
-                      {floor.label}
-                    </span>
-                  </div>
                 </button>
               );
             })}

@@ -2172,8 +2172,8 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
   }, [handlePreviewInjection]);
 
   return (
-    <div className="bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50 dark:from-gray-900 dark:via-black dark:to-gray-900 min-h-screen pb-16 sm:pb-24 transition-colors">
-      <div className="max-w-6xl mx-auto px-3 sm:px-6 pt-3 sm:pt-6 pb-16 sm:pb-24">
+    <div className="bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50 dark:from-gray-900 dark:via-black dark:to-gray-900 min-h-screen pb-24 sm:pb-24 transition-colors">
+      <div className="max-w-6xl mx-auto px-3 sm:px-6 pt-3 sm:pt-6 pb-20 sm:pb-24">
 
 
         {/* Stats */}
