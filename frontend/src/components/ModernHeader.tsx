@@ -215,44 +215,12 @@ export default function ModernHeader() {
           </motion.div>
           )}
 
-          {/* Center - EAGLE Price Ticker */}
-          <div className="hidden lg:flex items-center gap-3">
-            {!location.pathname.startsWith('/app') && (
-            <motion.a
-              href="https://dexscreener.com/ethereum/0xcf728b099b672c72d61f6ec4c4928c2f2a96cefdfd518c3470519d76545ed333"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-br from-[#FFE7A3]/20 to-[#F2D57C]/10 dark:from-[#A69348]/20 dark:to-[#C9A854]/10 rounded-full shadow-neo-raised dark:shadow-neo-raised-dark hover:shadow-neo-hover dark:hover:shadow-neo-hover-dark border border-[#F2D57C]/30 dark:border-[#F2D57C]/40 hover:border-[#F2D57C]/50 dark:hover:border-[#F2D57C]/60 transition-all duration-400 cursor-pointer"
-              whileHover={{ scale: 1.05, y: -2 }}
-              transition={{ type: "spring", stiffness: 500, damping: 20 }}
-              animate={priceChanged === 'eagle' ? { scale: [1, 1.08, 1] } : {}}
-              title="View on DexScreener"
-            >
-              <img 
-                src={ICONS.EAGLE}
-                alt="EAGLE"
-                className="w-5 h-5"
-              />
-              <AnimatePresence mode="wait">
-                <motion.span 
-                  key={eaglePrice}
-                  initial={{ y: 10, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: -10, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="text-sm font-mono text-gray-800 dark:text-gray-200 font-semibold min-w-[60px]"
-                >
-                  {eaglePrice === '--' ? '--' : `$${eaglePrice}`}
-                </motion.span>
-              </AnimatePresence>
-            </motion.a>
-            )}
-          </div>
-
           {/* Right Side - Theme Toggle + Connect Button */}
-          <div className="flex items-center gap-2 sm:gap-3">
-            <ThemeToggle />
-            <div className="scale-90 sm:scale-95 md:scale-100">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="scale-75 sm:scale-90">
+              <ThemeToggle />
+            </div>
+            <div className="scale-75 sm:scale-90 md:scale-95">
               <ConnectButton 
                 chainStatus="icon"
                 showBalance={false}
@@ -265,35 +233,6 @@ export default function ModernHeader() {
           </div>
         </div>
         
-        {/* Mobile EAGLE Price Ticker - Below header on small screens */}
-        <div className="lg:hidden flex items-center gap-2 mt-2 overflow-x-auto pb-1 scrollbar-hide">
-          <motion.a
-            href="https://dexscreener.com/ethereum/0xcf728b099b672c72d61f6ec4c4928c2f2a96cefdfd518c3470519d76545ed333"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-br from-[#FFE7A3]/20 to-[#F2D57C]/10 dark:from-[#A69348]/20 dark:to-[#C9A854]/10 rounded-full shadow-neo-raised dark:shadow-neo-raised-dark border border-[#F2D57C]/30 dark:border-[#F2D57C]/40 whitespace-nowrap flex-shrink-0 cursor-pointer"
-            animate={priceChanged === 'eagle' ? { scale: [1, 1.05, 1] } : {}}
-            title="View on DexScreener"
-          >
-            <img 
-              src={ICONS.EAGLE} 
-              alt="EAGLE" 
-              className="w-4 h-4" 
-            />
-            <AnimatePresence mode="wait">
-              <motion.span 
-                key={eaglePrice}
-                initial={{ y: 5, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: -5, opacity: 0 }}
-                transition={{ duration: 0.15 }}
-                className="text-xs font-mono text-gray-800 dark:text-gray-200 font-semibold"
-              >
-                {eaglePrice === '--' ? '--' : `$${eaglePrice}`}
-              </motion.span>
-            </AnimatePresence>
-          </motion.a>
-        </div>
       </div>
     </header>
   );
