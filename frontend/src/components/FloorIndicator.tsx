@@ -178,9 +178,7 @@ export default function FloorIndicator({ current, onChange, isTransitioning }: P
                     </div>
                   </>
                 ) : (
-                  <div className="absolute inset-0 bg-gray-400/30 dark:bg-gray-500/20 rounded-full hover:bg-gray-500/50 dark:hover:bg-gray-400/30 transition-colors flex items-center justify-center">
-                    <div className="w-2 h-2 rounded-full bg-gray-500/50 dark:bg-gray-400/50"></div>
-                  </div>
+                  <div className="absolute inset-0 bg-gray-400/30 dark:bg-gray-500/20 rounded-full hover:bg-gray-500/50 dark:hover:bg-gray-400/30 transition-colors" />
                 )}
               </button>
             );
