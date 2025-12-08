@@ -49,8 +49,8 @@ export default function AssetAllocationSunburst({
   const strategyWETHNum = Math.max(0, Number(strategyWETH) || 0);
   const strategyWLFIinPoolNum = Math.max(0, Number(strategyWLFIinPool) || 0);
   
-  // Check if we have any WETH strategy data (even if very small)
-  const hasWETHStrategyData = strategyWETHNum > 0 || strategyWLFIinPoolNum > 0;
+  // Always show WETH strategy section for consistency across mobile and desktop
+  const hasWETHStrategyData = true; // Changed: always show strategy section
   
   const totalVault = (vaultWLFI * wlfiPrice) + vaultUSD1;
   const totalUSD1Strategy = strategyUSD1;
@@ -130,45 +130,33 @@ export default function AssetAllocationSunburst({
           ]
         },
         ...(hasWETHStrategyData ? (() => {
-          const wethChildren = strategyWETHNum > 0 ? [{ name: 'WETH in Pool', value: strategyWETHNum * wethPrice, color: '#1a1a1a' }] : [];
-          const wlfiChildren = strategyWLFIinPoolNum > 0 ? [{ name: 'WLFI in Pool', value: strategyWLFIinPoolNum * wlfiPrice, color: '#5a5a5a' }] : [];
-          const allChildren = [...wethChildren, ...wlfiChildren];
+          // Always include both WETH and WLFI children, even if values are 0 (for consistency)
+          const wethValueUSD = strategyWETHNum * wethPrice;
+          const wlfiValueUSD = strategyWLFIinPoolNum * wlfiPrice;
+          
+          const allChildren = [
+            { name: 'WETH in Pool', value: Math.max(wethValueUSD, 0.01), color: '#1a1a1a' },
+            { name: 'WLFI in Pool', value: Math.max(wlfiValueUSD, 0.01), color: '#5a5a5a' }
+          ];
           
           console.log('[Sunburst] Building WETH/WLFI Strategy section:', {
             strategyWETHNum,
             strategyWLFIinPoolNum,
             wethPrice,
             wlfiPrice,
-            wethValueUSD: strategyWETHNum * wethPrice,
-            wlfiValueUSD: strategyWLFIinPoolNum * wlfiPrice,
+            wethValueUSD,
+            wlfiValueUSD,
             childrenCount: allChildren.length,
             children: allChildren,
             hasWETHStrategyData
           });
-          
-          // Ensure we always have at least one child if the section is being created
-          if (allChildren.length === 0) {
-            console.warn('[Sunburst] WARNING: WETH/WLFI Strategy section created but has no children!');
-            // Add a placeholder child with minimal value to ensure rendering
-            allChildren.push({ name: 'WETH in Pool', value: 0.01, color: '#1a1a1a' });
-          }
           
           return [{
           name: 'WETH/WLFI Strategy',
           color: '#3a3a3a', // Dark metallic gray (WETH Strategy)
             children: allChildren
           }];
-        })() : (() => {
-          // Debug: Log why WETH strategy is not showing
-          console.log('[Sunburst] WETH/WLFI Strategy NOT showing because:', {
-            strategyWETHNum,
-            strategyWLFIinPoolNum,
-            hasWETHStrategyData,
-            strategyWETH,
-            strategyWLFIinPool
-          });
-          return [];
-        })())
+        })() : [])
       ]
     };
 
