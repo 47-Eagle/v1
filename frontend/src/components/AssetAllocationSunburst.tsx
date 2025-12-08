@@ -358,29 +358,47 @@ export default function AssetAllocationSunburst({
     
     // Subtle circle background
     centerGroup.append('circle')
-      .attr('r', 55)
+      .attr('r', isMobile ? 60 : 70)
       .attr('fill', 'rgba(0, 0, 0, 0.4)')
       .attr('stroke', 'rgba(212, 175, 55, 0.3)')
       .attr('stroke-width', 1.5);
     
-    // Center content - display total in WLFI terms
+    // Center content - display grand total in USD
     centerGroup.append('text')
       .attr('text-anchor', 'middle')
-      .attr('y', -8)
-      .style('font-size', '32px')
-      .style('font-weight', '700')
-      .style('fill', '#F2D57C')
-      .style('letter-spacing', '1px')
-      .text(totalInWLFI.toFixed(2));
-
-    centerGroup.append('text')
-      .attr('text-anchor', 'middle')
-      .attr('y', 12)
-      .style('font-size', '11px')
+      .attr('y', -18)
+      .style('font-size', isMobile ? '10px' : '11px')
       .style('fill', '#9ca3af')
       .style('text-transform', 'uppercase')
       .style('letter-spacing', '1.5px')
-      .text('WLFI');
+      .text('Total Assets');
+    
+    centerGroup.append('text')
+      .attr('text-anchor', 'middle')
+      .attr('y', 5)
+      .style('font-size', isMobile ? '24px' : '28px')
+      .style('font-weight', '700')
+      .style('fill', '#F2D57C')
+      .style('letter-spacing', '1px')
+      .text(`$${grandTotal.toFixed(0)}`);
+
+    // Breakdown - Vault vs Strategies
+    const totalStrategies = totalUSD1Strategy + totalWETHStrategy;
+    centerGroup.append('text')
+      .attr('text-anchor', 'middle')
+      .attr('y', 20)
+      .style('font-size', isMobile ? '8px' : '9px')
+      .style('fill', '#F2D57C')
+      .style('font-weight', '600')
+      .text(`$${totalVault.toFixed(0)} Vault`);
+      
+    centerGroup.append('text')
+      .attr('text-anchor', 'middle')
+      .attr('y', 30)
+      .style('font-size', isMobile ? '8px' : '9px')
+      .style('fill', '#6366f1')
+      .style('font-weight', '600')
+      .text(`$${totalStrategies.toFixed(0)} Strategies`);
 
   }, [vaultWLFI, vaultUSD1, strategyWLFI, strategyUSD1, strategyWETH, strategyWLFIinPool, strategyUSD1InPool, strategyWLFIinUSD1Pool, grandTotal, selectedPath, animationKey, wlfiPrice, wethPrice, totalInWLFI]);
 
