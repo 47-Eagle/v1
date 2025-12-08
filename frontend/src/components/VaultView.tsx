@@ -62,61 +62,147 @@ function AnalyticsTabContent({ vaultData }: { vaultData: any }) {
     wethPrice
   });
   
-  // Generate realistic historical data with variations
-  const generateHistoricalData = () => {
-    const points = 90; // 90 days for more granularity
-    const data = [];
-    const now = Date.now();
-    const dayMs = 24 * 60 * 60 * 1000;
-    
-    // Starting values (30 days ago was lower)
-    const startVaultWLFI = currentVaultWLFI * 0.6; // Started at 60% of current
-    const startStrategyWLFI = currentStrategyWLFI * 0.4;
-    const startUSD1 = totalUSD1 * 0.5;
-    const startWETH = currentStrategyWETH * 0.3;
-    
-    for (let i = points - 1; i >= 0; i--) {
-      const timestamp = now - (i * dayMs);
-      const progress = (points - i) / points;
-      
-      // Add realistic volatility with sine waves and random noise
-      const baseGrowth = progress;
-      const volatility = Math.sin(progress * Math.PI * 4) * 0.08; // ±8% sine wave
-      const randomNoise = (Math.random() - 0.5) * 0.05; // ±2.5% random
-      const growthFactor = baseGrowth + volatility + randomNoise;
-      
-      // Simulate growth with variations
-      const vaultWLFI = startVaultWLFI + (currentVaultWLFI - startVaultWLFI) * growthFactor;
-      const strategyWLFI = startStrategyWLFI + (currentStrategyWLFI - startStrategyWLFI) * growthFactor;
-      const usd1 = startUSD1 + (totalUSD1 - startUSD1) * growthFactor;
-      const weth = startWETH + (currentStrategyWETH - startWETH) * growthFactor;
-      
-      // Add some dips and peaks
-      let multiplier = 1;
-      if (i === 75) multiplier = 0.92; // Dip at day 15
-      if (i === 60) multiplier = 1.08; // Peak at day 30
-      if (i === 45) multiplier = 0.95; // Small dip at day 45
-      if (i === 30) multiplier = 1.05; // Recovery at day 60
-      
-      // Calculate WLFI equivalents
-      const wlfiFromUSD1Hist = (usd1 * multiplier) / wlfiPrice;
-      const wlfiFromWETHHist = wlfiPrice > 0 ? ((weth * multiplier) * wethPrice) / wlfiPrice : 0;
-      
-      data.push({
-        timestamp,
-        date: new Date(timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        vaultWLFI: Math.max(0, vaultWLFI * multiplier),
-        strategyWLFI: Math.max(0, strategyWLFI * multiplier),
-        totalWLFI: Math.max(0, (vaultWLFI + strategyWLFI) * multiplier),
-        wlfiFromUSD1: Math.max(0, wlfiFromUSD1Hist),
-        wlfiFromWETH: Math.max(0, wlfiFromWETHHist),
-        totalVaultWorthInWLFI: Math.max(0, (vaultWLFI + strategyWLFI) * multiplier + wlfiFromUSD1Hist + wlfiFromWETHHist),
-      });
-    }
-    return data;
-  };
+  // Fetch historical data from backend API
+  const [historicalData, setHistoricalData] = useState<any[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   
-  const historicalData = generateHistoricalData();
+  useEffect(() => {
+    async function fetchHistoricalData() {
+      try {
+        setIsLoadingHistory(true);
+        const response = await fetch('/api/analytics?days=90');
+        const result = await response.json();
+        
+        if (result.success && result.data) {
+          const usd1Vault = result.data.vaults.USD1_WLFI;
+          const wethVault = result.data.vaults.WETH_WLFI;
+          
+          // Get all unique timestamps from both vaults
+          const usd1Snapshots = usd1Vault?.historicalSnapshots || [];
+          const wethSnapshots = wethVault?.historicalSnapshots || [];
+          
+          // Merge and process snapshots
+          const timestampMap = new Map();
+          
+          usd1Snapshots.forEach((snap: any) => {
+            if (!timestampMap.has(snap.timestamp)) {
+              timestampMap.set(snap.timestamp, {
+                timestamp: snap.timestamp * 1000, // Convert to ms
+                date: new Date(snap.timestamp * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                usd1Amount0: 0,
+                usd1Amount1: 0,
+                wethAmount0: 0,
+                wethAmount1: 0,
+              });
+            }
+            const entry = timestampMap.get(snap.timestamp);
+            // Parse amounts from snapshot (in USD terms from API)
+            entry.usd1Amount0 = parseFloat(snap.totalAmount0 || '0') / 1e18;
+            entry.usd1Amount1 = parseFloat(snap.totalAmount1 || '0') / 1e18;
+          });
+          
+          wethSnapshots.forEach((snap: any) => {
+            if (!timestampMap.has(snap.timestamp)) {
+              timestampMap.set(snap.timestamp, {
+                timestamp: snap.timestamp * 1000,
+                date: new Date(snap.timestamp * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                usd1Amount0: 0,
+                usd1Amount1: 0,
+                wethAmount0: 0,
+                wethAmount1: 0,
+              });
+            }
+            const entry = timestampMap.get(snap.timestamp);
+            entry.wethAmount0 = parseFloat(snap.totalAmount0 || '0') / 1e18;
+            entry.wethAmount1 = parseFloat(snap.totalAmount1 || '0') / 1e18;
+          });
+          
+          // Convert to array and sort by timestamp
+          const sortedData = Array.from(timestampMap.values())
+            .sort((a, b) => a.timestamp - b.timestamp)
+            .map(entry => {
+              // Calculate WLFI equivalents
+              const vaultWLFI = currentVaultWLFI; // From current vault state
+              const strategyWLFI = entry.usd1Amount1 + entry.wethAmount1; // WLFI in strategies
+              const wlfiFromUSD1 = entry.usd1Amount0 / wlfiPrice; // USD1 converted to WLFI
+              const wlfiFromWETH = (entry.wethAmount0 * wethPrice) / wlfiPrice; // WETH converted to WLFI
+              
+              return {
+                ...entry,
+                vaultWLFI,
+                strategyWLFI,
+                totalWLFI: vaultWLFI + strategyWLFI,
+                wlfiFromUSD1,
+                wlfiFromWETH,
+                totalVaultWorthInWLFI: vaultWLFI + strategyWLFI + wlfiFromUSD1 + wlfiFromWETH,
+              };
+            });
+          
+          setHistoricalData(sortedData);
+        } else {
+          console.warn('[VaultView] No historical data from API, using fallback');
+          setHistoricalData(generateFallbackData());
+        }
+      } catch (error) {
+        console.error('[VaultView] Error fetching historical data:', error);
+        setHistoricalData(generateFallbackData());
+      } finally {
+        setIsLoadingHistory(false);
+      }
+    }
+    
+    // Fallback data generator if API fails
+    function generateFallbackData() {
+      const points = 90;
+      const data = [];
+      const now = Date.now();
+      const dayMs = 24 * 60 * 60 * 1000;
+      
+      const startVaultWLFI = currentVaultWLFI * 0.6;
+      const startStrategyWLFI = currentStrategyWLFI * 0.4;
+      const startUSD1 = totalUSD1 * 0.5;
+      const startWETH = currentStrategyWETH * 0.3;
+      
+      for (let i = points - 1; i >= 0; i--) {
+        const timestamp = now - (i * dayMs);
+        const progress = (points - i) / points;
+        const baseGrowth = progress;
+        const volatility = Math.sin(progress * Math.PI * 4) * 0.08;
+        const randomNoise = (Math.random() - 0.5) * 0.05;
+        const growthFactor = baseGrowth + volatility + randomNoise;
+        
+        const vaultWLFI = startVaultWLFI + (currentVaultWLFI - startVaultWLFI) * growthFactor;
+        const strategyWLFI = startStrategyWLFI + (currentStrategyWLFI - startStrategyWLFI) * growthFactor;
+        const usd1 = startUSD1 + (totalUSD1 - startUSD1) * growthFactor;
+        const weth = startWETH + (currentStrategyWETH - startWETH) * growthFactor;
+        
+        let multiplier = 1;
+        if (i === 75) multiplier = 0.92;
+        if (i === 60) multiplier = 1.08;
+        if (i === 45) multiplier = 0.95;
+        if (i === 30) multiplier = 1.05;
+        
+        const wlfiFromUSD1Hist = (usd1 * multiplier) / wlfiPrice;
+        const wlfiFromWETHHist = wlfiPrice > 0 ? ((weth * multiplier) * wethPrice) / wlfiPrice : 0;
+        
+        data.push({
+          timestamp,
+          date: new Date(timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+          vaultWLFI: Math.max(0, vaultWLFI * multiplier),
+          strategyWLFI: Math.max(0, strategyWLFI * multiplier),
+          totalWLFI: Math.max(0, (vaultWLFI + strategyWLFI) * multiplier),
+          wlfiFromUSD1: Math.max(0, wlfiFromUSD1Hist),
+          wlfiFromWETH: Math.max(0, wlfiFromWETHHist),
+          totalVaultWorthInWLFI: Math.max(0, (vaultWLFI + strategyWLFI) * multiplier + wlfiFromUSD1Hist + wlfiFromWETHHist),
+        });
+      }
+      return data;
+    }
+    
+    if (wlfiPrice > 0) {
+      fetchHistoricalData();
+    }
+  }, [currentVaultWLFI, currentStrategyWLFI, totalUSD1, currentStrategyWETH, wlfiPrice, wethPrice]);
 
   return (
     <div className="space-y-5">
@@ -194,36 +280,47 @@ function AnalyticsTabContent({ vaultData }: { vaultData: any }) {
 
       {/* Simplified Chart */}
       <div className="bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-4">
-        <p className="text-xs text-gray-500 dark:text-gray-500 mb-4 text-center">90-Day History</p>
+        <p className="text-xs text-gray-500 dark:text-gray-500 mb-4 text-center">
+          90-Day History {isLoadingHistory && <span className="ml-2 animate-pulse">●</span>}
+        </p>
         
         <div className="h-48 relative">
-          <svg className="w-full h-full" viewBox="0 0 100 40" preserveAspectRatio="none">
-            <defs>
-              {viewMode === 'total' ? (
-                <linearGradient id="wlfi-grad" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.3" />
-                  <stop offset="100%" stopColor="#f59e0b" stopOpacity="0" />
-                </linearGradient>
-              ) : (
-                <>
-                  <linearGradient id="vault-grad" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.3" />
-                    <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
+          {historicalData.length === 0 && isLoadingHistory ? (
+            <div className="flex items-center justify-center h-full text-gray-400 text-sm">
+              <div className="animate-pulse">Loading historical data...</div>
+            </div>
+          ) : historicalData.length === 0 ? (
+            <div className="flex items-center justify-center h-full text-gray-400 text-sm">
+              No historical data available
+            </div>
+          ) : (
+            <svg className="w-full h-full" viewBox="0 0 100 40" preserveAspectRatio="none">
+              <defs>
+                {viewMode === 'total' ? (
+                  <linearGradient id="wlfi-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.3" />
+                    <stop offset="100%" stopColor="#f59e0b" stopOpacity="0" />
                   </linearGradient>
-                  <linearGradient id="strategy-grad" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" stopColor="#10b981" stopOpacity="0.3" />
-                    <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
-                  </linearGradient>
-                </>
-              )}
-            </defs>
-            
-            {/* Grid lines */}
-            <line x1="0" y1="10" x2="100" y2="10" stroke="currentColor" strokeWidth="0.1" opacity="0.1" />
-            <line x1="0" y1="20" x2="100" y2="20" stroke="currentColor" strokeWidth="0.1" opacity="0.1" />
-            <line x1="0" y1="30" x2="100" y2="30" stroke="currentColor" strokeWidth="0.1" opacity="0.1" />
-            
-            {(() => {
+                ) : (
+                  <>
+                    <linearGradient id="vault-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.3" />
+                      <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
+                    </linearGradient>
+                    <linearGradient id="strategy-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor="#10b981" stopOpacity="0.3" />
+                      <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
+                    </linearGradient>
+                  </>
+                )}
+              </defs>
+              
+              {/* Grid lines */}
+              <line x1="0" y1="10" x2="100" y2="10" stroke="currentColor" strokeWidth="0.1" opacity="0.1" />
+              <line x1="0" y1="20" x2="100" y2="20" stroke="currentColor" strokeWidth="0.1" opacity="0.1" />
+              <line x1="0" y1="30" x2="100" y2="30" stroke="currentColor" strokeWidth="0.1" opacity="0.1" />
+              
+              {(() => {
               // Use totalVaultWorthInWLFI for the chart
               const vaultWorthValues = historicalData.map(s => s.totalVaultWorthInWLFI);
               const maxValue = Math.max(...vaultWorthValues);
@@ -280,23 +377,28 @@ function AnalyticsTabContent({ vaultData }: { vaultData: any }) {
                 );
               }
             })()}
-          </svg>
+            </svg>
+          )}
           
           {/* Y-axis labels */}
-          <div className="absolute -left-2 top-0 bottom-0 flex flex-col justify-between text-[9px] text-gray-500 dark:text-gray-500 -translate-x-full pr-2">
-            <span>{Math.max(...historicalData.map(s => s.totalVaultWorthInWLFI)).toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
-            <span>{(Math.max(...historicalData.map(s => s.totalVaultWorthInWLFI)) / 2).toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
-            <span>0</span>
-          </div>
+          {historicalData.length > 0 && (
+            <div className="absolute -left-2 top-0 bottom-0 flex flex-col justify-between text-[9px] text-gray-500 dark:text-gray-500 -translate-x-full pr-2">
+              <span>{Math.max(...historicalData.map(s => s.totalVaultWorthInWLFI)).toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+              <span>{(Math.max(...historicalData.map(s => s.totalVaultWorthInWLFI)) / 2).toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+              <span>0</span>
+            </div>
+          )}
         </div>
         
         {/* X-axis labels */}
-        <div className="flex justify-between text-[9px] text-gray-500 dark:text-gray-500 mt-2">
-          <span>{historicalData[0]?.date}</span>
-          <span>{historicalData[Math.floor(historicalData.length / 3)]?.date}</span>
-          <span>{historicalData[Math.floor(2 * historicalData.length / 3)]?.date}</span>
-          <span>{historicalData[historicalData.length - 1]?.date}</span>
-        </div>
+        {historicalData.length > 0 && (
+          <div className="flex justify-between text-[9px] text-gray-500 dark:text-gray-500 mt-2">
+            <span>{historicalData[0]?.date}</span>
+            <span>{historicalData[Math.floor(historicalData.length / 3)]?.date}</span>
+            <span>{historicalData[Math.floor(2 * historicalData.length / 3)]?.date}</span>
+            <span>{historicalData[historicalData.length - 1]?.date}</span>
+          </div>
+        )}
         
         {/* Simple Legend */}
         {viewMode === 'breakdown' && (
