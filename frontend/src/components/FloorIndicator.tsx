@@ -132,9 +132,9 @@ export default function FloorIndicator({ current, onChange, isTransitioning }: P
         </div>
       </div>
 
-      {/* Mobile: Ultra-minimal navigation dots */}
-      <div className="md:hidden fixed bottom-3 left-1/2 -translate-x-1/2 z-50">
-        <div className="flex items-center gap-1.5 px-2 py-1.5 bg-black/10 dark:bg-white/5 backdrop-blur-md rounded-full">
+      {/* Mobile: Minimal navigation dots on right side */}
+      <div className="md:hidden fixed right-3 top-1/2 -translate-y-1/2 z-50">
+        <div className="flex flex-col items-center gap-2 px-1.5 py-2 bg-black/10 dark:bg-white/5 backdrop-blur-md rounded-full">
           {floors.map((floor) => {
             const isActive = current === floor.id;
             
@@ -145,18 +145,19 @@ export default function FloorIndicator({ current, onChange, isTransitioning }: P
                 disabled={isTransitioning}
                 className={`
                   relative rounded-full transition-all duration-200 touch-manipulation
-                  ${isActive ? 'w-6 h-1.5' : 'w-1.5 h-1.5'}
+                  ${isActive ? 'w-8 h-8' : 'w-6 h-6'}
                   ${isTransitioning ? 'opacity-30' : ''}
                 `}
                 title={floor.label}
               >
                 {isActive ? (
                   <>
-                    <div className={`absolute inset-0 bg-gradient-to-r ${floor.color} rounded-full`} />
+                    <div className={`absolute inset-0 bg-gradient-to-br ${floor.color} rounded-full`} />
                     <motion.div
-                      className={`absolute inset-0 bg-gradient-to-r ${floor.color} rounded-full opacity-30 blur-sm`}
+                      className={`absolute inset-0 bg-gradient-to-br ${floor.color} rounded-full opacity-30 blur-md`}
                       animate={{
-                        opacity: [0.3, 0.6, 0.3]
+                        scale: [1, 1.2, 1],
+                        opacity: [0.3, 0.5, 0.3]
                       }}
                       transition={{
                         duration: 2,
@@ -164,9 +165,14 @@ export default function FloorIndicator({ current, onChange, isTransitioning }: P
                         ease: "easeInOut"
                       }}
                     />
+                    <div className="absolute inset-0 flex items-center justify-center text-white">
+                      <div className="w-3.5 h-3.5">
+                        {floor.icon}
+                      </div>
+                    </div>
                   </>
                 ) : (
-                  <div className="absolute inset-0 bg-gray-400/40 dark:bg-gray-500/30 rounded-full hover:bg-gray-500/60 dark:hover:bg-gray-400/40 transition-colors" />
+                  <div className="absolute inset-0 bg-gray-400/30 dark:bg-gray-500/20 rounded-full hover:bg-gray-500/50 dark:hover:bg-gray-400/30 transition-colors" />
                 )}
               </button>
             );
