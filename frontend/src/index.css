@@ -227,3 +227,209 @@ html {
   animation: pulse-glow 2s ease-in-out infinite;
 }
 
+/* ================================================ */
+/* Mobile Optimizations */
+/* ================================================ */
+
+/* iOS Safe Areas */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+}
+
+/* Mobile: Better Touch Targets (min 44px) */
+@media (max-width: 768px) {
+  /* Buttons */
+  button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Input fields */
+  input, select, textarea {
+    min-height: 48px;
+    font-size: 16px; /* Prevents iOS zoom on focus */
+  }
+  
+  /* Increase font sizes for better readability */
+  .text-xs { font-size: 13px !important; }
+  .text-sm { font-size: 15px !important; }
+  .text-base { font-size: 17px !important; }
+  
+  /* Better padding for cards */
+  .p-4 { padding: 1.25rem !important; } /* 20px instead of 16px */
+  .p-6 { padding: 1.75rem !important; } /* 28px instead of 24px */
+  .px-4 { padding-left: 1.25rem !important; padding-right: 1.25rem !important; }
+  .px-6 { padding-left: 1.75rem !important; padding-right: 1.75rem !important; }
+  
+  /* Better spacing between elements */
+  .space-y-2 > * + * { margin-top: 0.75rem !important; } /* 12px instead of 8px */
+  .space-y-4 > * + * { margin-top: 1.25rem !important; } /* 20px instead of 16px */
+  .gap-2 { gap: 0.75rem !important; } /* 12px instead of 8px */
+  .gap-4 { gap: 1.25rem !important; } /* 20px instead of 16px */
+  
+  /* Optimize stat cards for mobile */
+  h1 { font-size: 2rem !important; } /* 32px */
+  h2 { font-size: 1.5rem !important; } /* 24px */
+  h3 { font-size: 1.25rem !important; } /* 20px */
+  h4 { font-size: 1.125rem !important; } /* 18px */
+  
+  /* Better line height for readability */
+  p { line-height: 1.6 !important; }
+  
+  /* Larger icons */
+  svg {
+    min-width: 20px;
+    min-height: 20px;
+  }
+}
+
+/* Specific mobile optimizations for stat cards */
+@media (max-width: 768px) {
+  /* Make stat numbers bigger */
+  .stat-value {
+    font-size: 2rem !important;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  
+  /* Make labels clearer */
+  .stat-label {
+    font-size: 0.875rem !important;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+  }
+}
+
+/* MetaMask Mobile Browser Specific */
+@media (max-width: 480px) {
+  /* Smaller padding for very small screens */
+  .p-6 { padding: 1.25rem !important; }
+  
+  /* Prevent text overflow */
+  h1, h2, h3, h4 {
+    word-break: break-word;
+    hyphens: auto;
+  }
+  
+  /* Better button spacing */
+  button {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+}
+
+/* Improve touch feedback */
+@media (hover: none) and (pointer: coarse) {
+  /* Better touch feedback for mobile */
+  button:active {
+    transform: scale(0.98);
+    transition: transform 0.1s;
+  }
+  
+  /* Remove hover states on touch devices */
+  button:hover {
+    transform: none;
+  }
+  
+  /* Larger tap targets */
+  a, button, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* Mobile content spacing - minimized nav + footer */
+@media (max-width: 768px) {
+  /* Bottom padding for mobile to clear minimized nav and footer */
+  main, .main-content, [role="main"] {
+    padding-bottom: 5rem !important; /* Space for footer + minimized nav */
+  }
+}
+
+/* Optimize modals for mobile */
+@media (max-width: 768px) {
+  .modal-content, [role="dialog"] {
+    max-height: 85vh !important;
+    overflow-y: auto;
+    border-radius: 20px 20px 0 0 !important; /* Bottom sheet style */
+  }
+}
+
+/* Better number input on mobile */
+@media (max-width: 768px) {
+  input[type="number"],
+  input[type="text"].amount-input {
+    font-size: 24px !important;
+    font-weight: 600;
+    text-align: center;
+  }
+}
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari, Opera */
+}
+
+/* Custom Neumorphic Scrollbar for Analytics */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(217, 119, 6, 0.3) transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, rgba(217, 119, 6, 0.4), rgba(251, 191, 36, 0.4));
+  border-radius: 10px;
+  border: 1px solid rgba(217, 119, 6, 0.1);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, rgba(217, 119, 6, 0.6), rgba(251, 191, 36, 0.6));
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.3), rgba(252, 211, 77, 0.3));
+  border: 1px solid rgba(251, 191, 36, 0.1);
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.5), rgba(252, 211, 77, 0.5));
+}
+
+/* Smooth transitions for analytics components */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-in {
+  animation: slideInUp 0.3s ease-out forwards;
+}
+

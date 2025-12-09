@@ -72,7 +72,19 @@ export default function ModernHeader() {
   useEffect(() => {
     const fetchEaglePrice = async () => {
       try {
-        const response = await fetch('https://api.dexscreener.com/latest/dex/pairs/ethereum/0xcf728b099b672c72d61f6ec4c4928c2f2a96cefdfd518c3470519d76545ed333');
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+        
+        const response = await fetch('https://api.dexscreener.com/latest/dex/pairs/ethereum/0xcf728b099b672c72d61f6ec4c4928c2f2a96cefdfd518c3470519d76545ed333', {
+          signal: controller.signal,
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const data = await response.json();
         if (data?.pair?.priceUsd) {
           const newEaglePrice = parseFloat(data.pair.priceUsd).toFixed(6);
@@ -84,8 +96,11 @@ export default function ModernHeader() {
             return newEaglePrice;
           });
         }
-      } catch (error) {
-        console.error('Error fetching EAGLE price:', error);
+      } catch (error: any) {
+        // Silently fail for network errors - DEXScreener API may be rate-limited or unavailable
+        if (error.name !== 'AbortError') {
+          console.warn('DexScreener API unavailable, keeping placeholder price');
+        }
       }
     };
 
@@ -95,47 +110,24 @@ export default function ModernHeader() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-50 bg-gradient-to-b from-neo-bg-light to-gray-50 dark:from-neo-bg-dark dark:to-gray-900 border-b border-gray-300/50 dark:border-gray-700/30 shadow-neo-inset dark:shadow-neo-inset-dark backdrop-blur-xl transition-all duration-500">
-      <div className="container mx-auto px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4">
+    <header className="sticky top-0 z-50 bg-neo-bg-light/80 dark:bg-neo-bg-dark/80 border-b border-gray-300/20 dark:border-gray-700/20 backdrop-blur-xl transition-all duration-300">
+      <div className="container mx-auto px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 md:py-2.5">
         <div className="flex items-center justify-between">
           {/* Logo & Title - Changes based on page */}
           {location.pathname === '/vault' || location.pathname === '/vault/' ? (
             /* Eagle Omnichain Vault Info (on vault page only) */
-          <motion.div 
-            className="flex items-center gap-2 sm:gap-3 md:gap-4"
-            whileHover={{ scale: 1.02 }}
-            transition={{ type: "spring", stiffness: 400, damping: 20 }}
-            >
-              <motion.img 
+          <div className="flex items-center gap-2">
+              <img 
                 src={ICONS.EAGLE}
                 alt="Eagle Omnichain Vault"
-                className="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 drop-shadow-lg"
-                whileHover={{ rotate: [0, -10, 10, 0] }}
-                transition={{ duration: 0.5 }}
+                className="w-6 h-6 sm:w-7 sm:h-7"
               />
               <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <h1 className="text-sm sm:text-base md:text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent truncate">
-                    Eagle Omnichain Vault
-                  </h1>
-                  <div className="flex items-center gap-1">
-                    <TokenIcon symbol="WLFI" address={CONTRACTS.WLFI} className="w-4 h-4 sm:w-5 sm:h-5 rounded-full border border-white dark:border-gray-700" />
-                    <TokenIcon symbol="USD1" address={CONTRACTS.USD1} className="w-4 h-4 sm:w-5 sm:h-5 rounded-full border border-white dark:border-gray-700" />
-                  </div>
-                </div>
-                <a 
-                  href={`https://etherscan.io/address/${CONTRACTS.VAULT}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 hover:text-[#D4B474] font-mono transition-colors flex items-center gap-1"
-                >
-                  {CONTRACTS.VAULT}
-                  <svg className="w-2.5 h-2.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
-                </a>
+                <h1 className="text-xs sm:text-sm md:text-base font-semibold text-gray-900 dark:text-gray-100 truncate">
+                  Eagle Omnichain Vault
+                </h1>
               </div>
-            </motion.div>
+            </div>
           ) : location.pathname.startsWith('/lp') || location.pathname === '/lp/' ? (
             /* Eagle/ETH Liquidity Pool (on LP page) */
             <motion.div 
@@ -238,44 +230,12 @@ export default function ModernHeader() {
           </motion.div>
           )}
 
-          {/* Center - EAGLE Price Ticker */}
-          <div className="hidden lg:flex items-center gap-3">
-            {!location.pathname.startsWith('/app') && (
-            <motion.a
-              href="https://dexscreener.com/ethereum/0xcf728b099b672c72d61f6ec4c4928c2f2a96cefdfd518c3470519d76545ed333"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-br from-[#FFE7A3]/20 to-[#F2D57C]/10 dark:from-[#A69348]/20 dark:to-[#C9A854]/10 rounded-full shadow-neo-raised dark:shadow-neo-raised-dark hover:shadow-neo-hover dark:hover:shadow-neo-hover-dark border border-[#F2D57C]/30 dark:border-[#F2D57C]/40 hover:border-[#F2D57C]/50 dark:hover:border-[#F2D57C]/60 transition-all duration-400 cursor-pointer"
-              whileHover={{ scale: 1.05, y: -2 }}
-              transition={{ type: "spring", stiffness: 500, damping: 20 }}
-              animate={priceChanged === 'eagle' ? { scale: [1, 1.08, 1] } : {}}
-              title="View on DexScreener"
-            >
-              <img 
-                src={ICONS.EAGLE}
-                alt="EAGLE"
-                className="w-5 h-5"
-              />
-              <AnimatePresence mode="wait">
-                <motion.span 
-                  key={eaglePrice}
-                  initial={{ y: 10, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: -10, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="text-sm font-mono text-gray-800 dark:text-gray-200 font-semibold min-w-[60px]"
-                >
-                  {eaglePrice === '--' ? '--' : `$${eaglePrice}`}
-                </motion.span>
-              </AnimatePresence>
-            </motion.a>
-            )}
-          </div>
-
           {/* Right Side - Theme Toggle + Connect Button */}
-          <div className="flex items-center gap-2 sm:gap-3">
-            <ThemeToggle />
-            <div className="scale-90 sm:scale-95 md:scale-100">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="scale-75 sm:scale-90">
+              <ThemeToggle />
+            </div>
+            <div className="scale-75 sm:scale-90 md:scale-95">
               <ConnectButton 
                 chainStatus="icon"
                 showBalance={false}
@@ -288,35 +248,6 @@ export default function ModernHeader() {
           </div>
         </div>
         
-        {/* Mobile EAGLE Price Ticker - Below header on small screens */}
-        <div className="lg:hidden flex items-center gap-2 mt-2 overflow-x-auto pb-1 scrollbar-hide">
-          <motion.a
-            href="https://dexscreener.com/ethereum/0xcf728b099b672c72d61f6ec4c4928c2f2a96cefdfd518c3470519d76545ed333"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-br from-[#FFE7A3]/20 to-[#F2D57C]/10 dark:from-[#A69348]/20 dark:to-[#C9A854]/10 rounded-full shadow-neo-raised dark:shadow-neo-raised-dark border border-[#F2D57C]/30 dark:border-[#F2D57C]/40 whitespace-nowrap flex-shrink-0 cursor-pointer"
-            animate={priceChanged === 'eagle' ? { scale: [1, 1.05, 1] } : {}}
-            title="View on DexScreener"
-          >
-            <img 
-              src={ICONS.EAGLE} 
-              alt="EAGLE" 
-              className="w-4 h-4" 
-            />
-            <AnimatePresence mode="wait">
-              <motion.span 
-                key={eaglePrice}
-                initial={{ y: 5, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: -5, opacity: 0 }}
-                transition={{ duration: 0.15 }}
-                className="text-xs font-mono text-gray-800 dark:text-gray-200 font-semibold"
-              >
-                {eaglePrice === '--' ? '--' : `$${eaglePrice}`}
-              </motion.span>
-            </AnimatePresence>
-          </motion.a>
-        </div>
       </div>
     </header>
   );

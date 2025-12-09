@@ -1,0 +1,24 @@
+[package]
+name = "bonk-oft-wrapper"
+version = "0.1.0"
+description = "BONK Token Wrapper for LayerZero OFT Bridge"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "bonk_oft_wrapper"
+
+[features]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+cpi = ["no-entrypoint"]
+default = []
+
+[dependencies]
+anchor-lang = "0.31.0"
+anchor-spl = "0.31.0"
+solana-program = "1.18"
+
+[profile.release]
+overflow-checks = true

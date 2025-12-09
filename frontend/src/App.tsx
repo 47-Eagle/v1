@@ -83,27 +83,27 @@ function AppContent() {
         />
       </div>
 
-      {/* Fixed Footer - Hidden on Mobile */}
-      <footer className="hidden md:block relative z-20 flex-shrink-0 border-t border-gray-300 dark:border-gray-700 bg-neo-bg-light dark:bg-neo-bg-dark shadow-neo-pressed dark:shadow-neo-pressed-dark transition-colors duration-300">
-        <div className="container mx-auto px-3 sm:px-6 py-3 sm:py-4">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-2 sm:gap-3">
-            <div className="flex items-center gap-2 sm:gap-3">
+      {/* Fixed Footer - Ultra Compact on Mobile */}
+      <footer className="relative z-20 flex-shrink-0 border-t border-gray-300/30 dark:border-gray-700/30 bg-neo-bg-light/80 dark:bg-neo-bg-dark/80 backdrop-blur-sm transition-colors duration-300">
+        <div className="container mx-auto px-3 sm:px-6 py-1.5 sm:py-4">
+          <div className="flex flex-row justify-between items-center gap-2 sm:gap-3 text-center">
+            <div className="flex items-center gap-1.5 sm:gap-3">
               <img 
                 src={ICONS.EAGLE} 
                 alt="Eagle" 
-                className="w-5 h-5 sm:w-6 sm:h-6"
+                className="w-3 h-3 sm:w-6 sm:h-6"
               />
-              <span className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium text-center">
-                © 2025 Eagle Vault. All rights reserved.
+              <span className="text-[8px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
+                © 2025 Eagle
               </span>
             </div>
 
-            <div className="flex items-center gap-3 sm:gap-6">
+            <div className="flex items-center gap-2 sm:gap-6">
               <a 
                 href="https://docs.47eagle.com" 
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 hover:text-[#F2D57C] dark:hover:text-[#FFE7A3] transition-colors font-medium"
+                className="text-[8px] sm:text-xs text-gray-600 dark:text-gray-400 hover:text-[#F2D57C] dark:hover:text-[#FFE7A3] transition-colors font-medium"
               >
                 Docs
               </a>
@@ -111,17 +111,17 @@ function AppContent() {
                 href="https://x.com/teameagle47" 
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 hover:text-[#F2D57C] dark:hover:text-[#FFE7A3] transition-colors font-medium"
+                className="text-[8px] sm:text-xs text-gray-600 dark:text-gray-400 hover:text-[#F2D57C] dark:hover:text-[#FFE7A3] transition-colors font-medium"
               >
-                Twitter
+                X
               </a>
               <a 
                 href="https://t.me/EagleDeFi" 
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 hover:text-[#F2D57C] dark:hover:text-[#FFE7A3] transition-colors font-medium"
+                className="text-[8px] sm:text-xs text-gray-600 dark:text-gray-400 hover:text-[#F2D57C] dark:hover:text-[#FFE7A3] transition-colors font-medium"
               >
-                Telegram
+                TG
               </a>
             </div>
           </div>

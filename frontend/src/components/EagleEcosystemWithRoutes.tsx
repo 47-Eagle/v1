@@ -6,7 +6,6 @@ import FloorIndicator from './FloorIndicator';
 import VaultView from './VaultView';
 import EagleLPContent from './EagleLPContent';
 import EagleBridge from './EagleBridge';
-import EagleBridge from './EagleBridge';
 
 export type Floor = 'lp' | 'bridge' | 'vault';
 

@@ -1,4 +1,5 @@
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useState } from 'react';
 import type { Floor } from './EagleEcosystemWithRoutes';
 
 interface Props {
@@ -12,45 +13,52 @@ const floors: Array<{ id: Floor; label: string; icon: JSX.Element; color: string
     id: 'lp',
     label: 'LP Pool',
     icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+      <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.2}>
+        <circle cx="12" cy="12" r="3" />
+        <circle cx="6" cy="12" r="1.5" />
+        <circle cx="18" cy="12" r="1.5" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6" />
       </svg>
     ),
-    color: 'from-blue-500 to-purple-500',
+    color: 'from-amber-400 to-yellow-600',
     status: 'Live'
   },
   {
     id: 'bridge',
     label: 'Bridge',
     icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+      <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M8 7h12M8 12h12M8 17h12M4 7l1 1-1 1M4 12l1 1-1 1M4 17l1 1-1 1" />
       </svg>
     ),
-    color: 'from-emerald-500 to-cyan-500',
+    color: 'from-amber-400 to-yellow-600',
     status: 'New'
   },
   {
     id: 'vault',
     label: 'Vault',
     icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.2}>
+        <rect x="6" y="6" width="12" height="12" rx="1" />
+        <circle cx="12" cy="12" r="2" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v4M10 12h4" />
       </svg>
     ),
-    color: 'from-amber-500 to-orange-600',
+    color: 'from-amber-400 to-yellow-600',
     status: 'Active'
   }
 ];
 
 export default function FloorIndicator({ current, onChange, isTransitioning }: Props) {
+  const [isExpanded, setIsExpanded] = useState(true);
+  
   return (
     <>
       {/* Desktop: Vertical sidebar on right */}
       <div className="hidden md:block fixed right-8 top-1/2 -translate-y-1/2 z-50">
         {/* Neumorphic container */}
-        <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 backdrop-blur-xl rounded-3xl p-4 border border-gray-200/50 dark:border-gray-600/50 shadow-neo-raised dark:shadow-neo-raised-dark">
-          <div className="space-y-4">
+        <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 backdrop-blur-xl rounded-2xl p-3 border border-gray-200/50 dark:border-gray-600/50 shadow-neo-raised dark:shadow-neo-raised-dark">
+          <div className="space-y-3">
             {floors.map((floor, index) => {
               const isActive = current === floor.id;
               
@@ -60,7 +68,7 @@ export default function FloorIndicator({ current, onChange, isTransitioning }: P
                     onClick={() => onChange(floor.id)}
                     disabled={isTransitioning}
                     className={`
-                      relative w-16 h-16 rounded-2xl
+                      relative w-12 h-12 rounded-xl
                       transition-all duration-300 group
                       border backdrop-blur-sm
                       ${isActive 
@@ -74,25 +82,27 @@ export default function FloorIndicator({ current, onChange, isTransitioning }: P
                   {/* Active glow effect */}
                   {isActive && (
                     <motion.div
-                      className={`absolute inset-0 bg-gradient-to-br ${floor.color} rounded-2xl opacity-40 blur-xl -z-10`}
+                      className={`absolute inset-0 bg-gradient-to-br ${floor.color} rounded-xl opacity-20 blur-lg -z-10`}
                       animate={{
-                        scale: [1, 1.2, 1],
-                        opacity: [0.4, 0.2, 0.4]
+                        scale: [1, 1.15, 1],
+                        opacity: [0.2, 0.1, 0.2]
                       }}
                       transition={{
-                        duration: 2,
+                        duration: 3,
                         repeat: Infinity,
                         ease: "easeInOut"
                       }}
                     />
                   )}
                   
-                  <div className={`
-                    absolute inset-0 flex items-center justify-center
-                    ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-gray-200'}
-                    transition-colors
-                  `}>
-                    {floor.icon}
+                  <div className="absolute inset-0 flex items-center justify-center p-4">
+                    <div className={`
+                      w-full h-full
+                      ${isActive ? 'text-white' : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300'}
+                      transition-colors flex items-center justify-center
+                    `}>
+                      {floor.icon}
+                    </div>
                   </div>
 
                     {/* Label tooltip on hover */}
@@ -116,7 +126,7 @@ export default function FloorIndicator({ current, onChange, isTransitioning }: P
 
                   {/* Connection line between floors */}
                   {index < floors.length - 1 && (
-                    <div className="absolute left-1/2 -translate-x-1/2 w-px h-4 bg-gradient-to-b from-gray-300 to-gray-400 dark:from-gray-600 dark:to-gray-700" />
+                    <div className="absolute left-1/2 -translate-x-1/2 w-px h-3 bg-gradient-to-b from-gray-300 to-gray-400 dark:from-gray-600 dark:to-gray-700 opacity-50" />
                   )}
                 </div>
               );
@@ -124,74 +134,97 @@ export default function FloorIndicator({ current, onChange, isTransitioning }: P
           </div>
 
           {/* Current floor label */}
-          <div className="mt-5 pt-4 border-t border-gray-300/50 dark:border-gray-700/30">
-            <p className="text-xs text-gray-700 dark:text-gray-300 text-center font-semibold tracking-widest uppercase">
+          <div className="mt-3 pt-3 border-t border-gray-300/50 dark:border-gray-700/30">
+            <p className="text-[10px] text-gray-600 dark:text-gray-400 text-center font-medium tracking-wider uppercase">
               {floors.find(f => f.id === current)?.label}
             </p>
           </div>
         </div>
       </div>
 
-      {/* Mobile: Horizontal bottom navigation */}
-      <div className="md:hidden fixed bottom-20 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-md">
-        <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 backdrop-blur-xl rounded-2xl p-2 border border-gray-200/50 dark:border-gray-600/50 shadow-neo-raised dark:shadow-neo-raised-dark">
-          <div className="flex items-center justify-around gap-2">
-            {floors.map((floor) => {
-              const isActive = current === floor.id;
+      {/* Mobile: Minimal navigation dots on right side */}
+      <div className="md:hidden fixed right-3 top-1/2 -translate-y-1/2 z-50">
+        <AnimatePresence mode="wait">
+          {isExpanded ? (
+            <motion.div
+              key="expanded"
+              initial={{ x: 100, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: 100, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="flex flex-col items-center gap-2 px-1.5 py-2 bg-black/10 dark:bg-white/5 backdrop-blur-md rounded-full"
+            >
+              {/* Toggle Button - Top */}
+              <button
+                onClick={() => setIsExpanded(false)}
+                className="w-6 h-6 rounded-full bg-gray-300/40 dark:bg-gray-600/30 hover:bg-gray-400/60 dark:hover:bg-gray-500/40 transition-all flex items-center justify-center touch-manipulation"
+                title="Minimize"
+              >
+                <svg className="w-3 h-3 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
               
-              return (
-                <button
-                  key={floor.id}
-                  onClick={() => onChange(floor.id)}
-                  disabled={isTransitioning}
-                  className={`
-                    relative flex-1 h-14 rounded-xl
-                    transition-all duration-300
-                    border backdrop-blur-sm
-                    touch-manipulation
-                    ${isActive 
-                      ? `bg-gradient-to-br ${floor.color} border-transparent shadow-neo-glow dark:shadow-neo-glow-dark` 
-                      : 'bg-white/50 dark:bg-gray-800/80 border-gray-200/50 dark:border-gray-700/50 active:bg-gray-100 dark:active:bg-gray-700/70 shadow-neo-inset dark:shadow-neo-inset-dark'
-                    }
-                    ${isTransitioning ? 'opacity-50' : ''}
-                  `}
-                >
-                  {/* Active glow effect */}
-                  {isActive && (
-                    <motion.div
-                      className={`absolute inset-0 bg-gradient-to-br ${floor.color} rounded-xl opacity-40 blur-lg -z-10`}
-                      animate={{
-                        scale: [1, 1.1, 1],
-                        opacity: [0.4, 0.2, 0.4]
-                      }}
-                      transition={{
-                        duration: 2,
-                        repeat: Infinity,
-                        ease: "easeInOut"
-                      }}
-                    />
-                  )}
-                  
-                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
-                    <div className={`
-                      ${isActive ? 'text-white' : 'text-gray-400'}
-                      transition-colors
-                    `}>
-                      {floor.icon}
-                    </div>
-                    <span className={`
-                      text-[10px] font-semibold tracking-wider uppercase
-                      ${isActive ? 'text-white' : 'text-gray-600 dark:text-gray-400'}
-                      transition-colors
-                    `}>
-                      {floor.label}
-                    </span>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
+              {floors.map((floor) => {
+                const isActive = current === floor.id;
+                
+                return (
+                  <button
+                    key={floor.id}
+                    onClick={() => onChange(floor.id)}
+                    disabled={isTransitioning}
+                    className={`
+                      relative rounded-full transition-all duration-200 touch-manipulation
+                      ${isActive ? 'w-8 h-8' : 'w-6 h-6'}
+                      ${isTransitioning ? 'opacity-30' : ''}
+                    `}
+                    title={floor.label}
+                  >
+                    {isActive ? (
+                      <>
+                        <div className={`absolute inset-0 bg-gradient-to-br ${floor.color} rounded-full`} />
+                        <motion.div
+                          className={`absolute inset-0 bg-gradient-to-br ${floor.color} rounded-full opacity-30 blur-md`}
+                          animate={{
+                            scale: [1, 1.2, 1],
+                            opacity: [0.3, 0.5, 0.3]
+                          }}
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            ease: "easeInOut"
+                          }}
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center p-2">
+                          <div className="w-full h-full flex items-center justify-center text-white">
+                            {floor.icon}
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="absolute inset-0 bg-gray-400/30 dark:bg-gray-500/20 rounded-full hover:bg-gray-500/50 dark:hover:bg-gray-400/30 transition-colors" />
+                    )}
+                  </button>
+                );
+              })}
+            </motion.div>
+          ) : (
+            <motion.button
+              key="minimized"
+              initial={{ x: 100, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: 100, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => setIsExpanded(true)}
+              className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-yellow-600 flex items-center justify-center shadow-lg hover:scale-110 transition-all touch-manipulation"
+              title="Expand navigation"
+            >
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+            </motion.button>
+          )}
+        </AnimatePresence>
       </div>
     </>
   );

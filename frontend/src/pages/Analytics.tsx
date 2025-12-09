@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { BrowserProvider } from 'ethers';
 import { CONTRACTS } from '../config/contracts';
@@ -12,9 +12,29 @@ interface Props {
   onNavigateUp?: () => void;
 }
 
+// Key events for capital injections - will be auto-detected from on-chain data
+const CAPITAL_INJECTION_EVENTS: Array<{
+  date: string;
+  timestamp: number;
+  label: string;
+  amount?: string;
+}> = [
+  // Events will be automatically detected from Charm Finance data
+];
+
 export default function Analytics({ provider, account, onNavigateUp }: Props) {
   const [selectedVault, setSelectedVault] = useState<'USD1_WLFI' | 'WETH_WLFI' | 'combined'>('combined');
   const { data, loading, error, refetch } = useAnalyticsData(90);
+  const [detectedEvents, setDetectedEvents] = useState<Array<{
+    type: 'injection' | 'rebalance';
+    timestamp: number;
+    date: string;
+    label: string;
+    amount?: string;
+    description: string;
+  }>>([]);
+  const [tooltip, setTooltip] = useState<{ x: number; y: number; data: any } | null>(null);
+  const chartRef = useRef<SVGSVGElement>(null);
 
   // Get combined metrics
   const getCombinedMetrics = () => {
@@ -58,6 +78,38 @@ export default function Analytics({ provider, account, onNavigateUp }: Props) {
 
   const metrics = getMetrics();
   const currentVault = selectedVault !== 'combined' ? data?.vaults[selectedVault] : null;
+
+  // Detect events from historical data
+  useEffect(() => {
+    if (!data) return;
+    
+    const historicalData = getHistoricalData();
+    if (historicalData.length === 0) return;
+    
+    const events: typeof detectedEvents = [];
+    
+    for (let i = 1; i < historicalData.length; i++) {
+      const prev = historicalData[i - 1];
+      const curr = historicalData[i];
+      
+      const tvlChange = curr.tvlUsd - prev.tvlUsd;
+      const tvlChangePercent = prev.tvlUsd > 0 ? (tvlChange / prev.tvlUsd) * 100 : 0;
+      
+      if (tvlChangePercent > 5) {
+        events.push({
+          type: 'injection',
+          timestamp: curr.timestamp,
+          date: new Date(curr.timestamp * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+          label: 'Capital Injection',
+          amount: formatUsd(tvlChange),
+          description: `TVL increased by ${tvlChangePercent.toFixed(1)}%`,
+        });
+      }
+    }
+    
+    console.log('[Analytics Page] Detected events:', events);
+    setDetectedEvents(events);
+  }, [data, selectedVault]);
 
   // Get historical data for chart
   const getHistoricalData = () => {
@@ -219,14 +271,35 @@ export default function Analytics({ provider, account, onNavigateUp }: Props) {
           </div>
         )}
 
-        {/* TVL Chart */}
+        {/* TVL Chart - Interactive */}
         <NeoCard className="mb-8">
           <div className="p-6">
-            <h3 className="text-gray-900 font-bold text-xl mb-4">TVL Over Time</h3>
-            <div className="bg-white/30 border border-gray-300 rounded-xl p-6 h-64">
+            <h3 className="text-gray-900 dark:text-gray-100 font-bold text-xl mb-4">TVL Over Time</h3>
+            <div className="bg-white/30 dark:bg-gray-800/30 border border-gray-300 dark:border-gray-700 rounded-xl p-6 h-80 relative">
               {historicalData.length > 0 ? (
-                <div className="h-full flex flex-col">
-                  <svg className="w-full flex-1" viewBox="0 0 100 30" preserveAspectRatio="none">
+                <div className="h-full flex flex-col relative">
+                  <svg 
+                    ref={chartRef}
+                    className="w-full flex-1 cursor-crosshair" 
+                    viewBox="0 0 100 30" 
+                    preserveAspectRatio="none"
+                    onMouseMove={(e) => {
+                      if (!chartRef.current) return;
+                      const rect = chartRef.current.getBoundingClientRect();
+                      const x = ((e.clientX - rect.left) / rect.width) * 100;
+                      const index = Math.round((x / 100) * (historicalData.length - 1));
+                      const snapData = historicalData[index];
+                      
+                      if (snapData) {
+                        setTooltip({
+                          x: e.clientX - rect.left,
+                          y: e.clientY - rect.top,
+                          data: snapData
+                        });
+                      }
+                    }}
+                    onMouseLeave={() => setTooltip(null)}
+                  >
                     <defs>
                       <linearGradient id="tvl-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
                         <stop offset="0%" stopColor="#ca8a04" stopOpacity="0.8" />
@@ -243,9 +316,13 @@ export default function Analytics({ provider, account, onNavigateUp }: Props) {
                       const maxTvl = Math.max(...tvlValues);
                       const minTvl = Math.min(...tvlValues);
                       const range = maxTvl - minTvl || 1;
+                      const timestamps = historicalData.map(s => s.timestamp);
+                      const minTime = Math.min(...timestamps);
+                      const maxTime = Math.max(...timestamps);
                       
                       return (
                         <>
+                          {/* Area under the line */}
                           <polygon
                             points={`0,30 ${historicalData.map((snap, i) => {
                               const x = (i / Math.max(historicalData.length - 1, 1)) * 100;
@@ -254,6 +331,8 @@ export default function Analytics({ provider, account, onNavigateUp }: Props) {
                             }).join(' ')} 100,30`}
                             fill="url(#area-gradient)"
                           />
+                          
+                          {/* Main line */}
                           <polyline
                             points={historicalData.map((snap, i) => {
                               const x = (i / Math.max(historicalData.length - 1, 1)) * 100;
@@ -266,14 +345,158 @@ export default function Analytics({ provider, account, onNavigateUp }: Props) {
                             strokeLinecap="round"
                             strokeLinejoin="round"
                           />
+                          
+                          {/* Event markers for capital injections */}
+                          {detectedEvents.map((event, idx) => {
+                            const eventIndex = historicalData.findIndex(s => 
+                              Math.abs(s.timestamp - event.timestamp / 1000) < 86400 // Within 1 day
+                            );
+                            
+                            if (eventIndex === -1) return null;
+                            
+                            const snap = historicalData[eventIndex];
+                            const x = (eventIndex / Math.max(historicalData.length - 1, 1)) * 100;
+                            const y = 30 - ((snap.tvlUsd - minTvl) / range) * 25;
+                            
+                            return (
+                              <g key={idx}>
+                                {/* Vertical line */}
+                                <line
+                                  x1={x}
+                                  y1={y}
+                                  x2={x}
+                                  y2="30"
+                                  stroke={event.type === 'injection' ? '#10b981' : '#3b82f6'}
+                                  strokeWidth="0.3"
+                                  strokeDasharray="0.5,0.5"
+                                  opacity="0.6"
+                                />
+                                {/* Marker circle */}
+                                <circle
+                                  cx={x}
+                                  cy={y}
+                                  r="0.8"
+                                  fill={event.type === 'injection' ? '#10b981' : '#3b82f6'}
+                                  stroke="white"
+                                  strokeWidth="0.2"
+                                />
+                                {/* Label flag */}
+                                <g transform={`translate(${x},${y - 2})`}>
+                                  <rect
+                                    x="-3"
+                                    y="-2"
+                                    width="6"
+                                    height="1.5"
+                                    fill={event.type === 'injection' ? '#10b981' : '#3b82f6'}
+                                    rx="0.2"
+                                  />
+                                  <text
+                                    x="0"
+                                    y="-0.5"
+                                    textAnchor="middle"
+                                    fill="white"
+                                    fontSize="0.8"
+                                    fontWeight="bold"
+                                  >
+                                    {event.type === 'injection' ? '💰' : '⚖️'}
+                                  </text>
+                                </g>
+                              </g>
+                            );
+                          })}
+                          
+                          {/* Hover indicator */}
+                          {tooltip && (() => {
+                            const snapData = tooltip.data;
+                            const index = historicalData.findIndex(s => s.timestamp === snapData.timestamp);
+                            if (index === -1) return null;
+                            
+                            const x = (index / Math.max(historicalData.length - 1, 1)) * 100;
+                            const y = 30 - ((snapData.tvlUsd - minTvl) / range) * 25;
+                            
+                            return (
+                              <>
+                                {/* Vertical hover line */}
+                                <line
+                                  x1={x}
+                                  y1="0"
+                                  x2={x}
+                                  y2="30"
+                                  stroke="#eab308"
+                                  strokeWidth="0.2"
+                                  strokeDasharray="0.5,0.5"
+                                  opacity="0.5"
+                                />
+                                {/* Hover point */}
+                                <circle
+                                  cx={x}
+                                  cy={y}
+                                  r="0.6"
+                                  fill="#eab308"
+                                  stroke="white"
+                                  strokeWidth="0.3"
+                                />
+                              </>
+                            );
+                          })()}
                         </>
                       );
                     })()}
                   </svg>
                   
-                  <div className="flex justify-between text-xs text-gray-500 mt-2">
+                  {/* Tooltip */}
+                  {tooltip && (
+                    <div 
+                      className="absolute bg-gray-900/95 dark:bg-gray-800/95 text-white text-xs rounded-lg px-3 py-2 pointer-events-none shadow-xl border border-amber-500/50 backdrop-blur-sm z-50"
+                      style={{
+                        left: `${tooltip.x}px`,
+                        top: `${tooltip.y - 80}px`,
+                        transform: 'translateX(-50%)',
+                      }}
+                    >
+                      <div className="font-semibold text-amber-400 mb-1">
+                        {new Date(tooltip.data.timestamp * 1000).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric'
+                        })}
+                      </div>
+                      <div className="space-y-0.5">
+                        <div className="flex justify-between gap-3">
+                          <span className="text-gray-400">TVL:</span>
+                          <span className="font-bold">{formatUsd(tooltip.data.tvlUsd)}</span>
+                        </div>
+                        <div className="flex justify-between gap-3">
+                          <span className="text-gray-400">Share Price:</span>
+                          <span className="font-mono">${tooltip.data.sharePrice.toFixed(4)}</span>
+                        </div>
+                      </div>
+                      {/* Check if this is near a capital injection event */}
+                      {(() => {
+                        const nearbyEvent = detectedEvents.find(e => 
+                          Math.abs(tooltip.data.timestamp - e.timestamp / 1000) < 86400
+                        );
+                        if (nearbyEvent) {
+                          return (
+                            <div className="mt-2 pt-2 border-t border-green-500/30">
+                              <div className={`flex items-center gap-1.5 ${nearbyEvent.type === 'injection' ? 'text-green-400' : 'text-blue-400'}`}>
+                                <span>{nearbyEvent.type === 'injection' ? '💰' : '⚖️'}</span>
+                                <span className="font-semibold">{nearbyEvent.label}</span>
+                              </div>
+                              {nearbyEvent.amount && (
+                                <div className="text-gray-300 text-xs mt-1">{nearbyEvent.amount}</div>
+                              )}
+                            </div>
+                          );
+                        }
+                        return null;
+                      })()}
+                    </div>
+                  )}
+                  
+                  <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-2">
                     <span>{historicalData[0]?.date}</span>
-                    <span className="font-medium text-gray-700">
+                    <span className="font-medium text-gray-700 dark:text-gray-300">
                       Current: {formatUsd(historicalData[historicalData.length - 1]?.tvlUsd || 0)}
                     </span>
                     <span>{historicalData[historicalData.length - 1]?.date}</span>
@@ -281,16 +504,28 @@ export default function Analytics({ provider, account, onNavigateUp }: Props) {
                 </div>
               ) : (
                 <div className="flex items-center justify-center h-full">
-                  <p className="text-gray-600">
+                  <p className="text-gray-600 dark:text-gray-400">
                     {loading ? 'Loading TVL data...' : 'No data available yet'}
                   </p>
                 </div>
               )}
             </div>
             {historicalData.length > 0 && (
-              <p className="text-xs text-gray-500 mt-2">
+              <div className="mt-2 flex items-center justify-between">
+                <p className="text-xs text-gray-500 dark:text-gray-400">
                 {historicalData.length} data points • Updated {new Date(data?.meta?.generatedAt || '').toLocaleTimeString()}
               </p>
+                <div className="flex items-center gap-4 text-xs">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-3 h-0.5 bg-gradient-to-r from-amber-600 to-amber-400"></div>
+                    <span className="text-gray-600 dark:text-gray-400">TVL Trend</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-red-500">💰</span>
+                    <span className="text-gray-600 dark:text-gray-400">Capital Injection</span>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
         </NeoCard>

@@ -20,12 +20,20 @@ const ERC20_ABI = [
   "function balanceOf(address account) external view returns (uint256)"
 ];
 
+const EAGLE_ABI = [
+  "function totalSupply() external view returns (uint256)",
+  "function MAX_SUPPLY() external view returns (uint256)"
+];
+
 // Configuration - DEPLOYED ADDRESSES (Nov 10, 2025 - Updated)
 const ADDRESSES = {
   COMPOSER: '0x3A91B3e863C0bd6948088e8A0A9B1D22d6D05da9', // EagleOVaultComposer V2
   WLFI: '0xdA5e1988097297dCdc1f90D4dFE7909e847CBeF6',     // WLFI token (mainnet)
   EAGLE: '0x474eD38C256A7FA0f3B8c48496CE1102ab0eA91E',    // EAGLE OFT V4
 };
+
+// Supply limits
+const MAX_SUPPLY = BigInt(50_000_000) * parseEther('1'); // 50 Million EAGLE tokens
 
 export interface ComposerPreview {
   inputAmount: bigint;
@@ -144,6 +152,48 @@ export function useEagleComposer() {
       
       setError(errorMsg);
       return null;
+    }
+  }, [getProvider]);
+  
+  /**
+   * Check if max supply has been reached
+   */
+  const checkMaxSupply = useCallback(async (): Promise<{
+    isMaxReached: boolean;
+    currentSupply: bigint;
+    maxSupply: bigint;
+    remaining: bigint;
+  }> => {
+    const provider = getProvider();
+    if (!provider) {
+      return {
+        isMaxReached: false,
+        currentSupply: 0n,
+        maxSupply: MAX_SUPPLY,
+        remaining: MAX_SUPPLY
+      };
+    }
+    
+    try {
+      const eagle = new Contract(ADDRESSES.EAGLE, EAGLE_ABI, provider);
+      const currentSupply = await eagle.totalSupply();
+      const isMaxReached = currentSupply >= MAX_SUPPLY;
+      const remaining = isMaxReached ? 0n : MAX_SUPPLY - currentSupply;
+      
+      return {
+        isMaxReached,
+        currentSupply,
+        maxSupply: MAX_SUPPLY,
+        remaining
+      };
+    } catch (err: any) {
+      console.error('Check max supply failed:', err);
+      return {
+        isMaxReached: false,
+        currentSupply: 0n,
+        maxSupply: MAX_SUPPLY,
+        remaining: MAX_SUPPLY
+      };
     }
   }, [getProvider]);
   
@@ -439,6 +489,7 @@ export function useEagleComposer() {
     getBalances,
     checkAllowance,
     approveToken,
+    checkMaxSupply,
     
     // State
     loading,
@@ -449,4 +500,3 @@ export function useEagleComposer() {
     addresses: ADDRESSES
   };
 }
-

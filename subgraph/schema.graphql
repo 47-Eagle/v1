@@ -1,0 +1,94 @@
+type Vault @entity(immutable: false) {
+  id: ID! # Contract address
+  totalAssets: BigInt!
+  totalSupply: BigInt!
+  sharePrice: BigDecimal!
+  snapshots: [VaultSnapshot!]! @derivedFrom(field: "vault")
+  collectFees: [CollectFeeEvent!]! @derivedFrom(field: "vault")
+  deposits: [Deposit!]! @derivedFrom(field: "vault")
+  withdrawals: [Withdrawal!]! @derivedFrom(field: "vault")
+  rebalances: [Rebalance!]! @derivedFrom(field: "vault")
+  createdAt: BigInt!
+  updatedAt: BigInt!
+}
+
+type VaultSnapshot @entity(immutable: true) {
+  id: ID! # vault address + timestamp
+  vault: Vault!
+  timestamp: BigInt!
+  totalAssets: BigInt!
+  totalSupply: BigInt!
+  sharePrice: BigDecimal!
+  usd1StrategyTVL: BigInt!
+  wethStrategyTVL: BigInt!
+  liquidWLFI: BigInt!
+  liquidUSD1: BigInt!
+}
+
+type CollectFeeEvent @entity(immutable: true) {
+  id: ID! # tx hash + log index
+  vault: Vault!
+  strategy: Bytes! # strategy contract address
+  charmVault: Bytes! # charm vault address
+  amount0: BigInt!
+  amount1: BigInt!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+}
+
+type Deposit @entity(immutable: true) {
+  id: ID! # tx hash + log index
+  vault: Vault!
+  sender: Bytes!
+  owner: Bytes!
+  assets: BigInt!
+  shares: BigInt!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+}
+
+type Withdrawal @entity(immutable: true) {
+  id: ID! # tx hash + log index
+  vault: Vault!
+  sender: Bytes!
+  receiver: Bytes!
+  owner: Bytes!
+  assets: BigInt!
+  shares: BigInt!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+}
+
+type Rebalance @entity(immutable: true) {
+  id: ID! # tx hash + log index
+  vault: Vault!
+  strategy: Bytes!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+}
+
+# Global stats entity (singleton)
+type GlobalStats @entity(immutable: false) {
+  id: ID! # Always "1"
+  totalValueLocked: BigInt!
+  totalDeposits: BigInt!
+  totalWithdrawals: BigInt!
+  totalFeesCaptured: BigInt!
+  dailySnapshots: [DailySnapshot!]! @derivedFrom(field: "stats")
+}
+
+type DailySnapshot @entity(immutable: false) {
+  id: ID! # timestamp / 86400 (daily)
+  stats: GlobalStats!
+  date: BigInt!
+  totalValueLocked: BigInt!
+  dailyVolume: BigInt!
+  dailyFees: BigInt!
+  sharePrice: BigDecimal!
+  apy: BigDecimal
+}
+

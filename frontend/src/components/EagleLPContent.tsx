@@ -90,112 +90,41 @@ export default function EagleLPContent({ onNavigateDown, onNavigateToCrossChain 
   }, []);
   return (
     <div className="h-full overflow-y-auto bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50 dark:from-gray-900 dark:via-gray-850 dark:to-gray-900">
-      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 md:py-12 max-w-7xl">
-        {/* Navigation Button */}
-        <div className="mb-4 sm:mb-6">
-          <NeoButton
-            onClick={onNavigateDown}
-            label="Back to Home"
-            icon={<ArrowDown className="w-4 h-4" />}
-          />
-        </div>
-
-        {/* Header */}
-        <motion.div 
-          className="mb-6 sm:mb-8 md:mb-12"
-          initial={{ y: -20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
+      <div className="container mx-auto px-3 sm:px-6 py-3 sm:py-6 md:py-8 max-w-7xl">
+        {/* Stats - Horizontal scroll on mobile (centered), grid on desktop */}
+        <div 
+          className="flex sm:grid sm:grid-cols-2 md:grid-cols-4 gap-1.5 sm:gap-3 md:gap-4 mb-4 sm:mb-6 overflow-x-auto pb-2 sm:pb-0 scrollbar-hide"
         >
-          <div className="flex items-center gap-2.5 sm:gap-3 md:gap-4 mb-4 sm:mb-5 md:mb-6">
-            <div className="flex items-center gap-2.5 sm:gap-3 md:gap-4">
-              <motion.div
-                className="relative"
-                whileHover={{ scale: 1.05, rotate: 5 }}
-                transition={{ type: "spring", stiffness: 400, damping: 17 }}
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-amber-400/20 to-orange-400/20 rounded-xl sm:rounded-2xl blur-lg sm:blur-xl"></div>
-                <div className="relative bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 p-2 sm:p-2.5 md:p-3 rounded-xl sm:rounded-2xl shadow-neo-raised dark:shadow-neo-raised-dark border border-gray-200/50 dark:border-gray-600/50">
-                  <img 
-                    src={ICONS.EAGLE}
-                    alt="Eagle"
-                    className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12"
-                  />
-                </div>
-              </motion.div>
-              
-              <span className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-400 dark:text-gray-500">+</span>
-              
-              <motion.div
-                className="relative"
-                whileHover={{ scale: 1.05, rotate: -5 }}
-                transition={{ type: "spring", stiffness: 400, damping: 17 }}
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-400/20 to-orange-400/20 rounded-xl sm:rounded-2xl blur-lg sm:blur-xl"></div>
-                <div className="relative bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 p-2 sm:p-2.5 md:p-3 rounded-xl sm:rounded-2xl shadow-neo-raised dark:shadow-neo-raised-dark border border-gray-200/50 dark:border-gray-600/50">
-                  <img 
-                    src={ICONS.ETHEREUM}
-                    alt="ETH"
-                    className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full"
-                  />
-                </div>
-              </motion.div>
-            </div>
-          </div>
-          
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 dark:from-gray-100 dark:via-white dark:to-gray-100 bg-clip-text text-transparent mb-2 sm:mb-3 md:mb-4">
-            EAGLE/ETH Liquidity Pool
-          </h1>
-          <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-600 dark:text-gray-400">
-            Provide liquidity, earn trading fees, and support the Eagle ecosystem
-          </p>
-        </motion.div>
-
-        {/* Stats Grid */}
-        <motion.div 
-          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8 md:mb-12"
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2 }}
-        >
+          <div className="flex gap-1.5 mx-auto sm:contents">
           <NeoStatCard
             label="Total Liquidity"
             value={poolData.liquidity}
-            subtitle={loading ? "Updating..." : "Live on Uniswap V4"}
+            subtitle={loading ? "Updating..." : "Uniswap V4"}
+            className="min-w-[110px] sm:min-w-0 flex-shrink-0"
           />
           <NeoStatCard
             label="24h Volume"
             value={poolData.volume24h}
             subtitle={poolData.priceChange24h}
+            className="min-w-[110px] sm:min-w-0 flex-shrink-0"
           />
           <NeoStatCard
             label="Estimated APR"
             value={poolData.apr}
-            subtitle="Based on 24h volume"
+            subtitle="24h volume"
             highlighted
+            className="min-w-[110px] sm:min-w-0 flex-shrink-0"
           />
           <NeoStatCard
             label="EAGLE Price"
             value={poolData.priceUsd}
             subtitle={`FDV: ${poolData.fdv}`}
+            className="min-w-[110px] sm:min-w-0 flex-shrink-0"
           />
-        </motion.div>
-
-        {/* Last Update Indicator */}
-        <div className="flex justify-end items-center gap-1.5 sm:gap-2 mb-4 sm:mb-5 md:mb-6 text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
-          <motion.div
-            animate={{ rotate: loading ? 360 : 0 }}
-            transition={{ duration: 1, repeat: loading ? Infinity : 0, ease: "linear" }}
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-          </motion.div>
-          <span>
-            {loading ? 'Updating...' : `Updated ${lastUpdate.toLocaleTimeString()}`}
-          </span>
+          </div>
         </div>
 
-        {/* Pool Info Badges - Minimal Design */}
+        {/* Pool Info & Actions - Compact */}
         <motion.div 
           className="mb-4 sm:mb-6 md:mb-8"
           initial={{ y: 20, opacity: 0 }}
