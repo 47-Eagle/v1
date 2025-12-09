@@ -252,3 +252,5 @@ All mobile optimizations have been implemented and committed to the `fix-mobile-
 
 The mobile experience is now optimized for MetaMask browser and standard mobile browsers! 🎉
 
+
+

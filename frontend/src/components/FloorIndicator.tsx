@@ -13,11 +13,11 @@ const floors: Array<{ id: Floor; label: string; icon: JSX.Element; color: string
     id: 'lp',
     label: 'LP Pool',
     icon: (
-      <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3 6h18M3 12h18M3 18h18" />
-        <circle cx="7" cy="6" r="1.5" fill="currentColor" />
-        <circle cx="17" cy="12" r="1.5" fill="currentColor" />
-        <circle cx="12" cy="18" r="1.5" fill="currentColor" />
+      <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.2}>
+        <circle cx="12" cy="12" r="3" />
+        <circle cx="6" cy="12" r="1.5" />
+        <circle cx="18" cy="12" r="1.5" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6" />
       </svg>
     ),
     color: 'from-amber-400 to-yellow-600',
@@ -27,9 +27,8 @@ const floors: Array<{ id: Floor; label: string; icon: JSX.Element; color: string
     id: 'bridge',
     label: 'Bridge',
     icon: (
-      <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M4 16V8M4 8C4 6.895 4.895 6 6 6h12c1.105 0 2 .895 2 2v8M4 8h16m0 8v-8M4 16h16m0 0v2c0 1.105-.895 2-2 2H6c-1.105 0-2-.895-2-2v-2" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 16V8m6 8V8" />
+      <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M8 7h12M8 12h12M8 17h12M4 7l1 1-1 1M4 12l1 1-1 1M4 17l1 1-1 1" />
       </svg>
     ),
     color: 'from-amber-400 to-yellow-600',
@@ -39,9 +38,10 @@ const floors: Array<{ id: Floor; label: string; icon: JSX.Element; color: string
     id: 'vault',
     label: 'Vault',
     icon: (
-      <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-        <circle cx="12" cy="13" r="1.5" fill="currentColor" />
+      <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.2}>
+        <rect x="6" y="6" width="12" height="12" rx="1" />
+        <circle cx="12" cy="12" r="2" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v4M10 12h4" />
       </svg>
     ),
     color: 'from-amber-400 to-yellow-600',
@@ -57,8 +57,8 @@ export default function FloorIndicator({ current, onChange, isTransitioning }: P
       {/* Desktop: Vertical sidebar on right */}
       <div className="hidden md:block fixed right-8 top-1/2 -translate-y-1/2 z-50">
         {/* Neumorphic container */}
-        <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 backdrop-blur-xl rounded-3xl p-4 border border-gray-200/50 dark:border-gray-600/50 shadow-neo-raised dark:shadow-neo-raised-dark">
-          <div className="space-y-4">
+        <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850 backdrop-blur-xl rounded-2xl p-3 border border-gray-200/50 dark:border-gray-600/50 shadow-neo-raised dark:shadow-neo-raised-dark">
+          <div className="space-y-3">
             {floors.map((floor, index) => {
               const isActive = current === floor.id;
               
@@ -68,7 +68,7 @@ export default function FloorIndicator({ current, onChange, isTransitioning }: P
                     onClick={() => onChange(floor.id)}
                     disabled={isTransitioning}
                     className={`
-                      relative w-16 h-16 rounded-2xl
+                      relative w-12 h-12 rounded-xl
                       transition-all duration-300 group
                       border backdrop-blur-sm
                       ${isActive 
@@ -82,22 +82,23 @@ export default function FloorIndicator({ current, onChange, isTransitioning }: P
                   {/* Active glow effect */}
                   {isActive && (
                     <motion.div
-                      className={`absolute inset-0 bg-gradient-to-br ${floor.color} rounded-2xl opacity-40 blur-xl -z-10`}
+                      className={`absolute inset-0 bg-gradient-to-br ${floor.color} rounded-xl opacity-20 blur-lg -z-10`}
                       animate={{
-                        scale: [1, 1.2, 1],
-                        opacity: [0.4, 0.2, 0.4]
+                        scale: [1, 1.15, 1],
+                        opacity: [0.2, 0.1, 0.2]
                       }}
                       transition={{
-                        duration: 2,
+                        duration: 3,
                         repeat: Infinity,
                         ease: "easeInOut"
                       }}
                     />
                   )}
                   
-                  <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="absolute inset-0 flex items-center justify-center p-4">
                     <div className={`
-                      ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-gray-200'}
+                      w-full h-full
+                      ${isActive ? 'text-white' : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300'}
                       transition-colors flex items-center justify-center
                     `}>
                       {floor.icon}
@@ -125,7 +126,7 @@ export default function FloorIndicator({ current, onChange, isTransitioning }: P
 
                   {/* Connection line between floors */}
                   {index < floors.length - 1 && (
-                    <div className="absolute left-1/2 -translate-x-1/2 w-px h-4 bg-gradient-to-b from-gray-300 to-gray-400 dark:from-gray-600 dark:to-gray-700" />
+                    <div className="absolute left-1/2 -translate-x-1/2 w-px h-3 bg-gradient-to-b from-gray-300 to-gray-400 dark:from-gray-600 dark:to-gray-700 opacity-50" />
                   )}
                 </div>
               );
@@ -133,8 +134,8 @@ export default function FloorIndicator({ current, onChange, isTransitioning }: P
           </div>
 
           {/* Current floor label */}
-          <div className="mt-5 pt-4 border-t border-gray-300/50 dark:border-gray-700/30">
-            <p className="text-xs text-gray-700 dark:text-gray-300 text-center font-semibold tracking-widest uppercase">
+          <div className="mt-3 pt-3 border-t border-gray-300/50 dark:border-gray-700/30">
+            <p className="text-[10px] text-gray-600 dark:text-gray-400 text-center font-medium tracking-wider uppercase">
               {floors.find(f => f.id === current)?.label}
             </p>
           </div>
@@ -194,8 +195,8 @@ export default function FloorIndicator({ current, onChange, isTransitioning }: P
                             ease: "easeInOut"
                           }}
                         />
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="w-3.5 h-3.5 flex items-center justify-center text-white">
+                        <div className="absolute inset-0 flex items-center justify-center p-2">
+                          <div className="w-full h-full flex items-center justify-center text-white">
                             {floor.icon}
                           </div>
                         </div>

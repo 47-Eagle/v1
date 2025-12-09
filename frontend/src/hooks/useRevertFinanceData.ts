@@ -50,31 +50,44 @@ export function useRevertFinanceData(): RevertFinanceDataByStrategy {
       const timeoutId = setTimeout(() => abortController.abort(), 10000); // 10 second timeout
       
       try {
-        const response = await fetch(
+        // Try API first, fallback to direct Revert Finance API if not available
+        let response;
+        let result;
+        
+        try {
+          response = await fetch(
           `/api/revert-finance?pool=${poolAddress}&days=30&network=mainnet`,
           {
             signal: abortController.signal,
           }
         );
         
-        clearTimeout(timeoutId);
+          if (!response.ok) {
+            throw new Error(`API error: ${response.status}`);
+          }
+          
+          result = await response.json();
+        } catch (apiError: any) {
+          // Fallback to direct Revert Finance API call
+          console.log(`[useRevertFinanceData] API unavailable, calling Revert Finance directly`);
+          response = await fetch(
+            `https://api.revert.finance/v1/discover-pools/daily?pool=${poolAddress}&days=30&network=mainnet`,
+            {
+              signal: abortController.signal,
+              headers: {
+                'Accept': 'application/json',
+              },
+            }
+          );
         
         if (!response.ok) {
-          // Don't throw for 404 or other client errors, just return empty data
-          if (response.status === 404 || response.status >= 400) {
-            return {
-              tvl: 0,
-              avgAPR: 0,
-              maxAPR: 0,
-              avgVolume: 0,
-              loading: false,
-              error: null, // Silently fail
-            };
-          }
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         
-        const result = await response.json();
+          result = await response.json();
+        }
+        
+        clearTimeout(timeoutId);
         
         if (result.success && result.data && result.data.length > 0) {
           const latestDay = result.data[result.data.length - 1];

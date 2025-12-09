@@ -575,3 +575,5 @@ npm run dev
 
 **The real fix: Not changing the math, but blocking deposits at max supply!** 🎯
 
+
+

@@ -72,7 +72,19 @@ export default function ModernHeader() {
   useEffect(() => {
     const fetchEaglePrice = async () => {
       try {
-        const response = await fetch('https://api.dexscreener.com/latest/dex/pairs/ethereum/0xcf728b099b672c72d61f6ec4c4928c2f2a96cefdfd518c3470519d76545ed333');
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+        
+        const response = await fetch('https://api.dexscreener.com/latest/dex/pairs/ethereum/0xcf728b099b672c72d61f6ec4c4928c2f2a96cefdfd518c3470519d76545ed333', {
+          signal: controller.signal,
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const data = await response.json();
         if (data?.pair?.priceUsd) {
           const newEaglePrice = parseFloat(data.pair.priceUsd).toFixed(6);
@@ -84,8 +96,11 @@ export default function ModernHeader() {
             return newEaglePrice;
           });
         }
-      } catch (error) {
-        console.error('Error fetching EAGLE price:', error);
+      } catch (error: any) {
+        // Silently fail for network errors - DEXScreener API may be rate-limited or unavailable
+        if (error.name !== 'AbortError') {
+          console.warn('DexScreener API unavailable, keeping placeholder price');
+        }
       }
     };
 

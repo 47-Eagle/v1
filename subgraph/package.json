@@ -1,0 +1,22 @@
+{
+  "name": "eagle-ovault-subgraph",
+  "version": "1.0.0",
+  "description": "Subgraph for Eagle OVault protocol",
+  "scripts": {
+    "codegen": "graph codegen",
+    "build": "graph build",
+    "deploy": "graph deploy --node https://api.studio.thegraph.com/deploy/ 47-eagle",
+    "create-local": "graph create --node http://localhost:8020/ eagle-ovault",
+    "remove-local": "graph remove --node http://localhost:8020/ eagle-ovault",
+    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 eagle-ovault",
+    "test": "graph test"
+  },
+  "dependencies": {
+    "@graphprotocol/graph-cli": "^0.79.0",
+    "@graphprotocol/graph-ts": "^0.35.0"
+  },
+  "devDependencies": {
+    "matchstick-as": "^0.6.0"
+  }
+}
+

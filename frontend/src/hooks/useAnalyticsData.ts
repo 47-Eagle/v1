@@ -97,9 +97,11 @@ async function fetchVaultData(vaultAddress: string) {
     }
   `;
 
-  const response = await fetch('https://stitching-v2.herokuapp.com/1', {
+  const response = await fetch('https://api.studio.thegraph.com/query/64373/47-eagle/v0.0.2', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json'
+    },
     body: JSON.stringify({ query, variables: { address: vaultAddress.toLowerCase() } })
   });
 

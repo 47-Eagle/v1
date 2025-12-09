@@ -1,0 +1,150 @@
+specVersion: 1.2.0
+indexerHints:
+  prune: auto
+schema:
+  file: ./schema.graphql
+dataSources:
+  # Main Eagle OVault Contract
+  - kind: ethereum/contract
+    name: EagleOVault
+    network: mainnet
+    source:
+      address: "0x47b3ef629D9cB8DFcF8A6c61058338f4e99d7953"
+      abi: EagleOVault
+      startBlock: 21300000  # Conservative start block - refine after checking Etherscan
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Vault
+        - VaultSnapshot
+        - Deposit
+        - Withdrawal
+        - GlobalStats
+        - DailySnapshot
+      abis:
+        - name: EagleOVault
+          file: ./abis/EagleOVault.json
+        - name: CharmVault
+          file: ./abis/CharmVault.json
+      eventHandlers:
+        - event: Deposit(indexed address,indexed address,uint256,uint256)
+          handler: handleDeposit
+        - event: Withdraw(indexed address,indexed address,indexed address,uint256,uint256)
+          handler: handleWithdraw
+        - event: DualDeposit(indexed address,uint256,uint256,uint256,uint256,uint256)
+          handler: handleDualDeposit
+        - event: Reported(uint256,uint256,uint256,uint256)
+          handler: handleReported
+        - event: StrategyDeployed(indexed address,uint256,uint256)
+          handler: handleStrategyDeployed
+        - event: Rebalanced(uint256,uint256)
+          handler: handleRebalanced
+      file: ./src/mapping.ts
+
+  # USD1/WLFI Strategy
+  - kind: ethereum/contract
+    name: USD1Strategy
+    network: mainnet
+    source:
+      address: "0x47B2659747d6A7E00c8251c3C3f7e92625a8cf6f"
+      abi: CharmStrategy
+      startBlock: 21300000  # Conservative start block - refine after checking Etherscan
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - CollectFeeEvent
+        - Rebalance
+      abis:
+        - name: CharmStrategy
+          file: ./abis/CharmStrategy.json
+        - name: CharmVault
+          file: ./abis/CharmVault.json
+      eventHandlers:
+        - event: StrategyDeposit(uint256,uint256,uint256)
+          handler: handleStrategyDeposit
+        - event: StrategyWithdraw(uint256,uint256,uint256)
+          handler: handleStrategyWithdraw
+        - event: StrategyRebalanced(uint256,uint256)
+          handler: handleStrategyRebalanced
+      file: ./src/mapping.ts
+
+  # WETH/WLFI Strategy
+  - kind: ethereum/contract
+    name: WETHStrategy
+    network: mainnet
+    source:
+      address: "0x5c525Af4153B1c43f9C06c31D32a84637c617FfE"
+      abi: CharmStrategy
+      startBlock: 21300000  # Conservative start block - refine after checking Etherscan
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - CollectFeeEvent
+        - Rebalance
+      abis:
+        - name: CharmStrategy
+          file: ./abis/CharmStrategy.json
+        - name: CharmVault
+          file: ./abis/CharmVault.json
+      eventHandlers:
+        - event: StrategyDeposit(uint256,uint256,uint256)
+          handler: handleStrategyDeposit
+        - event: StrategyWithdraw(uint256,uint256,uint256)
+          handler: handleStrategyWithdraw
+        - event: StrategyRebalanced(uint256,uint256)
+          handler: handleStrategyRebalanced
+      file: ./src/mapping.ts
+
+templates:
+  # Template for USD1/WLFI Charm Vault
+  - kind: ethereum/contract
+    name: CharmVaultUSD1
+    network: mainnet
+    source:
+      abi: CharmVault
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - CollectFeeEvent
+        - VaultSnapshot
+      abis:
+        - name: CharmVault
+          file: ./abis/CharmVault.json
+      eventHandlers:
+        - event: Deposit(indexed address,uint256,uint256,uint256)
+          handler: handleCharmDeposit
+        - event: Withdraw(indexed address,uint256,uint256,uint256)
+          handler: handleCharmWithdraw
+      file: ./src/mapping.ts
+
+  # Template for WETH/WLFI Charm Vault
+  - kind: ethereum/contract
+    name: CharmVaultWETH
+    network: mainnet
+    source:
+      abi: CharmVault
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - CollectFeeEvent
+        - VaultSnapshot
+      abis:
+        - name: CharmVault
+          file: ./abis/CharmVault.json
+      eventHandlers:
+        - event: Deposit(indexed address,uint256,uint256,uint256)
+          handler: handleCharmDeposit
+        - event: Withdraw(indexed address,uint256,uint256,uint256)
+          handler: handleCharmWithdraw
+      file: ./src/mapping.ts
+

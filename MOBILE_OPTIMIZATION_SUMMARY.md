@@ -214,3 +214,5 @@ Access on mobile device:
 
 A buttery-smooth mobile experience that feels native, with proper touch targets, readable text, and no overlapping elements. The UI now meets iOS and Android accessibility standards while maintaining the premium Eagle OVault aesthetic. 🦅
 
+
+
