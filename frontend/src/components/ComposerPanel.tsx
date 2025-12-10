@@ -192,43 +192,35 @@ export function ComposerPanel() {
             </p>
           </div>
         ) : activeTab === 'deposit' && depositsBlocked ? (
-          /* Max Supply Reached - Simple, elegant message */
-          <div className="py-4 space-y-6">
-            <div className="text-center space-y-3">
-              <p className="text-4xl font-extralight tracking-tight text-gray-900 dark:text-white">
-                50,000,000
+          /* Max Supply Reached - Simple message */
+          <div className="py-6 space-y-5">
+            <div className="text-center">
+              <p className="text-lg font-medium text-gray-900 dark:text-white">
+                Max supply reached
               </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                EAGLE tokens have been minted
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                Get EAGLE on Uniswap instead
               </p>
             </div>
             
-            <div className="h-px bg-gray-200 dark:bg-gray-800" />
+            <a 
+              href="https://app.uniswap.org/swap?inputCurrency=ETH&outputCurrency=0x474eD38C256A7FA0f3B8c48496CE1102ab0eA91E&chain=ethereum"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 w-full py-3.5 bg-[#FF007A] hover:bg-[#E5006D] text-white font-medium rounded-xl transition-colors"
+            >
+              <span>Buy on Uniswap</span>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            </a>
             
-            <div className="space-y-4">
-              <p className="text-center text-sm text-gray-600 dark:text-gray-400">
-                Get EAGLE on Uniswap
-              </p>
-              
-              <a 
-                href="https://app.uniswap.org/swap?inputCurrency=ETH&outputCurrency=0x474eD38C256A7FA0f3B8c48496CE1102ab0eA91E&chain=ethereum"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 w-full py-3.5 bg-[#FF007A] hover:bg-[#E5006D] text-white font-medium rounded-xl transition-colors"
-              >
-                <span>Swap ETH for EAGLE</span>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-              </a>
-              
-              <button 
-                onClick={() => setActiveTab('redeem')}
-                className="w-full py-3 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
-              >
-                Or redeem EAGLE for WLFI →
-              </button>
-            </div>
+            <button 
+              onClick={() => setActiveTab('redeem')}
+              className="w-full text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+            >
+              Or redeem EAGLE for WLFI →
+            </button>
           </div>
         ) : (
           <div className="space-y-4">

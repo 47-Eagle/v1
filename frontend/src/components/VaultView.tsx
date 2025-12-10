@@ -3751,14 +3751,9 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
             className="min-w-[110px] sm:min-w-0 flex-shrink-0"
           />
           <NeoStatCard
-            label="Circulating / Max Supply"
-            value={`${Number(data.totalSupply).toLocaleString(undefined, { maximumFractionDigits: 0 })} / 50M`}
-            subtitle={(() => {
-               const totalWLFI = Number(data.vaultLiquidWLFI) + Number(data.strategyWLFIinUSD1Pool) + Number(data.strategyWLFIinPool);
-               const totalEagle = Number(data.totalSupply);
-               const ratio = totalEagle > 0 ? (totalWLFI / totalEagle).toFixed(4) : '0.0000';
-               return `Ratio: ${ratio} WLFI / EAGLE`;
-            })()}
+            label="Supply Minted"
+            value={`${((Number(data.totalSupply) / 50_000_000) * 100).toFixed(1)}%`}
+            subtitle={`${Number(data.totalSupply).toLocaleString(undefined, { maximumFractionDigits: 0 })} / 50M EAGLE`}
             className="min-w-[110px] sm:min-w-0 flex-shrink-0"
           />
         </div>
