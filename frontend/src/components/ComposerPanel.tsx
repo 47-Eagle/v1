@@ -274,32 +274,53 @@ export function ComposerPanel() {
             
             {/* Preview - Show Uniswap CTA if max supply reached during deposit */}
             {activeTab === 'deposit' && (isMaxSupplyReached || error === 'MAX_SUPPLY_REACHED') ? (
-              <div className="rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-900/50 border border-gray-200/50 dark:border-gray-700/30 p-5 space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
-                    <span className="text-lg">🦅</span>
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#1a1a2e] to-[#16213e] p-6">
+                {/* Subtle glow effect */}
+                <div className="absolute top-0 right-0 w-32 h-32 bg-[#FF007A]/10 rounded-full blur-3xl" />
+                <div className="absolute bottom-0 left-0 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl" />
+                
+                <div className="relative space-y-5">
+                  {/* Status */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium tracking-widest uppercase text-gray-400">Supply Status</span>
+                    <span className="flex items-center gap-1.5 text-xs text-emerald-400">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                      Fully Allocated
+                    </span>
                   </div>
-                  <div>
-                    <p className="font-semibold text-gray-900 dark:text-white">50,000,000 EAGLE Minted</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Maximum supply reached</p>
+                  
+                  {/* Amount */}
+                  <div className="text-center py-2">
+                    <p className="text-3xl font-light tracking-tight text-white">
+                      50<span className="text-gray-500">,</span>000<span className="text-gray-500">,</span>000
+                    </p>
+                    <p className="text-sm text-gray-500 mt-1">EAGLE tokens minted</p>
+                  </div>
+                  
+                  {/* Divider */}
+                  <div className="h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent" />
+                  
+                  {/* CTA */}
+                  <div className="space-y-3">
+                    <p className="text-center text-sm text-gray-400">
+                      Trade EAGLE on secondary markets
+                    </p>
+                    <a 
+                      href="https://app.uniswap.org/swap?inputCurrency=ETH&outputCurrency=0x474eD38C256A7FA0f3B8c48496CE1102ab0eA91E&chain=ethereum"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group flex items-center justify-center gap-3 w-full px-5 py-3.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-white font-medium rounded-xl transition-all duration-300"
+                    >
+                      <svg className="w-5 h-5 text-[#FF007A]" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0C5.374 0 0 5.374 0 12s5.374 12 12 12 12-5.374 12-12S18.626 0 12 0zm5.569 12.776l-.428.849a.503.503 0 01-.673.212l-4.468-2.33-4.468 2.33a.503.503 0 01-.673-.212l-.428-.849a.503.503 0 01.212-.673l4.85-2.523V5.062a.503.503 0 01.503-.503h.985a.503.503 0 01.503.503v4.518l4.85 2.523a.503.503 0 01.235.673z"/>
+                      </svg>
+                      <span>Buy on Uniswap</span>
+                      <svg className="w-4 h-4 opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                      </svg>
+                    </a>
                   </div>
                 </div>
-                
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Acquire EAGLE by swapping ETH on Uniswap:
-                </p>
-                
-                <a 
-                  href="https://app.uniswap.org/swap?inputCurrency=ETH&outputCurrency=0x474eD38C256A7FA0f3B8c48496CE1102ab0eA91E&chain=ethereum"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-gradient-to-r from-[#FF007A] to-[#FF5CAA] hover:from-[#E5006D] hover:to-[#FF4499] text-white font-medium rounded-xl transition-all duration-200 hover:shadow-lg hover:shadow-pink-500/20"
-                >
-                  <span>Swap ETH → EAGLE</span>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
-                </a>
               </div>
             ) : preview && (
               <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4 sm:p-4">
