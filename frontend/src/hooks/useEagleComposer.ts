@@ -89,13 +89,31 @@ export function useEagleComposer() {
     if (!provider || wlfiAmount === 0n) return null;
     
     try {
+      // First check if max supply would be exceeded
+      const eagle = new Contract(ADDRESSES.EAGLE, EAGLE_ABI, provider);
+      const currentSupply = await eagle.totalSupply();
+      const remaining = MAX_SUPPLY - currentSupply;
+      
+      // If we're already at max supply, show the error
+      if (remaining <= 0n) {
+        setError('MAX_SUPPLY_REACHED');
+        return null;
+      }
+      
       const composer = new Contract(ADDRESSES.COMPOSER, COMPOSER_ABI, provider);
       const eagleOut = await composer.previewDepositAndWrap(wlfiAmount);
+      
+      // Check if the output would exceed remaining supply
+      if (eagleOut > remaining) {
+        setError('MAX_SUPPLY_REACHED');
+        return null;
+      }
       
       const conversionRate = Number(eagleOut) / Number(wlfiAmount) * 100;
       const fee = wlfiAmount - eagleOut;
       const feePercentage = Number(fee) / Number(wlfiAmount) * 100;
       
+      setError(null); // Clear any previous error
       return {
         inputAmount: wlfiAmount,
         outputAmount: eagleOut,
@@ -106,10 +124,23 @@ export function useEagleComposer() {
     } catch (err: any) {
       console.error('Preview deposit failed:', err);
       
+      // Check for max supply errors
+      const errorMsg = err.reason || err.message || '';
+      if (errorMsg.includes('max supply') || errorMsg.includes('MaxSupply') || errorMsg.includes('exceeds')) {
+        setError('MAX_SUPPLY_REACHED');
+        return null;
+      }
+      
       // Check for StalePrice error (0x19abf40e)
-      let errorMsg = err.message;
       if (err.data === '0x19abf40e' || errorMsg.includes('0x19abf40e')) {
-        errorMsg = 'Oracle prices are stale. Cannot preview deposit at this time.';
+        setError('Oracle prices are stale. Cannot preview deposit at this time.');
+        return null;
+      }
+      
+      // Generic revert - could be max supply
+      if (errorMsg.includes('execution reverted') || errorMsg.includes('revert')) {
+        setError('MAX_SUPPLY_REACHED');
+        return null;
       }
       
       setError(errorMsg);
@@ -272,12 +303,19 @@ export function useEagleComposer() {
     } catch (err: any) {
       console.error('Deposit failed:', err);
       
-      // Check for StalePrice error (0x19abf40e)
       let errorMsg = err.reason || err.message || 'Transaction failed';
-      if (err.data === '0x19abf40e' || errorMsg.includes('0x19abf40e')) {
+      
+      // Check for max supply errors first
+      if (errorMsg.includes('max supply') || errorMsg.includes('MaxSupply') || errorMsg.includes('exceeds')) {
+        errorMsg = 'MAX_SUPPLY_REACHED';
+      }
+      // Check for StalePrice error (0x19abf40e)
+      else if (err.data === '0x19abf40e' || errorMsg.includes('0x19abf40e')) {
         errorMsg = '⚠️ Oracle prices are stale. The protocol needs fresh price updates to process deposits. Please try again in a few minutes or contact support.';
-      } else if (errorMsg.includes('execution reverted')) {
-        errorMsg = 'Transaction would fail. This may be due to stale price oracles. Please try again later.';
+      } 
+      // Generic revert - likely max supply
+      else if (errorMsg.includes('execution reverted')) {
+        errorMsg = 'MAX_SUPPLY_REACHED';
       }
       
       setError(errorMsg);
