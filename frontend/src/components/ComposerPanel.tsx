@@ -181,28 +181,51 @@ export function ComposerPanel() {
               Connect your wallet to use Composer
             </p>
           </div>
+        ) : activeTab === 'deposit' && isMaxSupplyReached ? (
+          /* Max Supply Reached - Elegant Uniswap CTA */
+          <div className="text-center py-6 space-y-6">
+            {/* Status Badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300">
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+              <span className="text-sm font-medium">50M EAGLE Cap Reached</span>
+            </div>
+            
+            {/* Message */}
+            <div className="space-y-2">
+              <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Deposits Temporarily Unavailable
+              </h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400 max-w-sm mx-auto">
+                The maximum supply has been reached. You can acquire EAGLE by swapping on Uniswap.
+              </p>
+            </div>
+            
+            {/* Uniswap Button */}
+            <a 
+              href="https://app.uniswap.org/swap?outputCurrency=0x474eD38C256A7FA0f3B8c48496CE1102ab0eA91E&chain=ethereum"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-3 w-full max-w-xs mx-auto px-6 py-4 bg-gradient-to-r from-[#FF007A] to-[#FF5CAA] hover:from-[#E5006D] hover:to-[#FF4499] text-white font-semibold rounded-2xl shadow-lg shadow-pink-500/25 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 40 40" fill="none">
+                <path d="M20 40C31.0457 40 40 31.0457 40 20C40 8.9543 31.0457 0 20 0C8.9543 0 0 8.9543 0 20C0 31.0457 8.9543 40 20 40Z" fill="white" fillOpacity="0.2"/>
+                <path d="M15.23 10.75C15.49 10.46 15.93 10.46 16.19 10.75L20 14.89L23.81 10.75C24.07 10.46 24.51 10.46 24.77 10.75C25.03 11.04 25.03 11.51 24.77 11.8L20.48 16.47C20.22 16.76 19.78 16.76 19.52 16.47L15.23 11.8C14.97 11.51 14.97 11.04 15.23 10.75Z" fill="white"/>
+                <path d="M15.23 17.75C15.49 17.46 15.93 17.46 16.19 17.75L20 21.89L23.81 17.75C24.07 17.46 24.51 17.46 24.77 17.75C25.03 18.04 25.03 18.51 24.77 18.8L20.48 23.47C20.22 23.76 19.78 23.76 19.52 23.47L15.23 18.8C14.97 18.51 14.97 18.04 15.23 17.75Z" fill="white"/>
+                <path d="M20 29.25C20.41 29.25 20.75 28.91 20.75 28.5V24.5C20.75 24.09 20.41 23.75 20 23.75C19.59 23.75 19.25 24.09 19.25 24.5V28.5C19.25 28.91 19.59 29.25 20 29.25Z" fill="white"/>
+              </svg>
+              <span>Buy EAGLE on Uniswap</span>
+              <svg className="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+            </a>
+            
+            {/* Alternative */}
+            <p className="text-xs text-gray-500 dark:text-gray-500">
+              Or switch to the <button onClick={() => setActiveTab('redeem')} className="text-blue-600 dark:text-blue-400 hover:underline font-medium">Redeem</button> tab to convert EAGLE → WLFI
+            </p>
+          </div>
         ) : (
           <>
-            {/* Max Supply Warning - only show for deposits */}
-            {activeTab === 'deposit' && isMaxSupplyReached && (
-              <div className="bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800/50 rounded-xl p-4 sm:p-5 animate-pulse">
-                <div className="flex items-start gap-3 sm:gap-4">
-                  <div className="text-3xl sm:text-2xl flex-shrink-0">🚫</div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-bold text-red-800 dark:text-red-200 text-base sm:text-sm mb-2 sm:mb-1">
-                      Deposits Disabled
-                    </h4>
-                    <p className="text-sm sm:text-xs text-red-700 dark:text-red-300 leading-relaxed">
-                      Maximum supply of {maxSupplyInfo ? (Number(maxSupplyInfo.maxSupply) / 1e18).toLocaleString() : '50,000,000'} EAGLE has been reached.
-                    </p>
-                    <p className="text-sm sm:text-xs text-red-600 dark:text-red-400 mt-3 sm:mt-2 leading-relaxed">
-                      You can still redeem EAGLE tokens for WLFI.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-            
             {/* Balance Display with Fee */}
             <div className="flex justify-between items-center text-sm sm:text-sm">
               <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -219,7 +242,7 @@ export function ComposerPanel() {
                   ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
                   : 'text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20'
               }`}>
-                {activeTab === 'deposit' ? '1%' : '2%'} fee
+                -{activeTab === 'deposit' ? '1' : '2'}%
               </div>
             </div>
             
@@ -285,50 +308,25 @@ export function ComposerPanel() {
             )}
             
             {/* Error */}
-            {error && (
+            {error && error !== 'MAX_SUPPLY_REACHED' && (
               <div className="p-4 sm:p-3 rounded-xl sm:rounded-lg bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 text-base sm:text-sm leading-relaxed">
-                {error === 'MAX_SUPPLY_REACHED' ? (
-                  <div className="space-y-3">
-                    <p className="font-semibold">🚫 Maximum EAGLE Supply Reached</p>
-                    <p className="text-sm opacity-90">
-                      Deposits are currently unavailable as the 50M EAGLE cap has been reached.
-                    </p>
-                    <p className="text-sm opacity-90">
-                      You can still acquire EAGLE by swapping on Uniswap:
-                    </p>
-                    <a 
-                      href="https://app.uniswap.org/swap?outputCurrency=0x474eD38C256A7FA0f3B8c48496CE1102ab0eA91E&chain=ethereum"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 mt-2 px-4 py-2 bg-[#FF007A] hover:bg-[#FF007A]/90 text-white font-medium rounded-lg transition-colors"
-                    >
-                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.14-.26.26-.534.26l.213-3.053 5.56-5.023c.242-.213-.054-.334-.373-.121l-6.869 4.326-2.96-.924c-.64-.203-.658-.64.135-.954l11.566-4.458c.538-.196 1.006.128.832.944z"/>
-                      </svg>
-                      Buy EAGLE on Uniswap
-                    </a>
-                  </div>
-                ) : (
-                  error
-                )}
+                {error}
               </div>
             )}
             
             {/* Action Button */}
             <NeoButton
               onClick={needsApproval ? handleApprove : (activeTab === 'deposit' ? handleDeposit : handleRedeem)}
-              disabled={loading || !inputAmount || parseFloat(inputAmount) <= 0 || (activeTab === 'deposit' && isMaxSupplyReached)}
+              disabled={loading || !inputAmount || parseFloat(inputAmount) <= 0}
               className="w-full"
             >
               {loading 
                 ? 'Processing...'
                 : needsApproval
                   ? `Approve ${activeTab === 'deposit' ? 'WLFI' : 'EAGLE'}`
-                  : activeTab === 'deposit' && isMaxSupplyReached
-                    ? 'Deposits Disabled (Max Supply Reached)'
-                    : activeTab === 'deposit'
-                      ? 'Deposit'
-                      : 'Redeem'
+                  : activeTab === 'deposit'
+                    ? 'Deposit WLFI'
+                    : 'Redeem EAGLE'
               }
             </NeoButton>
             
@@ -337,19 +335,14 @@ export function ComposerPanel() {
               {activeTab === 'deposit' ? (
                 <>
                   <p>• Converts WLFI → vEAGLE → EAGLE in one transaction</p>
-                  <p>• Includes vault deposit fee + wrapper fee</p>
                   <p>• EAGLE can be used for cross-chain operations</p>
                   {maxSupplyInfo && !isMaxSupplyReached && (
-                    <p>• Remaining supply: {(Number(maxSupplyInfo.remaining) / 1e18).toLocaleString()} EAGLE</p>
-                  )}
-                  {isMaxSupplyReached && (
-                    <p className="text-red-500 dark:text-red-400">⚠️ Max supply reached - deposits disabled</p>
+                    <p className="text-green-600 dark:text-green-400">• Remaining: {(Number(maxSupplyInfo.remaining) / 1e18).toLocaleString()} EAGLE available</p>
                   )}
                 </>
               ) : (
                 <>
                   <p>• Converts EAGLE → vEAGLE → WLFI in one transaction</p>
-                  <p>• Includes wrapper fee + vault withdrawal fee</p>
                   <p>• Receive WLFI directly in your wallet</p>
                 </>
               )}
