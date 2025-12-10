@@ -160,27 +160,44 @@ export function AnalyticsTab({ vaultData }: AnalyticsTabProps) {
         ))}
       </div>
 
-      {/* Chart - Neumorphic Card */}
-      <div className="mt-6 rounded-2xl p-5 sm:p-6
-        bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850
+      {/* Chart - Premium Design */}
+      <div className="mt-6 rounded-2xl overflow-hidden
+        bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900
         shadow-neo-raised dark:shadow-neo-raised-dark
-        border border-gray-200/50 dark:border-gray-700/50">
-        <div className="flex items-center justify-between mb-4">
-          <span className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider">
-            30 Day Performance
-          </span>
-          {hoveredIndex !== null && chartData[hoveredIndex] && (
-            <span className="text-xs text-gray-600 dark:text-gray-300">
-              {chartData[hoveredIndex].date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-              {' · '}
-              <span className="font-medium">{formatNumber(chartData[hoveredIndex].value)} WLFI</span>
+        border border-slate-700/50">
+        
+        {/* Chart Header */}
+        <div className="px-5 sm:px-6 pt-5 sm:pt-6 pb-4 flex items-center justify-between">
+          <div>
+            <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">
+              Performance
             </span>
+            <p className="text-2xl font-light text-white mt-1 tabular-nums">
+              {formatNumber(totalValue)} <span className="text-sm text-slate-500">WLFI</span>
+            </p>
+          </div>
+          
+          {hoveredIndex !== null && chartData[hoveredIndex] ? (
+            <div className="text-right">
+              <p className="text-xs text-slate-400">
+                {chartData[hoveredIndex].date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+              </p>
+              <p className="text-lg font-medium text-white tabular-nums">
+                {formatNumber(chartData[hoveredIndex].value)}
+              </p>
+            </div>
+          ) : (
+            <div className="text-right">
+              <p className="text-xs text-slate-400">Last 30 days</p>
+              <p className="text-sm text-emerald-400 font-medium">+{formatPercent(((chartData[chartData.length - 1]?.value || 0) / (chartData[0]?.value || 1) - 1) * 100)}%</p>
+            </div>
           )}
         </div>
         
+        {/* Chart Area */}
         <div 
           ref={chartRef}
-          className="relative h-48 sm:h-56"
+          className="relative h-40 sm:h-48 cursor-crosshair"
           onMouseMove={(e) => {
             if (!chartRef.current) return;
             const rect = chartRef.current.getBoundingClientRect();
@@ -197,59 +214,99 @@ export function AnalyticsTab({ vaultData }: AnalyticsTabProps) {
               className="w-full h-full"
             >
               <defs>
-                <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.15" />
-                  <stop offset="100%" stopColor="#3B82F6" stopOpacity="0" />
+                {/* Gradient fill */}
+                <linearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#10B981" stopOpacity="0.3" />
+                  <stop offset="50%" stopColor="#10B981" stopOpacity="0.1" />
+                  <stop offset="100%" stopColor="#10B981" stopOpacity="0" />
                 </linearGradient>
+                
+                {/* Glow effect */}
+                <filter id="lineGlow" x="-50%" y="-50%" width="200%" height="200%">
+                  <feGaussianBlur stdDeviation="2" result="blur" />
+                  <feMerge>
+                    <feMergeNode in="blur" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
               </defs>
+              
+              {/* Horizontal grid lines */}
+              {[20, 40, 60, 80].map((y) => (
+                <line
+                  key={y}
+                  x1="0" y1={y} x2="100" y2={y}
+                  stroke="#334155"
+                  strokeWidth="0.15"
+                  vectorEffect="non-scaling-stroke"
+                />
+              ))}
               
               {/* Area fill */}
               <path 
                 d={`${chartPath} L 100,100 L 0,100 Z`}
-                fill="url(#areaGradient)"
+                fill="url(#chartFill)"
               />
               
-              {/* Line */}
+              {/* Main line with glow */}
               <path 
                 d={chartPath}
                 fill="none"
-                stroke="#3B82F6"
-                strokeWidth="0.5"
+                stroke="#10B981"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
                 vectorEffect="non-scaling-stroke"
+                filter="url(#lineGlow)"
               />
               
-              {/* Hover indicator */}
-              {hoveredIndex !== null && chartData[hoveredIndex] && (
-                <>
-                  <line
-                    x1={(hoveredIndex / (chartData.length - 1)) * 100}
-                    y1="0"
-                    x2={(hoveredIndex / (chartData.length - 1)) * 100}
-                    y2="100"
-                    stroke="#3B82F6"
-                    strokeWidth="0.3"
-                    strokeDasharray="2,2"
-                    vectorEffect="non-scaling-stroke"
-                  />
-                  <circle
-                    cx={(hoveredIndex / (chartData.length - 1)) * 100}
-                    cy={100 - ((chartData[hoveredIndex].value - chartStats.min) / chartStats.range) * 80 - 10}
-                    r="1.5"
-                    fill="#3B82F6"
-                  />
-                </>
-              )}
+              {/* Hover elements */}
+              {hoveredIndex !== null && chartData[hoveredIndex] && (() => {
+                const x = (hoveredIndex / (chartData.length - 1)) * 100;
+                const y = 100 - ((chartData[hoveredIndex].value - chartStats.min) / chartStats.range) * 80 - 10;
+                return (
+                  <>
+                    {/* Vertical line */}
+                    <line
+                      x1={x} y1="0" x2={x} y2="100"
+                      stroke="#10B981"
+                      strokeWidth="1"
+                      strokeOpacity="0.3"
+                      vectorEffect="non-scaling-stroke"
+                    />
+                    
+                    {/* Horizontal line to value */}
+                    <line
+                      x1="0" y1={y} x2={x} y2={y}
+                      stroke="#10B981"
+                      strokeWidth="1"
+                      strokeOpacity="0.2"
+                      strokeDasharray="2,2"
+                      vectorEffect="non-scaling-stroke"
+                    />
+                    
+                    {/* Outer glow ring */}
+                    <circle cx={x} cy={y} r="8" fill="#10B981" fillOpacity="0.15" />
+                    <circle cx={x} cy={y} r="5" fill="#10B981" fillOpacity="0.3" />
+                    
+                    {/* Center dot */}
+                    <circle cx={x} cy={y} r="3" fill="#10B981" />
+                    <circle cx={x} cy={y} r="1.5" fill="white" />
+                  </>
+                );
+              })()}
             </svg>
           ) : (
-            <div className="h-full flex items-center justify-center text-gray-400">
+            <div className="h-full flex items-center justify-center text-slate-500">
               No data available
             </div>
           )}
         </div>
         
         {/* X-axis labels */}
-        <div className="flex justify-between mt-2 text-xs text-gray-400 dark:text-gray-500">
-          <span>30d ago</span>
+        <div className="px-5 sm:px-6 pb-4 pt-2 flex justify-between text-xs text-slate-500">
+          <span>30 days ago</span>
+          <span>15 days</span>
           <span>Today</span>
         </div>
       </div>
