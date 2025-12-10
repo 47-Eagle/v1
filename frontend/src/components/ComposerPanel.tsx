@@ -366,9 +366,6 @@ export function ComposerPanel() {
                 <>
                   <p>• Converts WLFI → vEAGLE → EAGLE in one transaction</p>
                   <p>• EAGLE can be used for cross-chain operations</p>
-                  {maxSupplyInfo && !isMaxSupplyReached && (
-                    <p className="text-green-600 dark:text-green-400">• Remaining: {(Number(maxSupplyInfo.remaining) / 1e18).toLocaleString()} EAGLE available</p>
-                  )}
                 </>
               ) : (
                 <>

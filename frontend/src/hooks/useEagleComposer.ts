@@ -91,8 +91,13 @@ export function useEagleComposer() {
     try {
       // First check if max supply would be exceeded
       const eagle = new Contract(ADDRESSES.EAGLE, EAGLE_ABI, provider);
-      const currentSupply = await eagle.totalSupply();
-      const remaining = MAX_SUPPLY - currentSupply;
+      const [currentSupply, contractMaxSupply] = await Promise.all([
+        eagle.totalSupply(),
+        eagle.MAX_SUPPLY()
+      ]);
+      
+      const maxSupply = contractMaxSupply || MAX_SUPPLY;
+      const remaining = maxSupply - currentSupply;
       
       // If we're already at max supply, show the error
       if (remaining <= 0n) {
@@ -207,14 +212,21 @@ export function useEagleComposer() {
     
     try {
       const eagle = new Contract(ADDRESSES.EAGLE, EAGLE_ABI, provider);
-      const currentSupply = await eagle.totalSupply();
-      const isMaxReached = currentSupply >= MAX_SUPPLY;
-      const remaining = isMaxReached ? 0n : MAX_SUPPLY - currentSupply;
+      
+      // Read both values from the contract
+      const [currentSupply, contractMaxSupply] = await Promise.all([
+        eagle.totalSupply(),
+        eagle.MAX_SUPPLY()
+      ]);
+      
+      const maxSupply = contractMaxSupply || MAX_SUPPLY; // Fallback to constant if contract call fails
+      const isMaxReached = currentSupply >= maxSupply;
+      const remaining = isMaxReached ? 0n : maxSupply - currentSupply;
       
       return {
         isMaxReached,
         currentSupply,
-        maxSupply: MAX_SUPPLY,
+        maxSupply,
         remaining
       };
     } catch (err: any) {
