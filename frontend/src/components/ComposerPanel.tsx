@@ -51,10 +51,13 @@ export function ComposerPanel() {
   
   // Sync error state with isMaxSupplyReached
   useEffect(() => {
-    if (error === 'MAX_SUPPLY_REACHED') {
+    if (error === 'MAX_SUPPLY_REACHED' || (error && (error.includes('revert') || error.includes('require') || error.includes('execution')))) {
       setIsMaxSupplyReached(true);
     }
   }, [error]);
+  
+  // Helper to check if deposits are blocked
+  const depositsBlocked = isMaxSupplyReached || error === 'MAX_SUPPLY_REACHED' || (error && (error.includes('revert') || error.includes('require') || error.includes('execution')));
   
   // Auto-preview when amount changes + check allowance
   useEffect(() => {
@@ -188,7 +191,7 @@ export function ComposerPanel() {
               Connect your wallet to use Composer
             </p>
           </div>
-        ) : activeTab === 'deposit' && (isMaxSupplyReached || error === 'MAX_SUPPLY_REACHED') ? (
+        ) : activeTab === 'deposit' && depositsBlocked ? (
           /* Max Supply Reached - Simple, elegant message */
           <div className="py-4 space-y-6">
             <div className="text-center space-y-3">
@@ -271,25 +274,8 @@ export function ComposerPanel() {
               </div>
             </div>
             
-            {/* Preview - or Max Supply message */}
-            {activeTab === 'deposit' && (isMaxSupplyReached || error === 'MAX_SUPPLY_REACHED' || (inputAmount && !preview && error)) ? (
-              /* Show max supply reached in preview area */
-              <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-5 text-center space-y-3">
-                <p className="text-2xl font-light text-gray-900 dark:text-white">50,000,000</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">EAGLE minted · Max supply reached</p>
-                <a 
-                  href="https://app.uniswap.org/swap?inputCurrency=ETH&outputCurrency=0x474eD38C256A7FA0f3B8c48496CE1102ab0eA91E&chain=ethereum"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-sm text-[#FF007A] hover:underline"
-                >
-                  Buy on Uniswap
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                  </svg>
-                </a>
-              </div>
-            ) : preview ? (
+            {/* Preview */}
+            {preview ? (
               <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4">
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-500 dark:text-gray-400">You receive</span>
@@ -314,8 +300,8 @@ export function ComposerPanel() {
               </div>
             )}
             
-            {/* Action Button - only show if not max supply reached on deposit */}
-            {!(activeTab === 'deposit' && (isMaxSupplyReached || error === 'MAX_SUPPLY_REACHED')) && (
+            {/* Action Button */}
+            {!(activeTab === 'deposit' && depositsBlocked) && (
               <button
                 onClick={needsApproval ? handleApprove : (activeTab === 'deposit' ? handleDeposit : handleRedeem)}
                 disabled={loading || !inputAmount || parseFloat(inputAmount) <= 0}
