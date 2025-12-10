@@ -116,26 +116,34 @@ export function AnalyticsTab({ vaultData }: AnalyticsTabProps) {
 
   return (
     <div className="space-y-6 p-4 sm:p-6">
-      {/* Total Value */}
-      <div className="text-center py-8">
-        <p className="text-xs uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-3">
-          Total Value Locked
-        </p>
-        <div className="flex items-baseline justify-center gap-2">
-          <span className="text-5xl sm:text-6xl font-light text-gray-900 dark:text-white tabular-nums">
-            {formatNumber(totalValue)}
-          </span>
-          <span className="text-xl text-gray-400 dark:text-gray-500">WLFI</span>
+      {/* Total Value - Neumorphic Card */}
+      <div className="rounded-2xl p-6 sm:p-8
+        bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850
+        shadow-neo-raised dark:shadow-neo-raised-dark
+        border border-gray-200/50 dark:border-gray-700/50">
+        <div className="text-center">
+          <p className="text-xs uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-3">
+            Total Value Locked
+          </p>
+          <div className="flex items-baseline justify-center gap-2">
+            <span className="text-5xl sm:text-6xl font-light text-gray-900 dark:text-white tabular-nums">
+              {formatNumber(totalValue)}
+            </span>
+            <span className="text-xl text-gray-400 dark:text-gray-500">WLFI</span>
+          </div>
+          <p className="text-lg text-gray-500 dark:text-gray-400 mt-2">
+            ${formatNumber(totalValueUSD)} USD
+          </p>
         </div>
-        <p className="text-lg text-gray-500 dark:text-gray-400 mt-2">
-          ${formatNumber(totalValueUSD)} USD
-        </p>
       </div>
 
-      {/* Asset Breakdown */}
-      <div className="flex justify-center gap-8 sm:gap-12">
+      {/* Asset Breakdown - Neumorphic Pills */}
+      <div className="flex justify-center gap-4 sm:gap-6 flex-wrap">
         {assets.map((asset, i) => (
-          <div key={i} className="text-center">
+          <div key={i} className="text-center px-5 py-3 rounded-xl
+            bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850
+            shadow-neo-raised dark:shadow-neo-raised-dark
+            border border-gray-200/50 dark:border-gray-700/50">
             <div className="flex items-center justify-center gap-2 mb-1">
               <div 
                 className="w-2 h-2 rounded-full" 
@@ -152,8 +160,11 @@ export function AnalyticsTab({ vaultData }: AnalyticsTabProps) {
         ))}
       </div>
 
-      {/* Chart */}
-      <div className="mt-8">
+      {/* Chart - Neumorphic Card */}
+      <div className="mt-6 rounded-2xl p-5 sm:p-6
+        bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850
+        shadow-neo-raised dark:shadow-neo-raised-dark
+        border border-gray-200/50 dark:border-gray-700/50">
         <div className="flex items-center justify-between mb-4">
           <span className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider">
             30 Day Performance
@@ -169,7 +180,7 @@ export function AnalyticsTab({ vaultData }: AnalyticsTabProps) {
         
         <div 
           ref={chartRef}
-          className="relative h-48 sm:h-64"
+          className="relative h-48 sm:h-56"
           onMouseMove={(e) => {
             if (!chartRef.current) return;
             const rect = chartRef.current.getBoundingClientRect();
@@ -243,17 +254,22 @@ export function AnalyticsTab({ vaultData }: AnalyticsTabProps) {
         </div>
       </div>
 
-      {/* Composition Bar */}
+      {/* Composition Bar - Neumorphic */}
       {assets.length > 0 && (
-        <div className="mt-8">
-          <p className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">
-            Composition
+        <div className="rounded-2xl p-5 sm:p-6
+          bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-850
+          shadow-neo-raised dark:shadow-neo-raised-dark
+          border border-gray-200/50 dark:border-gray-700/50">
+          <p className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-4">
+            Asset Composition
           </p>
-          <div className="h-2 rounded-full overflow-hidden flex bg-gray-100 dark:bg-gray-800">
+          <div className="h-3 rounded-full overflow-hidden flex 
+            bg-gray-100 dark:bg-gray-700
+            shadow-neo-pressed dark:shadow-neo-pressed-dark">
             {assets.map((asset, i) => (
               <div
                 key={i}
-                className="h-full transition-all duration-500"
+                className="h-full transition-all duration-500 first:rounded-l-full last:rounded-r-full"
                 style={{ 
                   width: `${asset.percentage}%`,
                   backgroundColor: asset.color
@@ -261,15 +277,18 @@ export function AnalyticsTab({ vaultData }: AnalyticsTabProps) {
               />
             ))}
           </div>
-          <div className="flex justify-between mt-3">
+          <div className="flex justify-between mt-4 flex-wrap gap-2">
             {assets.map((asset, i) => (
-              <div key={i} className="flex items-center gap-1.5">
+              <div key={i} className="flex items-center gap-2">
                 <div 
-                  className="w-2 h-2 rounded-full" 
+                  className="w-2.5 h-2.5 rounded-full" 
                   style={{ backgroundColor: asset.color }}
                 />
-                <span className="text-xs text-gray-500 dark:text-gray-400">
-                  {asset.name} · {formatNumber(asset.amount)}
+                <span className="text-sm text-gray-600 dark:text-gray-300">
+                  {asset.name}
+                </span>
+                <span className="text-sm font-medium text-gray-900 dark:text-white tabular-nums">
+                  {formatNumber(asset.amount)}
                 </span>
               </div>
             ))}

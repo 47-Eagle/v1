@@ -207,17 +207,22 @@ export function ComposerPanel() {
               href="https://app.uniswap.org/swap?inputCurrency=ETH&outputCurrency=0x474eD38C256A7FA0f3B8c48496CE1102ab0eA91E&chain=ethereum"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 w-full py-3.5 bg-[#FF007A] hover:bg-[#E5006D] text-white font-medium rounded-xl transition-colors"
+              className="flex items-center justify-center gap-2 w-full py-3.5 rounded-full font-semibold
+                bg-gradient-to-br from-[#FF1493] to-[#FF007A]
+                text-white shadow-neo-raised hover:shadow-neo-hover
+                dark:shadow-neo-raised-dark dark:hover:shadow-neo-hover-dark
+                border border-pink-400/30 hover:border-pink-300/50
+                transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
             >
               <span>Buy on Uniswap</span>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
               </svg>
             </a>
             
             <button 
               onClick={() => setActiveTab('redeem')}
-              className="w-full text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+              className="w-full py-2 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
             >
               Or redeem EAGLE for WLFI →
             </button>
@@ -259,8 +264,12 @@ export function ComposerPanel() {
             
             {/* Arrow */}
             <div className="flex justify-center">
-              <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-10 h-10 rounded-full 
+                bg-gradient-to-br from-white to-gray-100 dark:from-gray-700 dark:to-gray-800
+                shadow-neo-raised dark:shadow-neo-raised-dark
+                border border-gray-200/50 dark:border-gray-600/50
+                flex items-center justify-center">
+                <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
                 </svg>
               </div>
@@ -297,7 +306,14 @@ export function ComposerPanel() {
               <button
                 onClick={needsApproval ? handleApprove : (activeTab === 'deposit' ? handleDeposit : handleRedeem)}
                 disabled={loading || !inputAmount || parseFloat(inputAmount) <= 0}
-                className="w-full py-3.5 bg-[#A27D46] hover:bg-[#8B6A3D] disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:cursor-not-allowed text-white font-medium rounded-xl transition-colors"
+                className={`w-full py-3.5 rounded-full font-semibold transition-all duration-300
+                  ${loading || !inputAmount || parseFloat(inputAmount) <= 0
+                    ? 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
+                    : `bg-gradient-to-br from-[#D4B474] to-[#A27D46] text-white
+                       shadow-neo-raised hover:shadow-neo-hover hover:scale-[1.02] active:scale-[0.98]
+                       dark:shadow-neo-raised-dark dark:hover:shadow-neo-hover-dark
+                       border border-amber-400/30 hover:border-amber-300/50`
+                  }`}
               >
                 {loading 
                   ? 'Processing...'
