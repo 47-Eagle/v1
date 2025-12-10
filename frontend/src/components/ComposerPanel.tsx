@@ -174,76 +174,68 @@ export function ComposerPanel() {
       </div>
       
       {/* Content */}
-      <div className="p-3 sm:p-6 space-y-3 sm:space-y-4">
+      <div className="p-4 sm:p-6">
         {!isConnected ? (
           <div className="text-center py-8">
             <p className="text-gray-600 dark:text-gray-400">
               Connect your wallet to use Composer
             </p>
           </div>
-        ) : activeTab === 'deposit' && isMaxSupplyReached ? (
-          /* Max Supply Reached - Elegant Uniswap CTA */
-          <div className="text-center py-6 space-y-6">
-            {/* Status Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300">
-              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-              <span className="text-sm font-medium">50M EAGLE Cap Reached</span>
-            </div>
-            
-            {/* Message */}
-            <div className="space-y-2">
-              <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Deposits Temporarily Unavailable
-              </h4>
-              <p className="text-sm text-gray-600 dark:text-gray-400 max-w-sm mx-auto">
-                The maximum supply has been reached. You can acquire EAGLE by swapping on Uniswap.
+        ) : activeTab === 'deposit' && (isMaxSupplyReached || error === 'MAX_SUPPLY_REACHED') ? (
+          /* Max Supply Reached - Simple, elegant message */
+          <div className="py-4 space-y-6">
+            <div className="text-center space-y-3">
+              <p className="text-4xl font-extralight tracking-tight text-gray-900 dark:text-white">
+                50,000,000
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                EAGLE tokens have been minted
               </p>
             </div>
             
-            {/* Uniswap Button */}
-            <a 
-              href="https://app.uniswap.org/swap?outputCurrency=0x474eD38C256A7FA0f3B8c48496CE1102ab0eA91E&chain=ethereum"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-3 w-full max-w-xs mx-auto px-6 py-4 bg-gradient-to-r from-[#FF007A] to-[#FF5CAA] hover:from-[#E5006D] hover:to-[#FF4499] text-white font-semibold rounded-2xl shadow-lg shadow-pink-500/25 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-            >
-              <svg className="w-5 h-5" viewBox="0 0 40 40" fill="none">
-                <path d="M20 40C31.0457 40 40 31.0457 40 20C40 8.9543 31.0457 0 20 0C8.9543 0 0 8.9543 0 20C0 31.0457 8.9543 40 20 40Z" fill="white" fillOpacity="0.2"/>
-                <path d="M15.23 10.75C15.49 10.46 15.93 10.46 16.19 10.75L20 14.89L23.81 10.75C24.07 10.46 24.51 10.46 24.77 10.75C25.03 11.04 25.03 11.51 24.77 11.8L20.48 16.47C20.22 16.76 19.78 16.76 19.52 16.47L15.23 11.8C14.97 11.51 14.97 11.04 15.23 10.75Z" fill="white"/>
-                <path d="M15.23 17.75C15.49 17.46 15.93 17.46 16.19 17.75L20 21.89L23.81 17.75C24.07 17.46 24.51 17.46 24.77 17.75C25.03 18.04 25.03 18.51 24.77 18.8L20.48 23.47C20.22 23.76 19.78 23.76 19.52 23.47L15.23 18.8C14.97 18.51 14.97 18.04 15.23 17.75Z" fill="white"/>
-                <path d="M20 29.25C20.41 29.25 20.75 28.91 20.75 28.5V24.5C20.75 24.09 20.41 23.75 20 23.75C19.59 23.75 19.25 24.09 19.25 24.5V28.5C19.25 28.91 19.59 29.25 20 29.25Z" fill="white"/>
-              </svg>
-              <span>Buy EAGLE on Uniswap</span>
-              <svg className="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
-            </a>
+            <div className="h-px bg-gray-200 dark:bg-gray-800" />
             
-            {/* Alternative */}
-            <p className="text-xs text-gray-500 dark:text-gray-500">
-              Or switch to the <button onClick={() => setActiveTab('redeem')} className="text-blue-600 dark:text-blue-400 hover:underline font-medium">Redeem</button> tab to convert EAGLE → WLFI
-            </p>
+            <div className="space-y-4">
+              <p className="text-center text-sm text-gray-600 dark:text-gray-400">
+                Get EAGLE on Uniswap
+              </p>
+              
+              <a 
+                href="https://app.uniswap.org/swap?inputCurrency=ETH&outputCurrency=0x474eD38C256A7FA0f3B8c48496CE1102ab0eA91E&chain=ethereum"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 w-full py-3.5 bg-[#FF007A] hover:bg-[#E5006D] text-white font-medium rounded-xl transition-colors"
+              >
+                <span>Swap ETH for EAGLE</span>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+              </a>
+              
+              <button 
+                onClick={() => setActiveTab('redeem')}
+                className="w-full py-3 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+              >
+                Or redeem EAGLE for WLFI →
+              </button>
+            </div>
           </div>
         ) : (
-          <>
+          <div className="space-y-4">
             {/* Balance Display with Fee */}
-            <div className="flex justify-between items-center text-sm sm:text-sm">
-              <div className="flex items-center gap-2 min-w-0 flex-1">
-                <span className="text-gray-600 dark:text-gray-400 flex-shrink-0">Balance:</span>
-                <span className="font-mono text-gray-900 dark:text-white truncate">
+            <div className="flex justify-between items-center text-sm">
+              <div className="flex items-center gap-2">
+                <span className="text-gray-500 dark:text-gray-400">Balance:</span>
+                <span className="font-mono text-gray-900 dark:text-white">
                   {activeTab === 'deposit' 
                     ? `${Number(formatEther(balances.wlfi)).toFixed(2)} WLFI`
                     : `${Number(formatEther(balances.eagle)).toFixed(2)} EAGLE`
                   }
                 </span>
               </div>
-              <div className={`text-xs sm:text-xs font-medium px-3 py-1.5 sm:px-2 sm:py-0.5 rounded-lg sm:rounded flex-shrink-0 ${
-                activeTab === 'deposit'
-                  ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
-                  : 'text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20'
-              }`}>
-                -{activeTab === 'deposit' ? '1' : '2'}%
-              </div>
+              <span className="text-xs text-gray-400">
+                {activeTab === 'deposit' ? '-1%' : '-2%'} fee
+              </span>
             </div>
             
             {/* Input */}
@@ -253,11 +245,11 @@ export function ComposerPanel() {
                 placeholder="0.0"
                 value={inputAmount}
                 onChange={setInputAmount}
-                className="pr-20 sm:pr-16 text-2xl sm:text-xl font-semibold text-center amount-input"
+                className="pr-16 text-xl font-medium text-center"
               />
               <button
                 onClick={handleMaxClick}
-                className="absolute right-3 top-1/2 -translate-y-1/2 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center text-sm sm:text-xs font-bold text-gray-600 dark:text-gray-400 hover:text-[#A27D46] dark:hover:text-[#D4B474] active:scale-95 transition-all uppercase tracking-wider bg-gray-100 dark:bg-gray-800 sm:bg-transparent rounded-lg sm:rounded-none px-3 sm:px-0"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 uppercase tracking-wide transition-colors"
               >
                 Max
               </button>
@@ -265,137 +257,55 @@ export function ComposerPanel() {
             
             {/* Arrow */}
             <div className="flex justify-center">
-              <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
                 </svg>
               </div>
             </div>
             
-            {/* Preview - Show Uniswap CTA if max supply reached during deposit */}
-            {activeTab === 'deposit' && (isMaxSupplyReached || error === 'MAX_SUPPLY_REACHED') ? (
-              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#1a1a2e] to-[#16213e] p-6">
-                {/* Subtle glow effect */}
-                <div className="absolute top-0 right-0 w-32 h-32 bg-[#FF007A]/10 rounded-full blur-3xl" />
-                <div className="absolute bottom-0 left-0 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl" />
-                
-                <div className="relative space-y-5">
-                  {/* Status */}
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-medium tracking-widest uppercase text-gray-400">Supply Status</span>
-                    <span className="flex items-center gap-1.5 text-xs text-emerald-400">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                      Fully Allocated
-                    </span>
-                  </div>
-                  
-                  {/* Amount */}
-                  <div className="text-center py-2">
-                    <p className="text-3xl font-light tracking-tight text-white">
-                      50<span className="text-gray-500">,</span>000<span className="text-gray-500">,</span>000
-                    </p>
-                    <p className="text-sm text-gray-500 mt-1">EAGLE tokens minted</p>
-                  </div>
-                  
-                  {/* Divider */}
-                  <div className="h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent" />
-                  
-                  {/* CTA */}
-                  <div className="space-y-3">
-                    <p className="text-center text-sm text-gray-400">
-                      Trade EAGLE on secondary markets
-                    </p>
-                    <a 
-                      href="https://app.uniswap.org/swap?inputCurrency=ETH&outputCurrency=0x474eD38C256A7FA0f3B8c48496CE1102ab0eA91E&chain=ethereum"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="group flex items-center justify-center gap-3 w-full px-5 py-3.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-white font-medium rounded-xl transition-all duration-300"
-                    >
-                      <svg className="w-5 h-5 text-[#FF007A]" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 0C5.374 0 0 5.374 0 12s5.374 12 12 12 12-5.374 12-12S18.626 0 12 0zm5.569 12.776l-.428.849a.503.503 0 01-.673.212l-4.468-2.33-4.468 2.33a.503.503 0 01-.673-.212l-.428-.849a.503.503 0 01.212-.673l4.85-2.523V5.062a.503.503 0 01.503-.503h.985a.503.503 0 01.503.503v4.518l4.85 2.523a.503.503 0 01.235.673z"/>
-                      </svg>
-                      <span>Buy on Uniswap</span>
-                      <svg className="w-4 h-4 opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                      </svg>
-                    </a>
-                  </div>
-                </div>
-              </div>
-            ) : preview && (
-              <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4 sm:p-4">
+            {/* Preview */}
+            {preview && (
+              <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">You'll receive:</span>
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-lg sm:text-base text-gray-900 dark:text-white tabular-nums">
-                      {Number(formatEther(preview.outputAmount)).toLocaleString('en-US', { maximumFractionDigits: 2 })}{' '}
-                      {activeTab === 'deposit' ? 'EAGLE' : 'WLFI'}
-                    </span>
-                    <span className={`text-xs font-medium px-2 py-0.5 rounded ${
-                      activeTab === 'deposit'
-                        ? 'text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30'
-                        : 'text-orange-600 dark:text-orange-400 bg-orange-100 dark:bg-orange-900/30'
-                    }`}>
-                      -{activeTab === 'deposit' ? '1' : '2'}%
-                    </span>
-                  </div>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">You receive</span>
+                  <span className="font-medium text-gray-900 dark:text-white">
+                    {Number(formatEther(preview.outputAmount)).toLocaleString('en-US', { maximumFractionDigits: 2 })}{' '}
+                    {activeTab === 'deposit' ? 'EAGLE' : 'WLFI'}
+                  </span>
                 </div>
               </div>
             )}
             
             {/* Status */}
             {txStatus && (
-              <div className={`p-4 sm:p-3 rounded-xl sm:rounded-lg text-base sm:text-sm text-center leading-relaxed ${
+              <div className={`p-3 rounded-xl text-sm text-center ${
                 txStatus.includes('✅') 
-                  ? 'bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300'
+                  ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'
                   : txStatus.includes('❌')
-                  ? 'bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300'
-                  : 'bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300'
+                  ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'
+                  : 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
               }`}>
                 {txStatus}
               </div>
             )}
             
-            {/* Error */}
-            {error && error !== 'MAX_SUPPLY_REACHED' && (
-              <div className="p-4 sm:p-3 rounded-xl sm:rounded-lg bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 text-base sm:text-sm leading-relaxed">
-                {error}
-              </div>
-            )}
-            
-            {/* Action Button - Hide for deposit if max supply reached */}
-            {!(activeTab === 'deposit' && (isMaxSupplyReached || error === 'MAX_SUPPLY_REACHED')) && (
-              <NeoButton
-                onClick={needsApproval ? handleApprove : (activeTab === 'deposit' ? handleDeposit : handleRedeem)}
-                disabled={loading || !inputAmount || parseFloat(inputAmount) <= 0}
-                className="w-full"
-              >
-                {loading 
-                  ? 'Processing...'
-                  : needsApproval
-                    ? `Approve ${activeTab === 'deposit' ? 'WLFI' : 'EAGLE'}`
-                    : activeTab === 'deposit'
-                      ? 'Deposit WLFI'
-                      : 'Redeem EAGLE'
-                }
-              </NeoButton>
-            )}
-            
-            {/* Info */}
-            <div className="text-sm sm:text-xs text-gray-500 dark:text-gray-400 space-y-2 sm:space-y-1 leading-relaxed">
-              {activeTab === 'deposit' ? (
-                <>
-                  <p>• Converts WLFI → vEAGLE → EAGLE in one transaction</p>
-                  <p>• EAGLE can be used for cross-chain operations</p>
-                </>
-              ) : (
-                <>
-                  <p>• Converts EAGLE → vEAGLE → WLFI in one transaction</p>
-                  <p>• Receive WLFI directly in your wallet</p>
-                </>
-              )}
-            </div>
-          </>
+            {/* Action Button */}
+            <NeoButton
+              onClick={needsApproval ? handleApprove : (activeTab === 'deposit' ? handleDeposit : handleRedeem)}
+              disabled={loading || !inputAmount || parseFloat(inputAmount) <= 0}
+              className="w-full"
+            >
+              {loading 
+                ? 'Processing...'
+                : needsApproval
+                  ? `Approve ${activeTab === 'deposit' ? 'WLFI' : 'EAGLE'}`
+                  : activeTab === 'deposit'
+                    ? 'Deposit'
+                    : 'Redeem'
+              }
+            </NeoButton>
+          </div>
         )}
       </div>
     </NeoCard>
