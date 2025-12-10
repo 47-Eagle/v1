@@ -272,8 +272,36 @@ export function ComposerPanel() {
               </div>
             </div>
             
-            {/* Preview */}
-            {preview && (
+            {/* Preview - Show Uniswap CTA if max supply reached during deposit */}
+            {activeTab === 'deposit' && (isMaxSupplyReached || error === 'MAX_SUPPLY_REACHED') ? (
+              <div className="rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-900/50 border border-gray-200/50 dark:border-gray-700/30 p-5 space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                    <span className="text-lg">🦅</span>
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-900 dark:text-white">50,000,000 EAGLE Minted</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Maximum supply reached</p>
+                  </div>
+                </div>
+                
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Acquire EAGLE by swapping ETH on Uniswap:
+                </p>
+                
+                <a 
+                  href="https://app.uniswap.org/swap?inputCurrency=ETH&outputCurrency=0x474eD38C256A7FA0f3B8c48496CE1102ab0eA91E&chain=ethereum"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-gradient-to-r from-[#FF007A] to-[#FF5CAA] hover:from-[#E5006D] hover:to-[#FF4499] text-white font-medium rounded-xl transition-all duration-200 hover:shadow-lg hover:shadow-pink-500/20"
+                >
+                  <span>Swap ETH → EAGLE</span>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </a>
+              </div>
+            ) : preview && (
               <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4 sm:p-4">
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600 dark:text-gray-400">You'll receive:</span>
@@ -314,21 +342,23 @@ export function ComposerPanel() {
               </div>
             )}
             
-            {/* Action Button */}
-            <NeoButton
-              onClick={needsApproval ? handleApprove : (activeTab === 'deposit' ? handleDeposit : handleRedeem)}
-              disabled={loading || !inputAmount || parseFloat(inputAmount) <= 0}
-              className="w-full"
-            >
-              {loading 
-                ? 'Processing...'
-                : needsApproval
-                  ? `Approve ${activeTab === 'deposit' ? 'WLFI' : 'EAGLE'}`
-                  : activeTab === 'deposit'
-                    ? 'Deposit WLFI'
-                    : 'Redeem EAGLE'
-              }
-            </NeoButton>
+            {/* Action Button - Hide for deposit if max supply reached */}
+            {!(activeTab === 'deposit' && (isMaxSupplyReached || error === 'MAX_SUPPLY_REACHED')) && (
+              <NeoButton
+                onClick={needsApproval ? handleApprove : (activeTab === 'deposit' ? handleDeposit : handleRedeem)}
+                disabled={loading || !inputAmount || parseFloat(inputAmount) <= 0}
+                className="w-full"
+              >
+                {loading 
+                  ? 'Processing...'
+                  : needsApproval
+                    ? `Approve ${activeTab === 'deposit' ? 'WLFI' : 'EAGLE'}`
+                    : activeTab === 'deposit'
+                      ? 'Deposit WLFI'
+                      : 'Redeem EAGLE'
+                }
+              </NeoButton>
+            )}
             
             {/* Info */}
             <div className="text-sm sm:text-xs text-gray-500 dark:text-gray-400 space-y-2 sm:space-y-1 leading-relaxed">
