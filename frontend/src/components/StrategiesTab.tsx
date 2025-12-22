@@ -48,43 +48,45 @@ export function StrategiesTab({ vaultData, revertData, onToast }: StrategiesTabP
     return addr.slice(0, 6) + '...' + addr.slice(-4);
   };
 
-  // Strategy configs - V2 Strategies
+  // Strategy configs - V3 Strategies with zRouter + Auto Fee Tier
   const strategies = {
     1: {
-      name: 'CHARM_V2.USD1_WLFI',
-      fullName: 'Charm USD1/WLFI Alpha Vault V2',
-      version: 'V2',
+      name: 'CHARM_V3.USD1_WLFI',
+      fullName: 'Charm USD1/WLFI Alpha Vault V3',
+      version: 'V3',
       token0: 'USD1',
       token1: 'WLFI',
       token0Amount: usd1InPool,
       token1Amount: wlfiInUSD1Pool,
       totalValue: usd1StrategyValue,
       allocation: usd1Allocation,
-      feeTier: '1.0%',
-      contract: CONTRACTS.STRATEGY_USD1, // V2: 0xa7F6F4b1134c0aD4646AB18240a19f01e08Ba90E
+      feeTier: 'Auto',
+      contract: CONTRACTS.STRATEGY_USD1, // V3: 0xB3dFc68B0ac85e272DDB139Ec6a7d30696d9F82d
       charmVault: CONTRACTS.CHARM_VAULT_USD1,
       charmLink: 'https://alpha.charm.fi/ethereum/vault/0x22828Dbf15f5FBa2394Ba7Cf8fA9A96BdB444B71',
       poolPrice: wlfiPrice > 0 ? (1 / wlfiPrice).toFixed(4) : '0',
       tickLower: -887200,
       tickUpper: 887200,
+      features: ['zRouter', 'Auto Fee Tier', 'Bidirectional Swaps'],
     },
     2: {
-      name: 'CHARM_V2.WETH_WLFI',
-      fullName: 'Charm WETH/WLFI Alpha Vault V2',
-      version: 'V2',
+      name: 'CHARM_V3.WETH_WLFI',
+      fullName: 'Charm WETH/WLFI Alpha Vault V3',
+      version: 'V3',
       token0: 'WETH',
       token1: 'WLFI',
       token0Amount: wethInPool,
       token1Amount: wlfiInWethPool,
       totalValue: wethStrategyValue,
       allocation: wethAllocation,
-      feeTier: '1.0%',
-      contract: CONTRACTS.STRATEGY_WETH, // V2: 0xCe1884B2dC7A2980d401C9C568CD59B2Eaa07338
+      feeTier: 'Auto',
+      contract: CONTRACTS.STRATEGY_WETH, // V3: 0x823E00e42daF3476311B83556Cf8fe12DAB79651
       charmVault: CONTRACTS.CHARM_VAULT_WETH,
       charmLink: 'https://alpha.charm.fi/ethereum/vault/0x3314e248F3F752Cd16939773D83bEb3a362F0AEF',
       poolPrice: (wethPrice / wlfiPrice).toFixed(2),
       tickLower: -887200,
       tickUpper: 887200,
+      features: ['zRouter', 'Auto Fee Tier', 'Bidirectional Swaps'],
     }
   };
 
@@ -192,8 +194,11 @@ export function StrategiesTab({ vaultData, revertData, onToast }: StrategiesTabP
                   <span className="text-[10px] tracking-[0.4em] text-[#F2D57C] font-black uppercase">
                     Strategic Liquidity Vault
                   </span>
-                  <span className="text-[9px] px-1.5 py-0.5 bg-[#F2D57C]/20 text-[#F2D57C] font-bold rounded border border-[#F2D57C]/30">
-                    V2
+                  <span className="text-[9px] px-1.5 py-0.5 bg-[#00ff66]/20 text-[#00ff66] font-bold rounded border border-[#00ff66]/30">
+                    V3
+                  </span>
+                  <span className="text-[9px] px-1.5 py-0.5 bg-[#3b82f6]/20 text-[#3b82f6] font-bold rounded border border-[#3b82f6]/30">
+                    zRouter
                   </span>
                 </div>
                 <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight mt-1">
@@ -336,6 +341,36 @@ export function StrategiesTab({ vaultData, revertData, onToast }: StrategiesTabP
                     <span className="text-[11px] text-[#71717a] uppercase">Allocation</span>
                     <span className="font-mono text-[#F2D57C] text-[13px]">{formatNumber(currentStrategy.allocation, 1)}%</span>
                   </div>
+                  <div className="flex justify-between items-center pb-2 border-b border-[#222]">
+                    <span className="text-[11px] text-[#71717a] uppercase">Fee Tier</span>
+                    <span className="font-mono text-[#00ff66] text-[13px]">Auto-Discovery</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* V3 Features */}
+              <div className="bg-[#141517] border border-black p-5 relative"
+                style={{ boxShadow: 'inset 2px 2px 5px rgba(0,0,0,0.8), inset -1px -1px 2px rgba(255,255,255,0.05)' }}
+              >
+                <span className="absolute -top-2.5 left-5 bg-[#1a1b1e] px-2 text-[9px] font-bold text-[#00ff66] uppercase tracking-wider">
+                  V3 Features
+                </span>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 bg-[#00ff66] rounded-full" />
+                    <span className="text-[11px] text-white">zRouter Gas Optimization</span>
+                    <span className="text-[9px] text-[#00ff66] ml-auto">8-18% savings</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 bg-[#00ff66] rounded-full" />
+                    <span className="text-[11px] text-white">Auto Fee Tier Discovery</span>
+                    <span className="text-[9px] text-[#3b82f6] ml-auto">Best liquidity</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 bg-[#00ff66] rounded-full" />
+                    <span className="text-[11px] text-white">Bidirectional Swaps</span>
+                    <span className="text-[9px] text-[#F2D57C] ml-auto">Any direction</span>
+                  </div>
                 </div>
               </div>
 
@@ -378,7 +413,8 @@ export function StrategiesTab({ vaultData, revertData, onToast }: StrategiesTabP
               <div className="font-mono text-[9px] text-[#444] leading-relaxed">
                 SYSTEM_MODE: ATOMIC_SINGLE_ASSET<br />
                 REENTRANCY_GUARD: ARMED<br />
-                OWNER_AUTH: VERIFIED<br />
+                ZROUTER: <span className="text-[#00ff66]">ENABLED</span><br />
+                AUTO_FEE_TIER: <span className="text-[#00ff66]">ACTIVE</span><br />
                 CHARM_VAULT: {truncateAddress(currentStrategy.charmVault)}
               </div>
             </div>
