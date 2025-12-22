@@ -2754,11 +2754,9 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
       // Since getTotalAmounts() reverts due to stale oracles, we'll query the Charm vault directly
       let strategyWETH = '0';
       let strategyWLFIinPool = '0';
-      console.log('[VaultView] ===== FETCHING WETH STRATEGY DATA =====');
+      console.log('[VaultView] ===== FETCHING WETH STRATEGY DATA (V3) =====');
       console.log('[VaultView] WETH Strategy Address:', CONTRACTS.STRATEGY_WETH);
       console.log('[VaultView] WETH Charm Vault Address:', CONTRACTS.CHARM_VAULT_WETH);
-      console.log('[VaultView] Expected WETH Strategy: 0xCe1884B2dC7A2980d401C9C568CD59B2Eaa07338');
-      console.log('[VaultView] Address match:', CONTRACTS.STRATEGY_WETH.toLowerCase() === '0xce1884b2dc7a2980d401c9c568cd59b2eaa07338');
       try {
         // Get strategy's share balance in Charm vault
         const charmVault = new Contract(
