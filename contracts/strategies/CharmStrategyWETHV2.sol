@@ -64,6 +64,19 @@ interface ISwapRouter {
     function exactInputSingle(ExactInputSingleParams calldata params) external payable returns (uint256 amountOut);
 }
 
+/// @notice zRouter - gas-efficient multi-AMM DEX aggregator
+/// @dev Deployed: 0x00000000008892d085e0611eb8C8BDc9FD856fD3
+interface IzRouter {
+    function swapV3(
+        address tokenIn,
+        address tokenOut,
+        uint24 fee,
+        uint256 amountIn,
+        uint256 amountOutMin,
+        uint256 deadline
+    ) external payable returns (uint256 amountOut);
+}
+
 interface IUniswapV3Pool {
     function slot0() external view returns (
         uint160 sqrtPriceX96,
@@ -99,6 +112,11 @@ contract CharmStrategyWETHV2 is IStrategy, ReentrancyGuard, Ownable {
 
     ICharmVault public charmVault;
     IUniswapV3Pool public swapPool;  // Pool for getting actual swap price
+
+    /// @notice zRouter for gas-efficient swaps (optional)
+    /// @dev Ethereum: 0x00000000008892d085e0611eb8C8BDc9FD856fD3
+    IzRouter public zRouter;
+    bool public useZRouter = false;  // Toggle to use zRouter vs Uniswap
 
     /// @notice Configurable parameters
     uint256 public maxSwapPercent = 30;          // Max % of WLFI to swap (30%)
@@ -186,6 +204,17 @@ contract CharmStrategyWETHV2 is IStrategy, ReentrancyGuard, Ownable {
 
     function setSwapPool(address _swapPool) external onlyOwner {
         swapPool = IUniswapV3Pool(_swapPool);
+    }
+
+    /// @notice Set zRouter address for gas-efficient swaps
+    /// @param _zRouter zRouter contract address (0x00000000008892d085e0611eb8C8BDc9FD856fD3 on Ethereum)
+    function setZRouter(address _zRouter) external onlyOwner {
+        zRouter = IzRouter(_zRouter);
+    }
+
+    /// @notice Toggle between zRouter (gas-efficient) and Uniswap Router
+    function setUseZRouter(bool _useZRouter) external onlyOwner {
+        useZRouter = _useZRouter;
     }
 
     /**
@@ -450,6 +479,7 @@ contract CharmStrategyWETHV2 is IStrategy, ReentrancyGuard, Ownable {
 
     /**
      * @notice Swap WLFI → WETH with slippage protection
+     * @dev Uses zRouter if enabled, otherwise Uniswap Router
      */
     function _swapWlfiToWethSafe(uint256 amountIn) internal returns (uint256 amountOut) {
         if (amountIn == 0) return 0;
@@ -458,6 +488,25 @@ contract CharmStrategyWETHV2 is IStrategy, ReentrancyGuard, Ownable {
         uint256 expectedOut = _getExpectedWethForWlfi(amountIn);
         uint256 minOut = (expectedOut * (10000 - swapSlippageBps)) / 10000;
 
+        // Try zRouter first if enabled (8-18% gas savings)
+        if (useZRouter && address(zRouter) != address(0)) {
+            try zRouter.swapV3(
+                address(WLFI),
+                address(WETH),
+                swapPoolFee,
+                amountIn,
+                minOut,
+                block.timestamp
+            ) returns (uint256 out) {
+                amountOut = out;
+                emit TokensSwapped(address(WLFI), address(WETH), amountIn, amountOut);
+                return amountOut;
+            } catch {
+                // Fall through to Uniswap Router
+            }
+        }
+
+        // Fallback to Uniswap Router
         try UNISWAP_ROUTER.exactInputSingle(
             ISwapRouter.ExactInputSingleParams({
                 tokenIn: address(WLFI),
@@ -473,26 +522,40 @@ contract CharmStrategyWETHV2 is IStrategy, ReentrancyGuard, Ownable {
             amountOut = out;
             emit TokensSwapped(address(WLFI), address(WETH), amountIn, amountOut);
         } catch {
-            // Swap failed - return 0, tokens stay in strategy
             amountOut = 0;
         }
     }
 
     /**
      * @notice Swap USD1 → WLFI with slippage protection
-     * @dev Used to convert USD1 received from vault into WLFI for this strategy
+     * @dev Uses zRouter if enabled, otherwise Uniswap Router
      */
     function _swapUsd1ToWlfiSafe(uint256 amountIn) internal returns (uint256 amountOut) {
         if (amountIn == 0) return 0;
 
-        // Use a reasonable estimate: ~14.75 WLFI per USD1 (from Charm ratio)
-        // We'll use 3000 fee tier for USD1/WLFI swaps
-        uint24 usd1WlfiFee = 3000; // 0.3% fee tier
-        
-        // Estimate: assume ~14 WLFI per USD1 based on current market
-        uint256 estimatedWlfi = amountIn * 14;
+        uint24 usd1WlfiFee = 3000; // 0.3% fee tier for USD1/WLFI
+        uint256 estimatedWlfi = amountIn * 14; // ~14 WLFI per USD1
         uint256 minOut = (estimatedWlfi * (10000 - swapSlippageBps)) / 10000;
 
+        // Try zRouter first if enabled (8-18% gas savings)
+        if (useZRouter && address(zRouter) != address(0)) {
+            try zRouter.swapV3(
+                address(USD1),
+                address(WLFI),
+                usd1WlfiFee,
+                amountIn,
+                minOut,
+                block.timestamp
+            ) returns (uint256 out) {
+                amountOut = out;
+                emit TokensSwapped(address(USD1), address(WLFI), amountIn, amountOut);
+                return amountOut;
+            } catch {
+                // Fall through to Uniswap Router
+            }
+        }
+
+        // Fallback to Uniswap Router
         try UNISWAP_ROUTER.exactInputSingle(
             ISwapRouter.ExactInputSingleParams({
                 tokenIn: address(USD1),
@@ -518,7 +581,7 @@ contract CharmStrategyWETHV2 is IStrategy, ReentrancyGuard, Ownable {
 
     /**
      * @notice Swap WETH → WLFI with slippage protection
-     * @dev Used when we have excess WETH and need more WLFI for ratio matching
+     * @dev Uses zRouter if enabled, otherwise Uniswap Router
      */
     function _swapWethToWlfiSafe(uint256 amountIn) internal returns (uint256 amountOut) {
         if (amountIn == 0) return 0;
@@ -528,6 +591,25 @@ contract CharmStrategyWETHV2 is IStrategy, ReentrancyGuard, Ownable {
         uint256 expectedOut = (amountIn * wlfiPerWeth) / 1e18;
         uint256 minOut = (expectedOut * (10000 - swapSlippageBps)) / 10000;
 
+        // Try zRouter first if enabled (8-18% gas savings)
+        if (useZRouter && address(zRouter) != address(0)) {
+            try zRouter.swapV3(
+                address(WETH),
+                address(WLFI),
+                swapPoolFee,
+                amountIn,
+                minOut,
+                block.timestamp
+            ) returns (uint256 out) {
+                amountOut = out;
+                emit TokensSwapped(address(WETH), address(WLFI), amountIn, amountOut);
+                return amountOut;
+            } catch {
+                // Fall through to Uniswap Router
+            }
+        }
+
+        // Fallback to Uniswap Router
         try UNISWAP_ROUTER.exactInputSingle(
             ISwapRouter.ExactInputSingleParams({
                 tokenIn: address(WETH),
