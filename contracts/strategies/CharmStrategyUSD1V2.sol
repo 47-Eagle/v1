@@ -78,6 +78,11 @@ interface IzRouter {
     ) external payable returns (uint256 amountOut);
 }
 
+/// @notice Uniswap V3 Factory for pool discovery
+interface IUniswapV3Factory {
+    function getPool(address tokenA, address tokenB, uint24 fee) external view returns (address pool);
+}
+
 interface IUniswapV3Pool {
     function slot0() external view returns (
         uint160 sqrtPriceX96,
@@ -90,6 +95,7 @@ interface IUniswapV3Pool {
     );
     function token0() external view returns (address);
     function token1() external view returns (address);
+    function liquidity() external view returns (uint128);
 }
 
 interface IStrategy {
@@ -118,11 +124,16 @@ contract CharmStrategyUSD1V2 is IStrategy, ReentrancyGuard, Ownable {
     IzRouter public zRouter;
     bool public useZRouter = false;  // Toggle to use zRouter vs Uniswap
 
+    /// @notice Uniswap V3 Factory for auto fee tier discovery
+    /// @dev Ethereum: 0x1F98431c8aD98523631AE4a59f267346ea31F984
+    IUniswapV3Factory public uniFactory;
+    bool public autoFeeTier = false;  // Auto-discover best fee tier
+
     /// @notice Configurable parameters
     uint256 public maxSwapPercent = 30;          // Max 30% of tokens swapped
     uint256 public swapSlippageBps = 300;        // 3% max swap slippage
     uint256 public depositSlippageBps = 500;     // 5% deposit slippage
-    uint24 public swapPoolFee = 3000;            // 0.3% fee tier
+    uint24 public swapPoolFee = 3000;            // 0.3% fee tier (default)
 
     bool public active = true;
 
@@ -212,6 +223,43 @@ contract CharmStrategyUSD1V2 is IStrategy, ReentrancyGuard, Ownable {
     /// @notice Toggle between zRouter (gas-efficient) and Uniswap Router
     function setUseZRouter(bool _useZRouter) external onlyOwner {
         useZRouter = _useZRouter;
+    }
+
+    /// @notice Set Uniswap V3 Factory for auto fee tier discovery
+    /// @param _factory Factory address (0x1F98431c8aD98523631AE4a59f267346ea31F984 on Ethereum)
+    function setUniFactory(address _factory) external onlyOwner {
+        uniFactory = IUniswapV3Factory(_factory);
+    }
+
+    /// @notice Toggle automatic fee tier discovery
+    function setAutoFeeTier(bool _autoFeeTier) external onlyOwner {
+        autoFeeTier = _autoFeeTier;
+    }
+
+    /// @notice Find best fee tier for a token pair (checks liquidity)
+    /// @dev Checks 0.01%, 0.05%, 0.3%, 1% fee tiers
+    function _findBestFeeTier(address tokenIn, address tokenOut) internal view returns (uint24 bestFee) {
+        if (address(uniFactory) == address(0) || !autoFeeTier) {
+            return swapPoolFee; // Return default
+        }
+
+        uint24[4] memory fees = [uint24(100), uint24(500), uint24(3000), uint24(10000)];
+        uint128 bestLiquidity = 0;
+        bestFee = swapPoolFee; // Default fallback
+
+        for (uint256 i = 0; i < fees.length; i++) {
+            address pool = uniFactory.getPool(tokenIn, tokenOut, fees[i]);
+            if (pool != address(0)) {
+                try IUniswapV3Pool(pool).liquidity() returns (uint128 liq) {
+                    if (liq > bestLiquidity) {
+                        bestLiquidity = liq;
+                        bestFee = fees[i];
+                    }
+                } catch {
+                    continue;
+                }
+            }
+        }
     }
 
     /**
@@ -407,10 +455,13 @@ contract CharmStrategyUSD1V2 is IStrategy, ReentrancyGuard, Ownable {
 
     /**
      * @notice Swap WLFI → USD1 with slippage protection
-     * @dev Uses zRouter if enabled, otherwise Uniswap Router
+     * @dev Uses zRouter if enabled, auto fee tier if enabled, otherwise defaults
      */
     function _swapWlfiToUsd1Safe(uint256 amountIn) internal returns (uint256 amountOut) {
         if (amountIn == 0) return 0;
+
+        // Auto-discover best fee tier if enabled
+        uint24 fee = _findBestFeeTier(address(WLFI), address(USD1));
 
         // Calculate expected based on pool price
         uint256 wlfiPerUsd1 = _getPoolPrice();
@@ -422,7 +473,7 @@ contract CharmStrategyUSD1V2 is IStrategy, ReentrancyGuard, Ownable {
             try zRouter.swapV3(
                 address(WLFI),
                 address(USD1),
-                swapPoolFee,
+                fee,
                 amountIn,
                 minOut,
                 block.timestamp
@@ -440,7 +491,7 @@ contract CharmStrategyUSD1V2 is IStrategy, ReentrancyGuard, Ownable {
             ISwapRouter.ExactInputSingleParams({
                 tokenIn: address(WLFI),
                 tokenOut: address(USD1),
-                fee: swapPoolFee,
+                fee: fee,
                 recipient: address(this),
                 deadline: block.timestamp,
                 amountIn: amountIn,
@@ -457,10 +508,13 @@ contract CharmStrategyUSD1V2 is IStrategy, ReentrancyGuard, Ownable {
 
     /**
      * @notice Swap USD1 → WLFI with slippage protection
-     * @dev Uses zRouter if enabled, otherwise Uniswap Router
+     * @dev Uses zRouter if enabled, auto fee tier if enabled, otherwise defaults
      */
     function _swapUsd1ToWlfiSafe(uint256 amountIn) internal returns (uint256 amountOut) {
         if (amountIn == 0) return 0;
+
+        // Auto-discover best fee tier if enabled
+        uint24 fee = _findBestFeeTier(address(USD1), address(WLFI));
 
         // Calculate expected based on pool price (wlfiPerUsd1)
         uint256 wlfiPerUsd1 = _getPoolPrice();
@@ -472,7 +526,7 @@ contract CharmStrategyUSD1V2 is IStrategy, ReentrancyGuard, Ownable {
             try zRouter.swapV3(
                 address(USD1),
                 address(WLFI),
-                swapPoolFee,
+                fee,
                 amountIn,
                 minOut,
                 block.timestamp
@@ -490,7 +544,7 @@ contract CharmStrategyUSD1V2 is IStrategy, ReentrancyGuard, Ownable {
             ISwapRouter.ExactInputSingleParams({
                 tokenIn: address(USD1),
                 tokenOut: address(WLFI),
-                fee: swapPoolFee,
+                fee: fee,
                 recipient: address(this),
                 deadline: block.timestamp,
                 amountIn: amountIn,
