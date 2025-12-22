@@ -34,21 +34,21 @@ export interface Strategy {
 // Active Strategies for Eagle Vault
 export const ACTIVE_STRATEGIES: Strategy[] = [
   {
-    id: 'charm-weth-wlfi-v2',
-    name: 'Charm WETH/WLFI V2',
+    id: 'charm-weth-wlfi-v3',
+    name: 'Charm WETH/WLFI V3',
     protocol: 'Charm Finance',
-    description: 'Automated Uniswap V3 liquidity management for WETH/WLFI pair with improved slippage protection and graceful failure handling.',
-    contractAddress: '0xCe1884B2dC7A2980d401C9C568CD59B2Eaa07338',
+    description: 'Automated Uniswap V3 liquidity management for WETH/WLFI pair with zRouter gas optimization, auto fee tier discovery, and bidirectional swaps.',
+    contractAddress: '0x823E00e42daF3476311B83556Cf8fe12DAB79651',
     charmVaultAddress: '0x3314e248F3F752Cd16939773D83bEb3a362F0AEF',
     type: 'uniswap-v3',
     active: true,
     allocation: 50,
     color: '#3b82f6', // Blue
-    version: 'V2',
+    version: 'V3',
     links: {
       analytics: 'https://alpha.charm.fi/vault/0x3314e248F3F752Cd16939773D83bEb3a362F0AEF',
       docs: 'https://docs.charm.fi/',
-      etherscan: 'https://etherscan.io/address/0xCe1884B2dC7A2980d401C9C568CD59B2Eaa07338',
+      etherscan: 'https://etherscan.io/address/0x823E00e42daF3476311B83556Cf8fe12DAB79651',
     },
     details: {
       pool: 'WETH/WLFI',
@@ -58,25 +58,25 @@ export const ACTIVE_STRATEGIES: Strategy[] = [
     }
   },
   {
-    id: 'charm-usd1-wlfi-v2',
-    name: 'Charm USD1/WLFI V2',
+    id: 'charm-usd1-wlfi-v3',
+    name: 'Charm USD1/WLFI V3',
     protocol: 'Charm Finance',
-    description: 'Automated Uniswap V3 liquidity management for USD1/WLFI pair with improved slippage protection and graceful failure handling.',
-    contractAddress: '0xa7F6F4b1134c0aD4646AB18240a19f01e08Ba90E',
+    description: 'Automated Uniswap V3 liquidity management for USD1/WLFI pair with zRouter gas optimization, auto fee tier discovery, and bidirectional swaps.',
+    contractAddress: '0xB3dFc68B0ac85e272DDB139Ec6a7d30696d9F82d',
     charmVaultAddress: '0x22828Dbf15f5FBa2394Ba7Cf8fA9A96BdB444B71',
     type: 'uniswap-v3',
     active: true,
     allocation: 50,
     color: '#6366f1', // Indigo
-    version: 'V2',
+    version: 'V3',
     links: {
       analytics: 'https://alpha.charm.fi/vault/0x22828Dbf15f5FBa2394Ba7Cf8fA9A96BdB444B71',
       docs: 'https://docs.charm.fi/',
-      etherscan: 'https://etherscan.io/address/0xa7F6F4b1134c0aD4646AB18240a19f01e08Ba90E',
+      etherscan: 'https://etherscan.io/address/0xB3dFc68B0ac85e272DDB139Ec6a7d30696d9F82d',
     },
     details: {
       pool: 'USD1/WLFI',
-      feeTier: '0.30%',
+      feeTier: '1.00%',
       network: 'Ethereum',
       riskLevel: 'medium',
     }
@@ -125,8 +125,34 @@ export const ACTIVE_STRATEGIES: Strategy[] = [
   }
 ];
 
-// Legacy V1 strategies (deprecated, kept for reference)
+// Legacy strategies (deprecated, kept for reference)
 export const LEGACY_STRATEGIES: Strategy[] = [
+  {
+    id: 'charm-usd1-wlfi-v2',
+    name: 'Charm USD1/WLFI V2 (Deprecated)',
+    protocol: 'Charm Finance',
+    description: 'Legacy USD1/WLFI V2 strategy - migrated to V3.',
+    contractAddress: '0xa7F6F4b1134c0aD4646AB18240a19f01e08Ba90E',
+    charmVaultAddress: '0x22828Dbf15f5FBa2394Ba7Cf8fA9A96BdB444B71',
+    type: 'uniswap-v3',
+    active: false,
+    allocation: 0,
+    color: '#94a3b8', // Slate
+    version: 'V2 (Deprecated)',
+  },
+  {
+    id: 'charm-weth-wlfi-v2',
+    name: 'Charm WETH/WLFI V2 (Deprecated)',
+    protocol: 'Charm Finance',
+    description: 'Legacy WETH/WLFI V2 strategy - migrated to V3.',
+    contractAddress: '0xCe1884B2dC7A2980d401C9C568CD59B2Eaa07338',
+    charmVaultAddress: '0x3314e248F3F752Cd16939773D83bEb3a362F0AEF',
+    type: 'uniswap-v3',
+    active: false,
+    allocation: 0,
+    color: '#94a3b8', // Slate
+    version: 'V2 (Deprecated)',
+  },
   {
     id: 'charm-wlfi-usd1-v1',
     name: 'Charm Finance AlphaVault V1 (Deprecated)',
