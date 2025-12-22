@@ -2719,30 +2719,69 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
       vaultLiquidUSD1 = formatEther(vaultUsd1Bal);
       
       // Get strategy balances from BOTH strategies
-      // USD1 Strategy: getTotalAmounts() returns (wlfiAmount, usd1Amount)
+      // USD1 Strategy: Query Charm vault directly (getTotalAmounts may revert due to stale oracles)
       let strategyUSD1InPool = '0';
       let strategyWLFIinUSD1Pool = '0';
-      console.log('[VaultView] ===== FETCHING USD1 STRATEGY DATA =====');
+      console.log('[VaultView] ===== FETCHING USD1 STRATEGY DATA (V3) =====');
       console.log('[VaultView] USD1 Strategy Address:', CONTRACTS.STRATEGY_USD1);
+      console.log('[VaultView] USD1 Charm Vault Address:', CONTRACTS.CHARM_VAULT_USD1);
       try {
-        const usd1Strategy = new Contract(
-          CONTRACTS.STRATEGY_USD1,
-          ['function getTotalAmounts() external view returns (uint256 wlfiAmount, uint256 usd1Amount)'],
+        // Get strategy's share balance in Charm vault
+        const charmVault = new Contract(
+          CONTRACTS.CHARM_VAULT_USD1,
+          [
+            'function balanceOf(address) external view returns (uint256)',
+            'function totalSupply() external view returns (uint256)',
+            'function getTotalAmounts() external view returns (uint256 total0, uint256 total1)'
+          ],
           activeProvider
         );
-        const [usd1Wlfi, usd1Amount] = await usd1Strategy.getTotalAmounts();
         
-        // Store individual amounts for breakdown display
-        strategyWLFIinUSD1Pool = Number(formatEther(usd1Wlfi)).toFixed(2);
-        strategyUSD1InPool = Number(formatEther(usd1Amount)).toFixed(2);
+        const strategyShares = await charmVault.balanceOf(CONTRACTS.STRATEGY_USD1);
+        console.log('[VaultView] USD1 strategy Charm shares:', formatEther(strategyShares));
         
-        // For USD1 strategy display, show total USD value (USD1 + WLFI converted to USD)
-        // Use actual oracle price from vault
-        const wlfiPriceUsd = Number(formatEther(wlfiPrice));
-        const wlfiValueUsd = Number(formatEther(usd1Wlfi)) * wlfiPriceUsd;
-        const usd1ValueUsd = Number(formatEther(usd1Amount)); // USD1 worth ~$1.00
-        const usd1Total = wlfiValueUsd + usd1ValueUsd;
-        strategyUSD1 = usd1Total.toFixed(2);
+        if (strategyShares > 0n) {
+          const totalShares = await charmVault.totalSupply();
+          
+          // Try getTotalAmounts() first, fallback to direct token balance
+          let totalUsd1 = 0n;
+          let totalWlfi = 0n;
+          
+          try {
+            const [total0, total1] = await charmVault.getTotalAmounts();
+            totalUsd1 = total0;
+            totalWlfi = total1;
+            console.log('[VaultView] USD1 vault getTotalAmounts success');
+          } catch (e: any) {
+            console.warn('[VaultView] USD1 vault getTotalAmounts failed, using direct balances');
+            // Fallback: Query token balances directly from the Charm vault
+            const usd1Token = new Contract(CONTRACTS.USD1, ['function balanceOf(address) external view returns (uint256)'], activeProvider);
+            const wlfiToken = new Contract(CONTRACTS.WLFI, ['function balanceOf(address) external view returns (uint256)'], activeProvider);
+            const [usd1Bal, wlfiBal] = await Promise.all([
+              usd1Token.balanceOf(CONTRACTS.CHARM_VAULT_USD1),
+              wlfiToken.balanceOf(CONTRACTS.CHARM_VAULT_USD1)
+            ]);
+            totalUsd1 = usd1Bal;
+            totalWlfi = wlfiBal;
+          }
+          
+          if (totalShares > 0n && (totalUsd1 > 0n || totalWlfi > 0n)) {
+            // Calculate strategy's proportional share
+            const strategyUsd1Amount = (totalUsd1 * strategyShares) / totalShares;
+            const strategyWlfiAmount = (totalWlfi * strategyShares) / totalShares;
+            
+            strategyUSD1InPool = Number(formatEther(strategyUsd1Amount)).toFixed(2);
+            strategyWLFIinUSD1Pool = Number(formatEther(strategyWlfiAmount)).toFixed(2);
+            
+            console.log('[VaultView] USD1 Strategy - USD1:', strategyUSD1InPool, 'WLFI:', strategyWLFIinUSD1Pool);
+            
+            // Calculate total USD value
+            const wlfiPriceUsd = Number(formatEther(wlfiPrice));
+            const wlfiValueUsd = Number(formatEther(strategyWlfiAmount)) * wlfiPriceUsd;
+            const usd1ValueUsd = Number(formatEther(strategyUsd1Amount)); // USD1 ~= $1.00
+            strategyUSD1 = (wlfiValueUsd + usd1ValueUsd).toFixed(2);
+          }
+        }
       } catch (error) {
         console.error('Error fetching USD1 strategy balances:', error);
         strategyUSD1 = '0';
