@@ -216,6 +216,7 @@ contract CharmStrategyWETHV2 is IStrategy, ReentrancyGuard, Ownable {
     function initializeApprovals() external onlyOwner {
         WLFI.forceApprove(address(UNISWAP_ROUTER), type(uint256).max);
         WETH.forceApprove(address(UNISWAP_ROUTER), type(uint256).max);
+        USD1.forceApprove(address(UNISWAP_ROUTER), type(uint256).max); // For USD1 → WLFI swaps
         if (address(charmVault) != address(0)) {
             WLFI.forceApprove(address(charmVault), type(uint256).max);
             WETH.forceApprove(address(charmVault), type(uint256).max);
@@ -255,9 +256,11 @@ contract CharmStrategyWETHV2 is IStrategy, ReentrancyGuard, Ownable {
         uint256 totalWlfi = WLFI.balanceOf(address(this));
         uint256 totalUsd1 = USD1.balanceOf(address(this));
 
-        // Return USD1 - this strategy only handles WLFI/WETH
+        // Convert USD1 → WLFI instead of returning it
+        // This allows the strategy to work when vault only has USD1
         if (totalUsd1 > 0) {
-            USD1.safeTransfer(EAGLE_VAULT, totalUsd1);
+            uint256 moreWlfi = _swapUsd1ToWlfiSafe(totalUsd1);
+            totalWlfi = totalWlfi + moreWlfi;
         }
 
         uint256 totalWeth = WETH.balanceOf(address(this));
@@ -271,39 +274,54 @@ contract CharmStrategyWETHV2 is IStrategy, ReentrancyGuard, Ownable {
         uint256 finalWlfi;
 
         if (charmWeth > 0 && charmWlfi > 0) {
-            // Calculate how much WETH we need
-            uint256 wethNeeded = (totalWlfi * charmWeth) / charmWlfi;
+            // Calculate required WLFI for our WETH
+            uint256 wlfiNeeded = (totalWeth * charmWlfi) / charmWeth;
 
-            if (totalWeth >= wethNeeded) {
-                // Have enough WETH
-                finalWlfi = totalWlfi;
-                finalWeth = wethNeeded;
-            } else {
-                // Need to swap WLFI → WETH
-                uint256 wethShortfall = wethNeeded - totalWeth;
+            if (totalWlfi >= wlfiNeeded) {
+                // Have enough WLFI - use all WETH and matching WLFI
+                finalWeth = totalWeth;
+                finalWlfi = wlfiNeeded;
+            } else if (totalWlfi > 0) {
+                // Have some WLFI but not enough - calculate how much WETH we can use
+                uint256 wethUsable = (totalWlfi * charmWeth) / charmWlfi;
                 
-                // Get pool price for accurate swap calculation
-                uint256 wlfiPerWeth = _getPoolPrice();
-                uint256 wlfiToSwap = (wethShortfall * wlfiPerWeth) / 1e18;
-
-                // Apply max swap limit
-                uint256 maxSwap = (totalWlfi * maxSwapPercent) / 100;
-                if (wlfiToSwap > maxSwap) {
-                    wlfiToSwap = maxSwap;
-                }
-
-                if (wlfiToSwap > 0 && wlfiToSwap < totalWlfi) {
-                    // Execute swap WITH slippage protection
-                    uint256 moreWeth = _swapWlfiToWethSafe(wlfiToSwap);
-                    finalWeth = totalWeth + moreWeth;
-                    finalWlfi = totalWlfi - wlfiToSwap;
-                } else {
+                // Check if we should swap some WETH → WLFI to use more WETH
+                uint256 excessWeth = totalWeth - wethUsable;
+                uint256 maxSwapWeth = (totalWeth * maxSwapPercent) / 100;
+                uint256 wethToSwap = excessWeth > maxSwapWeth ? maxSwapWeth : excessWeth;
+                
+                if (wethToSwap > 0) {
+                    uint256 moreWlfi = _swapWethToWlfiSafe(wethToSwap);
+                    totalWlfi = totalWlfi + moreWlfi;
+                    totalWeth = totalWeth - wethToSwap;
+                    
+                    // Recalculate with new balances
+                    wlfiNeeded = (totalWeth * charmWlfi) / charmWeth;
                     finalWeth = totalWeth;
+                    finalWlfi = totalWlfi > wlfiNeeded ? wlfiNeeded : totalWlfi;
+                } else {
+                    finalWeth = wethUsable;
                     finalWlfi = totalWlfi;
+                }
+            } else {
+                // No WLFI at all - swap some WETH → WLFI
+                uint256 maxSwapWeth = (totalWeth * maxSwapPercent) / 100;
+                if (maxSwapWeth > 0) {
+                    uint256 moreWlfi = _swapWethToWlfiSafe(maxSwapWeth);
+                    totalWlfi = moreWlfi;
+                    totalWeth = totalWeth - maxSwapWeth;
+                    
+                    // Calculate how much WETH we can use with new WLFI
+                    uint256 wethUsable = (totalWlfi * charmWeth) / charmWlfi;
+                    finalWeth = wethUsable > totalWeth ? totalWeth : wethUsable;
+                    finalWlfi = totalWlfi;
+                } else {
+                    finalWeth = 0;
+                    finalWlfi = 0;
                 }
             }
         } else {
-            // Charm empty - use what we have
+            // Charm empty - deposit both as-is
             finalWeth = totalWeth;
             finalWlfi = totalWlfi;
         }
@@ -431,7 +449,7 @@ contract CharmStrategyWETHV2 is IStrategy, ReentrancyGuard, Ownable {
     }
 
     /**
-     * @notice Swap with slippage protection
+     * @notice Swap WLFI → WETH with slippage protection
      */
     function _swapWlfiToWethSafe(uint256 amountIn) internal returns (uint256 amountOut) {
         if (amountIn == 0) return 0;
@@ -456,6 +474,75 @@ contract CharmStrategyWETHV2 is IStrategy, ReentrancyGuard, Ownable {
             emit TokensSwapped(address(WLFI), address(WETH), amountIn, amountOut);
         } catch {
             // Swap failed - return 0, tokens stay in strategy
+            amountOut = 0;
+        }
+    }
+
+    /**
+     * @notice Swap USD1 → WLFI with slippage protection
+     * @dev Used to convert USD1 received from vault into WLFI for this strategy
+     */
+    function _swapUsd1ToWlfiSafe(uint256 amountIn) internal returns (uint256 amountOut) {
+        if (amountIn == 0) return 0;
+
+        // Use a reasonable estimate: ~14.75 WLFI per USD1 (from Charm ratio)
+        // We'll use 3000 fee tier for USD1/WLFI swaps
+        uint24 usd1WlfiFee = 3000; // 0.3% fee tier
+        
+        // Estimate: assume ~14 WLFI per USD1 based on current market
+        uint256 estimatedWlfi = amountIn * 14;
+        uint256 minOut = (estimatedWlfi * (10000 - swapSlippageBps)) / 10000;
+
+        try UNISWAP_ROUTER.exactInputSingle(
+            ISwapRouter.ExactInputSingleParams({
+                tokenIn: address(USD1),
+                tokenOut: address(WLFI),
+                fee: usd1WlfiFee,
+                recipient: address(this),
+                deadline: block.timestamp,
+                amountIn: amountIn,
+                amountOutMinimum: minOut,
+                sqrtPriceLimitX96: 0
+            })
+        ) returns (uint256 out) {
+            amountOut = out;
+            emit TokensSwapped(address(USD1), address(WLFI), amountIn, amountOut);
+        } catch {
+            // Swap failed - return USD1 to vault instead
+            if (amountIn > 0) {
+                USD1.safeTransfer(EAGLE_VAULT, amountIn);
+            }
+            amountOut = 0;
+        }
+    }
+
+    /**
+     * @notice Swap WETH → WLFI with slippage protection
+     * @dev Used when we have excess WETH and need more WLFI for ratio matching
+     */
+    function _swapWethToWlfiSafe(uint256 amountIn) internal returns (uint256 amountOut) {
+        if (amountIn == 0) return 0;
+
+        // Calculate expected based on pool price
+        uint256 wlfiPerWeth = _getPoolPrice();
+        uint256 expectedOut = (amountIn * wlfiPerWeth) / 1e18;
+        uint256 minOut = (expectedOut * (10000 - swapSlippageBps)) / 10000;
+
+        try UNISWAP_ROUTER.exactInputSingle(
+            ISwapRouter.ExactInputSingleParams({
+                tokenIn: address(WETH),
+                tokenOut: address(WLFI),
+                fee: swapPoolFee,
+                recipient: address(this),
+                deadline: block.timestamp,
+                amountIn: amountIn,
+                amountOutMinimum: minOut,
+                sqrtPriceLimitX96: 0
+            })
+        ) returns (uint256 out) {
+            amountOut = out;
+            emit TokensSwapped(address(WETH), address(WLFI), amountIn, amountOut);
+        } catch {
             amountOut = 0;
         }
     }

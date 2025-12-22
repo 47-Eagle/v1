@@ -255,38 +255,54 @@ contract CharmStrategyUSD1V2 is IStrategy, ReentrancyGuard, Ownable {
         uint256 finalWlfi;
 
         if (charmUsd1 > 0 && charmWlfi > 0) {
-            // Calculate required USD1 for our WLFI
-            uint256 usd1Needed = (totalWlfi * charmUsd1) / charmWlfi;
+            // Calculate required WLFI for our USD1
+            uint256 wlfiNeeded = (totalUsd1 * charmWlfi) / charmUsd1;
 
-            if (totalUsd1 >= usd1Needed) {
-                // Have enough USD1
-                finalWlfi = totalWlfi;
-                finalUsd1 = usd1Needed;
-            } else {
-                // Need to swap WLFI → USD1
-                uint256 usd1Shortfall = usd1Needed - totalUsd1;
+            if (totalWlfi >= wlfiNeeded) {
+                // Have enough WLFI - use all USD1 and matching WLFI
+                finalUsd1 = totalUsd1;
+                finalWlfi = wlfiNeeded;
+            } else if (totalWlfi > 0) {
+                // Have some WLFI but not enough - calculate how much USD1 we can use
+                uint256 usd1Usable = (totalWlfi * charmUsd1) / charmWlfi;
                 
-                // Use POOL price for swap calculation
-                uint256 wlfiPerUsd1 = _getPoolPrice();
-                uint256 wlfiToSwap = (usd1Shortfall * wlfiPerUsd1) / 1e18;
-
-                // Apply max swap limit
-                uint256 maxSwap = (totalWlfi * maxSwapPercent) / 100;
-                if (wlfiToSwap > maxSwap) {
-                    wlfiToSwap = maxSwap;
-                }
-
-                if (wlfiToSwap > 0 && wlfiToSwap < totalWlfi) {
-                    uint256 moreUsd1 = _swapWlfiToUsd1Safe(wlfiToSwap);
-                    finalUsd1 = totalUsd1 + moreUsd1;
-                    finalWlfi = totalWlfi - wlfiToSwap;
-                } else {
+                // Check if we should swap some USD1 → WLFI to use more USD1
+                uint256 excessUsd1 = totalUsd1 - usd1Usable;
+                uint256 maxSwapUsd1 = (totalUsd1 * maxSwapPercent) / 100;
+                uint256 usd1ToSwap = excessUsd1 > maxSwapUsd1 ? maxSwapUsd1 : excessUsd1;
+                
+                if (usd1ToSwap > 0) {
+                    uint256 moreWlfi = _swapUsd1ToWlfiSafe(usd1ToSwap);
+                    totalWlfi = totalWlfi + moreWlfi;
+                    totalUsd1 = totalUsd1 - usd1ToSwap;
+                    
+                    // Recalculate with new balances
+                    wlfiNeeded = (totalUsd1 * charmWlfi) / charmUsd1;
                     finalUsd1 = totalUsd1;
+                    finalWlfi = totalWlfi > wlfiNeeded ? wlfiNeeded : totalWlfi;
+                } else {
+                    finalUsd1 = usd1Usable;
                     finalWlfi = totalWlfi;
+                }
+            } else {
+                // No WLFI at all - swap some USD1 → WLFI
+                uint256 maxSwapUsd1 = (totalUsd1 * maxSwapPercent) / 100;
+                if (maxSwapUsd1 > 0) {
+                    uint256 moreWlfi = _swapUsd1ToWlfiSafe(maxSwapUsd1);
+                    totalWlfi = moreWlfi;
+                    totalUsd1 = totalUsd1 - maxSwapUsd1;
+                    
+                    // Calculate how much USD1 we can use with new WLFI
+                    uint256 usd1Usable = (totalWlfi * charmUsd1) / charmWlfi;
+                    finalUsd1 = usd1Usable > totalUsd1 ? totalUsd1 : usd1Usable;
+                    finalWlfi = totalWlfi;
+                } else {
+                    finalUsd1 = 0;
+                    finalWlfi = 0;
                 }
             }
         } else {
-            // Charm empty
+            // Charm empty - deposit both as-is
             finalUsd1 = totalUsd1;
             finalWlfi = totalWlfi;
         }
@@ -385,6 +401,37 @@ contract CharmStrategyUSD1V2 is IStrategy, ReentrancyGuard, Ownable {
         ) returns (uint256 out) {
             amountOut = out;
             emit TokensSwapped(address(WLFI), address(USD1), amountIn, amountOut);
+        } catch {
+            amountOut = 0;
+        }
+    }
+
+    /**
+     * @notice Swap USD1 → WLFI with slippage protection
+     * @dev Used when we have excess USD1 and need WLFI to match Charm ratio
+     */
+    function _swapUsd1ToWlfiSafe(uint256 amountIn) internal returns (uint256 amountOut) {
+        if (amountIn == 0) return 0;
+
+        // Calculate expected based on pool price (wlfiPerUsd1)
+        uint256 wlfiPerUsd1 = _getPoolPrice();
+        uint256 expectedOut = (amountIn * wlfiPerUsd1) / 1e18;
+        uint256 minOut = (expectedOut * (10000 - swapSlippageBps)) / 10000;
+
+        try UNISWAP_ROUTER.exactInputSingle(
+            ISwapRouter.ExactInputSingleParams({
+                tokenIn: address(USD1),
+                tokenOut: address(WLFI),
+                fee: swapPoolFee,
+                recipient: address(this),
+                deadline: block.timestamp,
+                amountIn: amountIn,
+                amountOutMinimum: minOut,
+                sqrtPriceLimitX96: 0
+            })
+        ) returns (uint256 out) {
+            amountOut = out;
+            emit TokensSwapped(address(USD1), address(WLFI), amountIn, amountOut);
         } catch {
             amountOut = 0;
         }
