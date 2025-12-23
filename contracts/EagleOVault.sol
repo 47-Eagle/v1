@@ -1077,6 +1077,32 @@ contract EagleOVault is ERC4626, Ownable, ReentrancyGuard {
     // EMERGENCY CONTROLS
     // =================================
     
+    /**
+     * @notice Emergency remove a broken strategy without calling withdraw
+     * @dev Use only when strategy.withdraw() reverts (e.g., broken contract)
+     *      LP tokens stuck in strategy must be rescued separately
+     */
+    function emergencyRemoveStrategy(address strategy) external onlyOwner {
+        if (!activeStrategies[strategy]) revert StrategyNotActive();
+        
+        // Remove without calling withdraw (strategy might be broken)
+        activeStrategies[strategy] = false;
+        totalStrategyWeight -= strategyWeights[strategy];
+        strategyWeights[strategy] = 0;
+        
+        // Remove from list
+        uint256 length = strategyList.length;
+        for (uint256 i = 0; i < length; i++) {
+            if (strategyList[i] == strategy) {
+                strategyList[i] = strategyList[length - 1];
+                strategyList.pop();
+                break;
+            }
+        }
+        
+        emit StrategyRemoved(strategy);
+    }
+    
     function shutdownStrategy() external onlyEmergencyAuthorized {
         isShutdown = true;
         emit StrategyShutdown();

@@ -868,6 +868,7 @@ contract CharmStrategyWETH is IStrategy, ReentrancyGuard, Ownable {
      * @notice Get total amounts managed by strategy (proportional to our shares)
      * @dev Returns (WLFI, USD1) to match IStrategy interface
      *      Converts WETH to USD1 equivalent using approximate price
+     *      Uses try/catch to handle stale oracle in Charm vault
      */
     function getTotalAmounts() public view returns (uint256 wlfiAmount, uint256 usd1Amount) {
         if (!active || address(charmVault) == address(0)) {
@@ -879,17 +880,34 @@ contract CharmStrategyWETH is IStrategy, ReentrancyGuard, Ownable {
             return (0, 0);
         }
         
-        (uint256 totalWeth, uint256 totalWlfi) = charmVault.getTotalAmounts();
         uint256 totalShares = charmVault.totalSupply();
-        
         if (totalShares == 0) return (0, 0);
+        
+        // Try to get Charm vault totals - may revert with StalePrice if oracle is stale
+        uint256 totalWeth;
+        uint256 totalWlfi;
+        try charmVault.getTotalAmounts() returns (uint256 _totalWeth, uint256 _totalWlfi) {
+            totalWeth = _totalWeth;
+            totalWlfi = _totalWlfi;
+        } catch {
+            // Charm oracle is stale - fall back to direct token balance queries
+            // This is less accurate but allows the vault to function
+            totalWeth = IERC20(WETH).balanceOf(address(charmVault));
+            totalWlfi = IERC20(WLFI).balanceOf(address(charmVault));
+        }
         
         // Calculate our proportional share
         wlfiAmount = (totalWlfi * ourShares) / totalShares;
         uint256 wethAmount = (totalWeth * ourShares) / totalShares;
         
         // Convert WETH to USD1 equivalent using Chainlink oracles if available
-        usd1Amount = _getUsd1Equivalent(wethAmount);
+        // Wrap in try/catch to handle stale oracle prices gracefully
+        try this._getUsd1Equivalent(wethAmount) returns (uint256 usd1Equiv) {
+            usd1Amount = usd1Equiv;
+        } catch {
+            // If oracles are stale, use a rough estimate (1 WETH ≈ 3000 USD1)
+            usd1Amount = wethAmount * 3000;
+        }
     }
     
     /**

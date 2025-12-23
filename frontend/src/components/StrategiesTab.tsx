@@ -61,7 +61,7 @@ export function StrategiesTab({ vaultData, revertData, onToast }: StrategiesTabP
       totalValue: usd1StrategyValue,
       allocation: usd1Allocation,
       feeTier: 'Auto',
-      contract: CONTRACTS.STRATEGY_USD1, // V3: 0xB3dFc68B0ac85e272DDB139Ec6a7d30696d9F82d
+      contract: CONTRACTS.STRATEGY_USD1, // V3: 0x6c638f745B7adC2873a52De0D732163b32144f0b
       charmVault: CONTRACTS.CHARM_VAULT_USD1,
       charmLink: 'https://alpha.charm.fi/ethereum/vault/0x22828Dbf15f5FBa2394Ba7Cf8fA9A96BdB444B71',
       poolPrice: wlfiPrice > 0 ? (1 / wlfiPrice).toFixed(4) : '0',
@@ -80,7 +80,7 @@ export function StrategiesTab({ vaultData, revertData, onToast }: StrategiesTabP
       totalValue: wethStrategyValue,
       allocation: wethAllocation,
       feeTier: 'Auto',
-      contract: CONTRACTS.STRATEGY_WETH, // V3: 0x823E00e42daF3476311B83556Cf8fe12DAB79651
+      contract: CONTRACTS.STRATEGY_WETH, // V3: 0xF71CB8b57667A39Bc1727A9AB8f3aF19d14DBC28
       charmVault: CONTRACTS.CHARM_VAULT_WETH,
       charmLink: 'https://alpha.charm.fi/ethereum/vault/0x3314e248F3F752Cd16939773D83bEb3a362F0AEF',
       poolPrice: (wethPrice / wlfiPrice).toFixed(2),

@@ -10,9 +10,9 @@ export const CONTRACTS = {
   WRAPPER: '0x47dAc5063c526dBc6f157093DD1D62d9DE8891c5',     // EagleVaultWrapper (Vanity) ✅
   
   // Strategy Contracts (V3 - Deployed Dec 2024 - with zRouter + Auto Fee Tier)
-  STRATEGY_USD1: import.meta.env.VITE_STRATEGY_USD1_ADDRESS || '0xB3dFc68B0ac85e272DDB139Ec6a7d30696d9F82d',  // CharmStrategyUSD1 V3 ✅
-  STRATEGY_WETH: import.meta.env.VITE_STRATEGY_WETH_ADDRESS || '0x823E00e42daF3476311B83556Cf8fe12DAB79651',  // CharmStrategyWETH V3 ✅
-  STRATEGY: import.meta.env.VITE_STRATEGY_ADDRESS || '0xB3dFc68B0ac85e272DDB139Ec6a7d30696d9F82d',    // Legacy - points to USD1 V3 strategy
+  STRATEGY_USD1: import.meta.env.VITE_STRATEGY_USD1_ADDRESS || '0x6c638f745B7adC2873a52De0D732163b32144f0b',  // CharmStrategyUSD1 V3 ✅
+  STRATEGY_WETH: import.meta.env.VITE_STRATEGY_WETH_ADDRESS || '0xF71CB8b57667A39Bc1727A9AB8f3aF19d14DBC28',  // CharmStrategyWETH V3 ✅
+  STRATEGY: import.meta.env.VITE_STRATEGY_ADDRESS || '0x6c638f745B7adC2873a52De0D732163b32144f0b',    // Legacy - points to USD1 V3 strategy
   
   // Legacy V1 Strategies (Deprecated - for reference only)
   STRATEGY_USD1_V1: '0x47B2659747d6A7E00c8251c3C3f7e92625a8cf6f',  // CharmStrategyUSD1 V1 (Deprecated)

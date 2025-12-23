@@ -25,8 +25,8 @@ export function ProductionStatusBadge() {
         '0x47b3ef629D9cB8DFcF8A6c61058338f4e99d7953', // EagleOVault
         '0x474eD38C256A7FA0f3B8c48496CE1102ab0eA91E', // EagleShareOFT
         '0x47dAc5063c526dBc6f157093DD1D62d9DE8891c5', // EagleVaultWrapper
-        '0xB3dFc68B0ac85e272DDB139Ec6a7d30696d9F82d', // CharmStrategyUSD1 V3
-        '0x823E00e42daF3476311B83556Cf8fe12DAB79651', // CharmStrategyWETH V3
+        '0x6c638f745B7adC2873a52De0D732163b32144f0b', // CharmStrategyUSD1 V3
+        '0xF71CB8b57667A39Bc1727A9AB8f3aF19d14DBC28', // CharmStrategyWETH V3
       ];
 
       let healthy = 0;
