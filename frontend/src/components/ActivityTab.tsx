@@ -8,6 +8,14 @@ type Tx = {
   value: string;
   timeStamp: string;
   input: string;
+  blockNumber?: string;
+  gas?: string;
+  gasPrice?: string;
+  gasUsed?: string;
+  isError?: string;
+  txreceipt_status?: string;
+  methodId?: string;
+  functionName?: string;
 };
 
 type TxGroup = {
@@ -32,6 +40,16 @@ const formatValueEth = (wei: string) => {
     return Number(bn) / 1e18;
   } catch {
     return 0;
+  }
+};
+
+const formatGwei = (wei?: string) => {
+  if (!wei) return '';
+  try {
+    const bn = BigInt(wei);
+    return (Number(bn) / 1e9).toFixed(2);
+  } catch {
+    return '';
   }
 };
 
@@ -61,6 +79,14 @@ export function ActivityTab() {
       value: t.value,
       timeStamp: t.timeStamp,
       input: t.input || '',
+      blockNumber: t.blockNumber,
+      gas: t.gas,
+      gasPrice: t.gasPrice,
+      gasUsed: t.gasUsed,
+      isError: t.isError,
+      txreceipt_status: t.txreceipt_status,
+      methodId: t.methodId,
+      functionName: t.functionName,
     }));
     return { ...g, txs };
   };
@@ -137,13 +163,28 @@ export function ActivityTab() {
                   <span className="text-[#9ca3af]">{formatDate(t.timeStamp)}</span>
                 </div>
                 <div className="flex justify-between mt-1 text-[#9ca3af] font-mono">
+                  <span>
+                    Fn: {t.functionName || t.methodId || (t.input ? t.input.slice(0, 10) : '0x')}
+                  </span>
+                  <span className={t.isError === '1' || t.txreceipt_status === '0' ? 'text-red-400' : 'text-[#00ff66]'}>
+                    {t.isError === '1' || t.txreceipt_status === '0' ? 'Failed' : 'Success'}
+                  </span>
+                </div>
+                <div className="flex justify-between mt-1 text-[#9ca3af] font-mono">
                   <span>From: {shorten(t.from)}</span>
                   <span>To: {shorten(t.to)}</span>
                 </div>
                 <div className="flex justify-between mt-1 text-[#9ca3af] font-mono">
                   <span>Value: {formatValueEth(t.value).toFixed(6)} ETH</span>
-                  <span>Method: {t.input ? t.input.slice(0, 10) : '0x'}</span>
+                  <span>
+                    Gas: {t.gasUsed || '-'} @ {formatGwei(t.gasPrice)} gwei
+                  </span>
                 </div>
+                {t.blockNumber && (
+                  <div className="flex justify-between mt-1 text-[#6b7280] font-mono">
+                    <span>Block: {t.blockNumber}</span>
+                  </div>
+                )}
               </div>
             ))}
             {g.txs.length === 0 && <div className="text-[#6b7280] text-xs">No recent tx</div>}
