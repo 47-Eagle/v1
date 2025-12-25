@@ -145,12 +145,6 @@ export function ActivityTab() {
       <div className="text-sm text-[#9ca3af]">
         Recent on-chain activity for vault, strategies, and Charm vaults. Powered by Etherscan.
       </div>
-      <div className="flex flex-wrap gap-3 text-[11px] text-[#F2D57C]">
-        <a href="/vault" className="underline hover:text-[#ffe7a3]">Vault</a>
-        <a href="/lp" className="underline hover:text-[#ffe7a3]">LP</a>
-        <a href="/bridge" className="underline hover:text-[#ffe7a3]">Bridge</a>
-        <a href="/app" className="underline hover:text-[#ffe7a3]">Dashboard</a>
-      </div>
 
       {loading && <div className="text-sm text-[#9ca3af]">Loading transactions…</div>}
       {error && <div className="text-sm text-red-400">Error: {error}</div>}
