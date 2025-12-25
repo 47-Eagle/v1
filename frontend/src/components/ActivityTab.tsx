@@ -122,7 +122,7 @@ export function ActivityTab() {
             </div>
             <div className="text-xs text-[#9ca3af]">{g.txs.length} tx</div>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
             {g.txs.map((t) => (
               <div key={t.hash} className="text-xs bg-[#0c0c0d] border border-[#222] p-3 rounded">
                 <div className="flex justify-between">
