@@ -9,6 +9,8 @@ import { ICONS } from './config/icons';
 import { SafeProvider } from './components/SafeProvider';
 import { useSafeApp } from './hooks/useSafeApp';
 import { useEthersProvider } from './hooks/useEthersProvider';
+import { applySEO, getDefaultOrgJsonLd } from './utils/seo';
+import { CONTRACTS } from './config/contracts';
 
 interface Toast {
   id: number;
@@ -19,6 +21,7 @@ interface Toast {
 
 function AppContent() {
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const location = useLocation();
   
   // Use wagmi's connection state
   const { address: wagmiAddress, isConnected } = useAccount();
@@ -60,6 +63,53 @@ function AppContent() {
       console.log('✅ Connected via wallet:', wagmiAddress);
     }
   }, [isConnected, wagmiAddress, isSafeApp, safeAddress, account, provider]);
+
+  // SEO: dynamic metadata per route
+  useEffect(() => {
+    const baseUrl = import.meta.env.VITE_APP_URL || window.location.origin;
+    const shareImage = 'https://tomato-abundant-urial-204.mypinata.cloud/ipfs/bafybeigzyatm2pgrkqbnskyvflnagtqli6rgh7wv7t2znaywkm2pixmkxy';
+    const path = location.pathname || '/';
+    const url = `${baseUrl}${path}`;
+
+    const orgJsonLd = getDefaultOrgJsonLd(baseUrl);
+
+    if (path.startsWith('/lp')) {
+      applySEO({
+        title: 'Eagle / ETH Liquidity Pool | Provide Liquidity & Earn Fees',
+        description: 'Provide liquidity to the Eagle/ETH pool and earn trading fees with dynamic strategy support.',
+        url,
+        canonical: url,
+        image: shareImage,
+        keywords: ['Eagle', 'LP', 'liquidity', 'ETH', 'DeFi'],
+        jsonLd: orgJsonLd,
+      });
+      return;
+    }
+
+    if (path.startsWith('/bridge')) {
+      applySEO({
+        title: 'Eagle Bridge | Omnichain Transfers with Yield on Ethereum',
+        description: 'Bridge assets across chains while keeping yield on Ethereum with Eagle’s omnichain vault.',
+        url,
+        canonical: url,
+        image: shareImage,
+        keywords: ['Eagle', 'Bridge', 'Omnichain', 'LayerZero', 'DeFi'],
+        jsonLd: orgJsonLd,
+      });
+      return;
+    }
+
+    // Default vault/app metadata (includes strategies + activity)
+    applySEO({
+      title: 'Eagle Omnichain Vault | WLFI Strategies (USD1 & WETH)',
+      description: `Live vault with strategies at ${CONTRACTS.STRATEGY_USD1} (USD1/WLFI) and ${CONTRACTS.STRATEGY_WETH} (WETH/WLFI). View allocations, activity, and analytics.`,
+      url,
+      canonical: url,
+      image: shareImage,
+      keywords: ['Eagle', 'Vault', 'WLFI', 'WETH', 'USD1', 'Charm', 'LayerZero', 'DeFi'],
+      jsonLd: orgJsonLd,
+    });
+  }, [location.pathname]);
 
   return (
     <motion.div 
