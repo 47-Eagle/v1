@@ -16,6 +16,7 @@ import { useCharmStats } from '../context/CharmStatsContext';
 import { useAnalyticsData } from '../hooks/useAnalyticsData';
 import { StrategiesTab } from './StrategiesTab';
 import { AnalyticsTab } from './AnalyticsTab';
+import { ActivityTab } from './ActivityTab';
 
 // Read-only provider for fetching data when wallet is not connected
 // Multiple RPC endpoints for fallback reliability (use public ones that support CORS)
@@ -1573,7 +1574,7 @@ interface Props {
 }
 
 export default function VaultView({ provider, account, onToast, onNavigateUp, onNavigateToWrapper, onNavigateToCrossChain, onNavigateToAnalytics }: Props) {
-  const [infoTab, setInfoTab] = useState<'vault' | 'strategies' | 'analytics'>('vault');
+  const [infoTab, setInfoTab] = useState<'vault' | 'strategies' | 'analytics' | 'activity'>('vault');
   const [wlfiAmount, setWlfiAmount] = useState('');
   const [usd1Amount, setUsd1Amount] = useState('');
   const [withdrawAmount, setWithdrawAmount] = useState('');
@@ -3828,6 +3829,7 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
                     { id: 'vault', label: 'Assets' },
                     { id: 'strategies', label: 'Strategies' },
                     { id: 'analytics', label: 'Analytics' },
+                    { id: 'activity', label: 'Activity' },
                   ]}
                   defaultTab={infoTab}
                   onChange={(tabId) => setInfoTab(tabId as 'vault' | 'strategies' | 'analytics')}
@@ -3990,6 +3992,10 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
 
                 {infoTab === 'analytics' && (
                   <AnalyticsTab vaultData={data} />
+                )}
+
+                {infoTab === 'activity' && (
+                  <ActivityTab />
                 )}
               </div>
             </NeoCard>
