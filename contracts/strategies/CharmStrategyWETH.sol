@@ -424,45 +424,19 @@ contract CharmStrategyWETH is IStrategy, ReentrancyGuard, Ownable {
             finalWlfi = totalWlfi;
         }
         
-        // BATCH DEPOSIT: Split into smaller deposits to avoid Charm liquidity issues
-        // Max 50 WLFI per batch to prevent "cross" errors at tick boundaries
-        uint256 maxBatchSize = 50e18; // 50 WLFI (reduced from 300)
+        // Single deposit (no batching)
+        // NOTE: Charm vault reverts if both desired amounts are zero.
+        if (finalWeth == 0 && finalWlfi == 0) return 0;
+
         uint256 amount0Used;
         uint256 amount1Used;
-        
-        if (finalWlfi <= maxBatchSize) {
-            // Small enough, single deposit
-            (shares, amount0Used, amount1Used) = charmVault.deposit(
-                finalWeth,
-                finalWlfi,
-                0,
-                0,
-                address(this)
-            );
-        } else {
-            // Split into multiple batches
-            uint256 batchCount = (finalWlfi + maxBatchSize - 1) / maxBatchSize; // Round up
-            uint256 wlfiPerBatch = finalWlfi / batchCount;
-            uint256 wethPerBatch = finalWeth / batchCount;
-            
-            for (uint256 i = 0; i < batchCount; i++) {
-                // Last batch gets remainder
-                uint256 batchWlfi = (i == batchCount - 1) ? WLFI.balanceOf(address(this)) : wlfiPerBatch;
-                uint256 batchWeth = (i == batchCount - 1) ? WETH.balanceOf(address(this)) : wethPerBatch;
-                
-                (uint256 batchShares, uint256 used0, uint256 used1) = charmVault.deposit(
-                    batchWeth,
-                    batchWlfi,
-                    0,
-                    0,
-                    address(this)
-                );
-                
-                shares += batchShares;
-                amount0Used += used0;
-                amount1Used += used1;
-            }
-        }
+        (shares, amount0Used, amount1Used) = charmVault.deposit(
+            finalWeth,
+            finalWlfi,
+            0,
+            0,
+            address(this)
+        );
         
         // Return any unused tokens to vault
         {
