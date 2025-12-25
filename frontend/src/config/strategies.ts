@@ -38,7 +38,7 @@ export const ACTIVE_STRATEGIES: Strategy[] = [
     name: 'Charm WETH/WLFI V3',
     protocol: 'Charm Finance',
     description: 'Automated Uniswap V3 liquidity management for WETH/WLFI pair with zRouter gas optimization, auto fee tier discovery, and bidirectional swaps.',
-    contractAddress: '0xEF2E2183990f4De32c898e275df8C05040C5530D',
+    contractAddress: '0x55E78798A926Bac07b4D90f7b1bEc769b72E76A6',
     charmVaultAddress: '0x3314e248F3F752Cd16939773D83bEb3a362F0AEF',
     type: 'uniswap-v3',
     active: true,
@@ -48,7 +48,7 @@ export const ACTIVE_STRATEGIES: Strategy[] = [
     links: {
       analytics: 'https://alpha.charm.fi/vault/0x3314e248F3F752Cd16939773D83bEb3a362F0AEF',
       docs: 'https://docs.charm.fi/',
-      etherscan: 'https://etherscan.io/address/0xEF2E2183990f4De32c898e275df8C05040C5530D',
+      etherscan: 'https://etherscan.io/address/0x55E78798A926Bac07b4D90f7b1bEc769b72E76A6',
     },
     details: {
       pool: 'WETH/WLFI',

@@ -11,7 +11,7 @@ export const CONTRACTS = {
   
   // Strategy Contracts (V3 - Deployed Dec 2024 - with zRouter + Auto Fee Tier)
   STRATEGY_USD1: import.meta.env.VITE_STRATEGY_USD1_ADDRESS || '0x6c638f745B7adC2873a52De0D732163b32144f0b',  // CharmStrategyUSD1 V3 ✅
-  STRATEGY_WETH: import.meta.env.VITE_STRATEGY_WETH_ADDRESS || '0xEF2E2183990f4De32c898e275df8C05040C5530D',  // CharmStrategyWETH V5 (USD1→WETH swap) ✅
+  STRATEGY_WETH: import.meta.env.VITE_STRATEGY_WETH_ADDRESS || '0x55E78798A926Bac07b4D90f7b1bEc769b72E76A6',  // CharmStrategyWETH (single-deposit) ✅
   STRATEGY: import.meta.env.VITE_STRATEGY_ADDRESS || '0x6c638f745B7adC2873a52De0D732163b32144f0b',    // Legacy - points to USD1 V3 strategy
   
   // Legacy V1 Strategies (Deprecated - for reference only)
