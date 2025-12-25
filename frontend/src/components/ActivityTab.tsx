@@ -48,11 +48,13 @@ export function ActivityTab() {
   const apiKey = import.meta.env.VITE_ETHERSCAN_API_KEY;
 
   const fetchGroup = async (g: TxGroup) => {
-    const url = `https://api.etherscan.io/api?module=account&action=txlist&address=${g.address}&startblock=0&endblock=99999999&page=1&offset=25&sort=desc&apikey=${apiKey}`;
+    // Use Etherscan V2 API (V1 is deprecated)
+    const url = `https://api.etherscan.io/v2/api?chainid=1&module=account&action=txlist&address=${g.address}&page=1&offset=25&sort=desc&apikey=${apiKey}`;
     const res = await fetch(url);
     const json = await res.json();
-    if (json.status !== '1') return { ...g, txs: [] };
-    const txs: Tx[] = json.result.map((t: any) => ({
+    const results = json?.result || json?.data || [];
+    if (!Array.isArray(results) || results.length === 0) return { ...g, txs: [] };
+    const txs: Tx[] = results.map((t: any) => ({
       hash: t.hash,
       from: t.from,
       to: t.to,
