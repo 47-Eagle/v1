@@ -58,12 +58,25 @@ const formatDate = (ts: string) => {
   return d.toLocaleString();
 };
 
+const formatAge = (ts: string) => {
+  const diff = Date.now() - Number(ts) * 1000;
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 48) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  return `${days}d ago`;
+};
+
+const formatEth = (n: number) => (n >= 0.001 ? n.toFixed(3) : n.toFixed(6));
+
 export function ActivityTab() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [groups, setGroups] = useState<TxGroup[]>(CONTRACT_GROUPS);
 
   const apiKey = import.meta.env.VITE_ETHERSCAN_API_KEY;
+  const rpcExplorer = 'https://etherscan.io';
 
   const fetchGroup = async (g: TxGroup) => {
     // Use Etherscan V2 API (V1 is deprecated)
@@ -151,38 +164,52 @@ export function ActivityTab() {
           <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
             {g.txs.map((t) => (
               <div key={t.hash} className="text-xs bg-[#0c0c0d] border border-[#222] p-3 rounded">
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center gap-2 flex-wrap">
                   <a
-                    href={`https://etherscan.io/tx/${t.hash}`}
+                    href={`${rpcExplorer}/tx/${t.hash}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-[#F2D57C] font-mono"
                   >
                     {shorten(t.hash, 10)}
                   </a>
-                  <span className="text-[#9ca3af]">{formatDate(t.timeStamp)}</span>
+                  <div className="flex items-center gap-2 text-[10px]">
+                    <span
+                      className={
+                        t.isError === '1' || t.txreceipt_status === '0'
+                          ? 'px-2 py-0.5 rounded bg-red-900/40 text-red-300'
+                          : 'px-2 py-0.5 rounded bg-emerald-900/40 text-emerald-300'
+                      }
+                    >
+                      {t.isError === '1' || t.txreceipt_status === '0' ? 'Failed' : 'Success'}
+                    </span>
+                    <span className="text-[#9ca3af]">{formatAge(t.timeStamp)} · {formatDate(t.timeStamp)}</span>
+                  </div>
                 </div>
                 <div className="flex justify-between mt-1 text-[#9ca3af] font-mono">
                   <span>
                     Fn: {t.functionName || t.methodId || (t.input ? t.input.slice(0, 10) : '0x')}
                   </span>
-                  <span className={t.isError === '1' || t.txreceipt_status === '0' ? 'text-red-400' : 'text-[#00ff66]'}>
-                    {t.isError === '1' || t.txreceipt_status === '0' ? 'Failed' : 'Success'}
-                  </span>
+                  <span>Block: {t.blockNumber || '-'}</span>
                 </div>
                 <div className="flex justify-between mt-1 text-[#9ca3af] font-mono">
                   <span>From: {shorten(t.from)}</span>
                   <span>To: {shorten(t.to)}</span>
                 </div>
                 <div className="flex justify-between mt-1 text-[#9ca3af] font-mono">
-                  <span>Value: {formatValueEth(t.value).toFixed(6)} ETH</span>
+                  <span>Value: {formatEth(formatValueEth(t.value))} ETH</span>
                   <span>
                     Gas: {t.gasUsed || '-'} @ {formatGwei(t.gasPrice)} gwei
                   </span>
                 </div>
-                {t.blockNumber && (
+                {t.gas && t.gasPrice && t.gasUsed && (
                   <div className="flex justify-between mt-1 text-[#6b7280] font-mono">
-                    <span>Block: {t.blockNumber}</span>
+                    <span>
+                      Max Gas: {t.gas} · Est fee @ {formatGwei(t.gasPrice)} gwei
+                    </span>
+                    <span>
+                      Gas Used: {t.gasUsed}
+                    </span>
                   </div>
                 )}
               </div>
