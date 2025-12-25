@@ -353,16 +353,17 @@ contract CharmStrategyWETH is IStrategy, ReentrancyGuard, Ownable {
         uint256 totalWlfi = WLFI.balanceOf(address(this));
         uint256 totalUsd1 = USD1.balanceOf(address(this));
         
-        // Return USD1 to vault - this strategy only handles WLFI
+        // Swap USD1 → WETH (instead of returning it)
+        // This is the key change - vault sends USD1, we convert to WETH for Charm
         if (totalUsd1 > 0) {
-            USD1.safeTransfer(EAGLE_VAULT, totalUsd1);
-            emit UnusedTokensReturned(totalUsd1, 0);
+            USD1.forceApprove(address(UNISWAP_ROUTER), totalUsd1);
+            _swapUsd1ToWeth(totalUsd1); // Event emitted inside
         }
         
-        // Get existing WETH balance
+        // Get WETH balance (now includes any WETH swapped from USD1)
         uint256 totalWeth = WETH.balanceOf(address(this));
         
-        // Return early if we have no WLFI
+        // Return early if we have nothing
         if (totalWlfi == 0 && totalWeth == 0) return 0;
         
         // Get Charm's current ratio
@@ -372,7 +373,15 @@ contract CharmStrategyWETH is IStrategy, ReentrancyGuard, Ownable {
         uint256 finalWlfi;
         
         if (charmWeth > 0 && charmWlfi > 0) {
-            // Calculate how much WETH we need for our WLFI
+            // Case 1: We have WETH but no WLFI - swap half WETH to WLFI
+            if (totalWlfi == 0 && totalWeth > 0) {
+                uint256 wethToSwap = totalWeth / 2;
+                uint256 wlfiFromSwap = _swapWethToWlfi(wethToSwap);
+                totalWlfi = wlfiFromSwap;
+                totalWeth = WETH.balanceOf(address(this));
+            }
+            
+            // Case 2: We have WLFI - calculate proportional WETH needed
             uint256 wethNeeded = (totalWlfi * charmWeth) / charmWlfi;
             
             if (totalWeth >= wethNeeded) {

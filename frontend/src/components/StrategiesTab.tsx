@@ -441,3 +441,4 @@ export function StrategiesTab({ vaultData, revertData, onToast }: StrategiesTabP
   );
 }
 
+
