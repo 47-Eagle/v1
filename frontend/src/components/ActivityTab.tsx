@@ -33,6 +33,7 @@ const CONTRACT_GROUPS: TxGroup[] = [
 ];
 
 const shorten = (s: string, len = 6) => `${s.slice(0, len)}...${s.slice(-4)}`;
+const etherscanLink = (addr: string, explorer: string) => `${explorer}/address/${addr}`;
 
 const formatValueEth = (wei: string) => {
   try {
@@ -154,13 +155,20 @@ export function ActivityTab() {
 
       {groups.map((g) => (
         <div key={g.address} className="bg-[#141517] border border-black p-4 rounded-lg">
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <div className="text-xs uppercase text-[#9ca3af]">{g.label}</div>
-              <div className="text-xs text-[#6b7280] font-mono">{shorten(g.address)}</div>
+            <div className="flex items-start justify-between mb-3 gap-2">
+              <div>
+                <div className="text-xs uppercase text-[#9ca3af]">{g.label}</div>
+                <a
+                  href={etherscanLink(g.address, rpcExplorer)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[11px] text-[#F2D57C] font-mono break-all"
+                >
+                  {g.address}
+                </a>
+              </div>
+              <div className="text-xs text-[#9ca3af] whitespace-nowrap">{g.txs.length} tx</div>
             </div>
-            <div className="text-xs text-[#9ca3af]">{g.txs.length} tx</div>
-          </div>
           <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
             {g.txs.map((t) => (
               <div key={t.hash} className="text-xs bg-[#0c0c0d] border border-[#222] p-3 rounded">
@@ -192,9 +200,29 @@ export function ActivityTab() {
                   </span>
                   <span>Block: {t.blockNumber || '-'}</span>
                 </div>
-                <div className="flex justify-between mt-1 text-[#9ca3af] font-mono">
-                  <span>From: {shorten(t.from)}</span>
-                  <span>To: {shorten(t.to)}</span>
+                <div className="mt-1 text-[#9ca3af] font-mono space-y-1">
+                  <div className="flex gap-1 items-start">
+                    <span>From:</span>
+                    <a
+                      href={`${rpcExplorer}/address/${t.from}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#F2D57C] break-all"
+                    >
+                      {t.from}
+                    </a>
+                  </div>
+                  <div className="flex gap-1 items-start">
+                    <span>To:</span>
+                    <a
+                      href={`${rpcExplorer}/address/${t.to}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#F2D57C] break-all"
+                    >
+                      {t.to}
+                    </a>
+                  </div>
                 </div>
                 <div className="flex justify-between mt-1 text-[#9ca3af] font-mono">
                   <span>Value: {formatEth(formatValueEth(t.value))} ETH</span>
