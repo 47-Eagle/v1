@@ -97,7 +97,8 @@ async function fetchVaultData(vaultAddress: string) {
     }
   `;
 
-  const response = await fetch('https://api.studio.thegraph.com/query/64373/47-eagle/v0.0.2', {
+  // Charm Finance stitching endpoint (Charm vault analytics)
+  const response = await fetch('https://stitching-v2.herokuapp.com/1', {
     method: 'POST',
     headers: { 
       'Content-Type': 'application/json'

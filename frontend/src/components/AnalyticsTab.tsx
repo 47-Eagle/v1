@@ -1,12 +1,21 @@
-import { useState, useRef, useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { CONTRACTS } from '../config/contracts';
 
 interface AnalyticsTabProps {
   vaultData: any;
 }
 
+type VaultSnapshotPoint = {
+  timestamp: number; // seconds
+  totalAssets: number; // WLFI-equivalent (human units)
+};
+
 export function AnalyticsTab({ vaultData }: AnalyticsTabProps) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const chartRef = useRef<HTMLDivElement>(null);
+  const [historyLoading, setHistoryLoading] = useState(true);
+  const [historyError, setHistoryError] = useState<string | null>(null);
+  const [history, setHistory] = useState<VaultSnapshotPoint[]>([]);
 
   // Get prices with fallbacks
   const wlfiPrice = Number(vaultData.wlfiPrice) || 0.153;
@@ -35,6 +44,19 @@ export function AnalyticsTab({ vaultData }: AnalyticsTabProps) {
   const vaultReserves = (Number(vaultData.vaultLiquidUSD1) || 0) + 
                         (Number(vaultData.vaultLiquidWLFI) || 0) * wlfiPrice;
 
+  // Auto-compounded fees (estimated from current fee APR + current strategy TVL)
+  // This is an estimate of gross fees earned and reinvested by the strategies.
+  const feeApr = (() => {
+    const v = vaultData?.currentFeeApr ?? vaultData?.calculatedApr;
+    const n = typeof v === 'number' ? v : Number(v);
+    return Number.isFinite(n) && n > 0 ? n : 0;
+  })();
+  const strategyTvlUsd = Math.max(0, strategyUSD1Value + strategyWETHValue);
+  const fees30dUsd = strategyTvlUsd * (feeApr / 100) * (30 / 365);
+  const fees7dUsd = strategyTvlUsd * (feeApr / 100) * (7 / 365);
+  const fees30dWlfiEq = wlfiPrice > 0 ? fees30dUsd / wlfiPrice : 0;
+  const fees7dWlfiEq = wlfiPrice > 0 ? fees7dUsd / wlfiPrice : 0;
+
   // Asset breakdown
   const assets = useMemo(() => {
     if (totalValue === 0) return [];
@@ -60,21 +82,180 @@ export function AnalyticsTab({ vaultData }: AnalyticsTabProps) {
     ].filter(a => a.percentage > 0);
   }, [totalWLFI, wlfiFromUSD1, wlfiFromWETH, totalValue]);
 
-  // Generate chart data
+  // Fetch real historical snapshots (Charm vault snapshots → WLFI-equivalent)
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchHistory() {
+      setHistoryLoading(true);
+      setHistoryError(null);
+
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10_000);
+
+        const charmQuery = `
+          query GetVault($address: ID!) {
+            vault(id: $address) {
+              id
+              snapshot(orderBy: timestamp, orderDirection: asc, first: 1000) {
+                timestamp
+                totalAmount0
+                totalAmount1
+              }
+            }
+          }
+        `;
+
+        const [usd1Res, wethRes] = await Promise.all([
+          fetch('https://stitching-v2.herokuapp.com/1', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: charmQuery, variables: { address: CONTRACTS.CHARM_VAULT_USD1.toLowerCase() } }),
+            signal: controller.signal,
+          }),
+          fetch('https://stitching-v2.herokuapp.com/1', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: charmQuery, variables: { address: CONTRACTS.CHARM_VAULT_WETH.toLowerCase() } }),
+            signal: controller.signal,
+          })
+        ]);
+        clearTimeout(timeoutId);
+
+        if (!usd1Res.ok) throw new Error(`Charm (USD1) HTTP ${usd1Res.status}`);
+        if (!wethRes.ok) throw new Error(`Charm (WETH) HTTP ${wethRes.status}`);
+
+        const [usd1Json, wethJson] = await Promise.all([usd1Res.json(), wethRes.json()]);
+        if (usd1Json.errors?.length) throw new Error(usd1Json.errors?.[0]?.message || 'Charm (USD1) query failed');
+        if (wethJson.errors?.length) throw new Error(wethJson.errors?.[0]?.message || 'Charm (WETH) query failed');
+
+        const usd1Snaps: any[] = usd1Json.data?.vault?.snapshot || [];
+        const wethSnaps: any[] = wethJson.data?.vault?.snapshot || [];
+
+        const normalize = (snaps: any[]) =>
+          snaps
+            .map((s) => ({
+              timestamp: Number(s.timestamp || 0),
+              // 1e18 units
+              amount0: s.totalAmount0 ? Number(String(s.totalAmount0)) / 1e18 : 0,
+              amount1: s.totalAmount1 ? Number(String(s.totalAmount1)) / 1e18 : 0,
+            }))
+            .filter((p) => p.timestamp > 0)
+            .sort((a, b) => a.timestamp - b.timestamp);
+
+        const usd1 = normalize(usd1Snaps);
+        const weth = normalize(wethSnaps);
+
+        if (usd1.length === 0 && weth.length === 0) {
+          throw new Error('No Charm snapshot history available yet');
+        }
+
+        const findClosest = (arr: Array<{ timestamp: number; amount0: number; amount1: number }>, target: number) => {
+          if (arr.length === 0) return null;
+          let best = arr[0];
+          let bestDist = Math.abs(best.timestamp - target);
+          for (let i = 1; i < arr.length; i++) {
+            const d = Math.abs(arr[i].timestamp - target);
+            if (d < bestDist) {
+              best = arr[i];
+              bestDist = d;
+            }
+          }
+          return best;
+        };
+
+        // Add current liquid reserves (constant offset) so the series aligns with "WLFI Equivalent"
+        const liquidWLFI = Number(vaultData.vaultLiquidWLFI) || 0;
+        const liquidUSD1 = Number(vaultData.vaultLiquidUSD1) || 0;
+        const reservesWLFI = wlfiPrice > 0 ? (liquidWLFI + liquidUSD1 / wlfiPrice) : 0;
+
+        const nowSec = Math.floor(Date.now() / 1000);
+        const startSec = nowSec - 29 * 24 * 60 * 60;
+
+        const points: VaultSnapshotPoint[] = Array.from({ length: 30 }, (_, i) => {
+          const targetTs = startSec + i * 24 * 60 * 60;
+          const usd1Snap = findClosest(usd1, targetTs);
+          const wethSnap = findClosest(weth, targetTs);
+
+          // USD1 vault: amount0 = USD1, amount1 = WLFI
+          const usd1WlfiEq =
+            wlfiPrice > 0 && usd1Snap
+              ? (usd1Snap.amount1 + usd1Snap.amount0 / wlfiPrice)
+              : 0;
+
+          // WETH vault: amount0 = WETH, amount1 = WLFI
+          const wethWlfiEq =
+            wlfiPrice > 0 && wethSnap
+              ? (wethSnap.amount1 + (wethSnap.amount0 * wethPrice) / wlfiPrice)
+              : 0;
+
+          const totalWlfiEq = reservesWLFI + usd1WlfiEq + wethWlfiEq;
+          return {
+            timestamp: targetTs,
+            totalAssets: Number.isFinite(totalWlfiEq) ? Math.max(0, totalWlfiEq) : 0,
+          };
+        });
+
+        if (!cancelled) {
+          setHistory(points);
+        }
+      } catch (e: any) {
+        if (!cancelled) {
+          setHistory([]);
+          const msg =
+            e?.name === 'AbortError'
+              ? 'Timed out fetching historical data'
+              : (e?.message || 'Failed to fetch historical data');
+          setHistoryError(msg);
+        }
+      } finally {
+        if (!cancelled) setHistoryLoading(false);
+      }
+    }
+
+    fetchHistory();
+    return () => {
+      cancelled = true;
+    };
+  }, [vaultData.vaultLiquidWLFI, vaultData.vaultLiquidUSD1, wlfiPrice, wethPrice]);
+
+  // Build chart data from real snapshots (last 30 days). If we don't have history,
+  // we show "No data" rather than generating fake values.
   const chartData = useMemo(() => {
-    if (totalValue === 0) return [];
+    if (!history || history.length === 0) return [];
+
+    const nowSec = Math.floor(Date.now() / 1000);
+    const startSec = nowSec - 29 * 24 * 60 * 60;
+
+    // Only consider snapshots in-range, plus one day of buffer for "closest" selection
+    const candidates = history.filter((p) => p.timestamp >= startSec - 24 * 60 * 60);
+    if (candidates.length === 0) return [];
+
+    const findClosest = (target: number) => {
+      let best = candidates[0];
+      let bestDist = Math.abs(best.timestamp - target);
+      for (let i = 1; i < candidates.length; i++) {
+        const d = Math.abs(candidates[i].timestamp - target);
+        if (d < bestDist) {
+          best = candidates[i];
+          bestDist = d;
+        }
+      }
+      return best;
+    };
+
     return Array.from({ length: 30 }, (_, i) => {
-      const progress = i / 29;
-      const base = totalValue * 0.85;
-      const growth = totalValue * 0.15 * progress;
-      const variation = Math.sin(i * 0.8) * totalValue * 0.02;
+      const targetTs = startSec + i * 24 * 60 * 60;
+      const closest = findClosest(targetTs);
       return {
         day: i,
-        value: Math.max(0, base + growth + variation),
-        date: new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000)
+        // totalAssets is our "WLFI equivalent" in the vault’s base unit.
+        value: Math.max(0, closest.totalAssets),
+        date: new Date(targetTs * 1000),
       };
     });
-  }, [totalValue]);
+  }, [history]);
 
   // Chart calculations
   const chartStats = useMemo(() => {
@@ -89,9 +270,13 @@ export function AnalyticsTab({ vaultData }: AnalyticsTabProps) {
   const chartPath = useMemo(() => {
     if (chartData.length === 0) return '';
     const { min, range } = chartStats;
+    // Keep the line away from the edges so "flat" series are still visible.
+    const paddingTop = 12;
+    const paddingBottom = 18;
+    const chartHeight = 100 - paddingTop - paddingBottom;
     const points = chartData.map((d, i) => ({
       x: (i / (chartData.length - 1)) * 100,
-      y: 100 - ((d.value - min) / range) * 80 - 10
+      y: paddingTop + (1 - (d.value - min) / range) * chartHeight
     }));
 
     let path = `M ${points[0].x},${points[0].y}`;
@@ -199,6 +384,28 @@ export function AnalyticsTab({ vaultData }: AnalyticsTabProps) {
                 }}
               />
             </div>
+
+            {/* Auto-compounded fees (estimate) */}
+            <div className="mt-5 border-t border-[#2a2a30] pt-4 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className={basaltStyles.label}>Auto-compounded fees (est.)</span>
+                <span className={basaltStyles.mono}>{feeApr > 0 ? `${feeApr.toFixed(2)}% APR` : 'N/A'}</span>
+              </div>
+              <div className="flex items-baseline justify-between gap-3">
+                <span className="text-[0.7rem] text-[#5e6d8a]">30D</span>
+                <span className="text-white tabular-nums font-light">{formatUSD(fees30dUsd)}</span>
+              </div>
+              <div className="flex items-baseline justify-between gap-3">
+                <span className="text-[0.7rem] text-[#5e6d8a]">7D</span>
+                <span className="text-white tabular-nums font-light">{formatUSD(fees7dUsd)}</span>
+              </div>
+              <div className="text-[0.65rem] text-[#5e6d8a]">
+                ≈ {formatNumber(fees30dWlfiEq)} WLFI (30D) • {formatNumber(fees7dWlfiEq)} WLFI (7D)
+              </div>
+              <div className="text-[0.6rem] text-[#5e6d8a] opacity-80">
+                Based on current strategy TVL × current fee APR (estimate).
+              </div>
+            </div>
           </div>
         </div>
 
@@ -237,6 +444,7 @@ export function AnalyticsTab({ vaultData }: AnalyticsTabProps) {
             className="relative h-48 cursor-crosshair"
             onMouseMove={(e) => {
               if (!chartRef.current) return;
+              if (chartData.length === 0) return;
               const rect = chartRef.current.getBoundingClientRect();
               const x = (e.clientX - rect.left) / rect.width;
               const index = Math.round(x * (chartData.length - 1));
@@ -244,7 +452,11 @@ export function AnalyticsTab({ vaultData }: AnalyticsTabProps) {
             }}
             onMouseLeave={() => setHoveredIndex(null)}
           >
-            {chartData.length > 0 ? (
+            {historyLoading ? (
+              <div className="h-full flex items-center justify-center text-[#5e6d8a]">
+                Loading historical data...
+              </div>
+            ) : chartData.length > 0 ? (
               <svg 
                 viewBox="0 0 100 100" 
                 preserveAspectRatio="none" 
@@ -288,7 +500,7 @@ export function AnalyticsTab({ vaultData }: AnalyticsTabProps) {
                   d={chartPath}
                   fill="none"
                   stroke="#F2D57C"
-                  strokeWidth="2"
+                  strokeWidth="2.75"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   vectorEffect="non-scaling-stroke"
@@ -298,7 +510,12 @@ export function AnalyticsTab({ vaultData }: AnalyticsTabProps) {
                 {/* Hover elements */}
                 {hoveredIndex !== null && chartData[hoveredIndex] && (() => {
                   const x = (hoveredIndex / (chartData.length - 1)) * 100;
-                  const y = 100 - ((chartData[hoveredIndex].value - chartStats.min) / chartStats.range) * 80 - 10;
+                  const paddingTop = 12;
+                  const paddingBottom = 18;
+                  const chartHeight = 100 - paddingTop - paddingBottom;
+                  const y =
+                    paddingTop +
+                    (1 - (chartData[hoveredIndex].value - chartStats.min) / chartStats.range) * chartHeight;
                   return (
                     <>
                       <line
@@ -317,7 +534,7 @@ export function AnalyticsTab({ vaultData }: AnalyticsTabProps) {
               </svg>
             ) : (
               <div className="h-full flex items-center justify-center text-[#5e6d8a]">
-                No data available
+                {historyError ? `Historical data unavailable: ${historyError}` : 'No historical data available'}
               </div>
             )}
           </div>
@@ -375,7 +592,7 @@ export function AnalyticsTab({ vaultData }: AnalyticsTabProps) {
         <div className={`${basaltStyles.panel} ${basaltStyles.panelHover} p-5`}>
           <div className="flex items-center justify-between mb-4">
             <span className={basaltStyles.label}>Vault Reserves</span>
-            <span className="text-[0.65rem] px-2 py-0.5 bg-[#1c1c21] text-[#00ff80] font-mono">LIQUID</span>
+            <span className="text-[0.65rem] px-2 py-0.5 bg-[#1c1c21] text-[#00ff80] font-mono">IDLE</span>
           </div>
           <div className="text-2xl text-white font-light tabular-nums">
             {formatUSD(vaultReserves)}

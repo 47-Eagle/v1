@@ -111,8 +111,8 @@ export default function ModernHeader() {
 
   return (
     <header className="sticky top-0 z-50 bg-neo-bg-light/80 dark:bg-neo-bg-dark/80 border-b border-gray-300/20 dark:border-gray-700/20 backdrop-blur-xl transition-all duration-300">
-      <div className="container mx-auto px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 md:py-2.5">
-        <div className="flex items-center justify-between">
+      <div className="container mx-auto px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3">
+        <div className="flex items-center justify-between gap-3">
           {/* Logo & Title - Changes based on page */}
           {location.pathname === '/vault' || location.pathname === '/vault/' ? (
             /* Eagle Omnichain Vault Info (on vault page only) */
@@ -231,11 +231,11 @@ export default function ModernHeader() {
           )}
 
           {/* Right Side - Theme Toggle + Connect Button */}
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            <div className="scale-75 sm:scale-90">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="h-10 w-10 flex items-center justify-center rounded-full bg-white/10 dark:bg-black/20 backdrop-blur touch-manipulation">
               <ThemeToggle />
             </div>
-            <div className="scale-75 sm:scale-90 md:scale-95">
+            <div className="flex items-center">
               <ConnectButton 
                 chainStatus="icon"
                 showBalance={false}

@@ -1,5 +1,6 @@
 import { BigInt, BigDecimal, Address, ethereum } from "@graphprotocol/graph-ts"
 import {
+  EagleOVault,
   Deposit as DepositEvent,
   Withdraw as WithdrawEvent,
   DualDeposit as DualDepositEvent,
@@ -7,15 +8,6 @@ import {
   StrategyDeployed as StrategyDeployedEvent,
   Rebalanced as RebalancedEvent,
 } from "../generated/EagleOVault/EagleOVault"
-import {
-  StrategyDeposit as StrategyDepositEvent,
-  StrategyWithdraw as StrategyWithdrawEvent,
-  StrategyRebalanced as StrategyRebalancedEvent,
-} from "../generated/USD1Strategy/CharmStrategy"
-import {
-  Deposit as CharmDepositEvent,
-  Withdraw as CharmWithdrawEvent,
-} from "../generated/templates/CharmVaultUSD1/CharmVault"
 import {
   Vault,
   VaultSnapshot,
@@ -29,8 +21,8 @@ import {
 
 // Constants
 const VAULT_ADDRESS = "0x47b3ef629d9cb8dfcf8a6c61058338f4e99d7953"
-const USD1_STRATEGY_ADDRESS = "0x47b2659747d6a7e00c8251c3c3f7e92625a8cf6f"
-const WETH_STRATEGY_ADDRESS = "0x5c525af4153b1c43f9c06c31d32a84637c617ffe"
+const USD1_STRATEGY_ADDRESS = "0x6c638f745b7adc2873a52de0d732163b32144f0b"
+const WETH_STRATEGY_ADDRESS = "0x55e78798a926bac07b4d90f7b1bec769b72e76a6"
 const USD1_CHARM_VAULT = "0x22828dbf15f5fba2394ba7cf8fa9a96bdb444b71"
 const WETH_CHARM_VAULT = "0x3314e248f3f752cd16939773d83beb3a362f0aef"
 const GLOBAL_STATS_ID = "1"
@@ -48,6 +40,26 @@ function loadOrCreateVault(address: string): Vault {
     vault.updatedAt = BigInt.fromI32(0)
   }
   return vault
+}
+
+function refreshVaultFromContract(vault: Vault, block: ethereum.Block): void {
+  const contract = EagleOVault.bind(Address.fromString(VAULT_ADDRESS))
+
+  const totalAssetsCall = contract.try_totalAssets()
+  if (!totalAssetsCall.reverted) {
+    vault.totalAssets = totalAssetsCall.value
+  }
+
+  const totalSupplyCall = contract.try_totalSupply()
+  if (!totalSupplyCall.reverted) {
+    vault.totalSupply = totalSupplyCall.value
+  }
+
+  if (vault.totalSupply.gt(BigInt.fromI32(0))) {
+    vault.sharePrice = vault.totalAssets.toBigDecimal().div(vault.totalSupply.toBigDecimal())
+  }
+
+  vault.updatedAt = block.timestamp
 }
 
 function loadOrCreateGlobalStats(): GlobalStats {
@@ -80,16 +92,14 @@ function loadOrCreateDailySnapshot(timestamp: BigInt): DailySnapshot {
   return snapshot
 }
 
-function createVaultSnapshot(
-  vault: Vault,
-  timestamp: BigInt,
-  blockNumber: BigInt
-): void {
-  const id = vault.id + "-" + timestamp.toString()
+function createVaultSnapshotFromEvent(vault: Vault, event: ethereum.Event): void {
+  // IMPORTANT: IDs must be unique; multiple events in the same block share the same timestamp.
+  // Use txHash + logIndex to avoid immutable entity collisions.
+  const id = vault.id + "-" + event.transaction.hash.toHex() + "-" + event.logIndex.toString()
   let snapshot = new VaultSnapshot(id)
   
   snapshot.vault = vault.id
-  snapshot.timestamp = timestamp
+  snapshot.timestamp = event.block.timestamp
   snapshot.totalAssets = vault.totalAssets
   snapshot.totalSupply = vault.totalSupply
   snapshot.sharePrice = vault.sharePrice
@@ -105,6 +115,12 @@ function createVaultSnapshot(
 
 export function handleDeposit(event: DepositEvent): void {
   const vault = loadOrCreateVault(VAULT_ADDRESS)
+  if (vault.createdAt.equals(BigInt.fromI32(0))) {
+    vault.createdAt = event.block.timestamp
+  }
+  // Sync on-chain state first so snapshots are accurate even if a Reported
+  // event is not emitted frequently.
+  refreshVaultFromContract(vault, event.block)
   vault.totalAssets = vault.totalAssets.plus(event.params.assets)
   vault.totalSupply = vault.totalSupply.plus(event.params.shares)
   
@@ -135,7 +151,7 @@ export function handleDeposit(event: DepositEvent): void {
   stats.save()
   
   // Create snapshot
-  createVaultSnapshot(vault, event.block.timestamp, event.block.number)
+  createVaultSnapshotFromEvent(vault, event)
   
   // Update daily snapshot
   const daily = loadOrCreateDailySnapshot(event.block.timestamp)
@@ -147,6 +163,10 @@ export function handleDeposit(event: DepositEvent): void {
 
 export function handleWithdraw(event: WithdrawEvent): void {
   const vault = loadOrCreateVault(VAULT_ADDRESS)
+  if (vault.createdAt.equals(BigInt.fromI32(0))) {
+    vault.createdAt = event.block.timestamp
+  }
+  refreshVaultFromContract(vault, event.block)
   vault.totalAssets = vault.totalAssets.minus(event.params.assets)
   vault.totalSupply = vault.totalSupply.minus(event.params.shares)
   
@@ -178,7 +198,7 @@ export function handleWithdraw(event: WithdrawEvent): void {
   stats.save()
   
   // Create snapshot
-  createVaultSnapshot(vault, event.block.timestamp, event.block.number)
+  createVaultSnapshotFromEvent(vault, event)
   
   // Update daily snapshot
   const daily = loadOrCreateDailySnapshot(event.block.timestamp)
@@ -190,6 +210,10 @@ export function handleWithdraw(event: WithdrawEvent): void {
 
 export function handleDualDeposit(event: DualDepositEvent): void {
   const vault = loadOrCreateVault(VAULT_ADDRESS)
+  if (vault.createdAt.equals(BigInt.fromI32(0))) {
+    vault.createdAt = event.block.timestamp
+  }
+  refreshVaultFromContract(vault, event.block)
   vault.totalAssets = vault.totalAssets.plus(event.params.totalWlfiDeposited)
   vault.totalSupply = vault.totalSupply.plus(event.params.shares)
   
@@ -220,11 +244,17 @@ export function handleDualDeposit(event: DualDepositEvent): void {
   stats.save()
   
   // Create snapshot
-  createVaultSnapshot(vault, event.block.timestamp, event.block.number)
+  createVaultSnapshotFromEvent(vault, event)
 }
 
 export function handleReported(event: ReportedEvent): void {
   const vault = loadOrCreateVault(VAULT_ADDRESS)
+  if (vault.createdAt.equals(BigInt.fromI32(0))) {
+    vault.createdAt = event.block.timestamp
+  }
+  // Reported already contains totals, but still refresh first to keep supply in sync
+  // in case the event doesn't include it.
+  refreshVaultFromContract(vault, event.block)
   
   // Track fees collected
   if (event.params.performanceFees.gt(BigInt.fromI32(0))) {
@@ -246,24 +276,36 @@ export function handleReported(event: ReportedEvent): void {
   }
   
   vault.totalAssets = event.params.totalAssets
+  // Keep sharePrice in sync when possible
+  if (vault.totalSupply.gt(BigInt.fromI32(0))) {
+    vault.sharePrice = vault.totalAssets.toBigDecimal().div(vault.totalSupply.toBigDecimal())
+  }
   vault.updatedAt = event.block.timestamp
   vault.save()
   
   // Create snapshot
-  createVaultSnapshot(vault, event.block.timestamp, event.block.number)
+  createVaultSnapshotFromEvent(vault, event)
 }
 
 export function handleStrategyDeployed(event: StrategyDeployedEvent): void {
   const vault = loadOrCreateVault(VAULT_ADDRESS)
+  if (vault.createdAt.equals(BigInt.fromI32(0))) {
+    vault.createdAt = event.block.timestamp
+  }
+  refreshVaultFromContract(vault, event.block)
   vault.updatedAt = event.block.timestamp
   vault.save()
   
   // Create snapshot
-  createVaultSnapshot(vault, event.block.timestamp, event.block.number)
+  createVaultSnapshotFromEvent(vault, event)
 }
 
 export function handleRebalanced(event: RebalancedEvent): void {
   const vault = loadOrCreateVault(VAULT_ADDRESS)
+  if (vault.createdAt.equals(BigInt.fromI32(0))) {
+    vault.createdAt = event.block.timestamp
+  }
+  refreshVaultFromContract(vault, event.block)
   vault.updatedAt = event.block.timestamp
   vault.save()
   
@@ -277,31 +319,43 @@ export function handleRebalanced(event: RebalancedEvent): void {
   rebalance.save()
   
   // Create snapshot
-  createVaultSnapshot(vault, event.block.timestamp, event.block.number)
+  createVaultSnapshotFromEvent(vault, event)
 }
 
 // Event Handlers for Strategies
 
-export function handleStrategyDeposit(event: StrategyDepositEvent): void {
+export function handleStrategyDeposit(event: ethereum.Event): void {
   const vault = loadOrCreateVault(VAULT_ADDRESS)
+  if (vault.createdAt.equals(BigInt.fromI32(0))) {
+    vault.createdAt = event.block.timestamp
+  }
+  refreshVaultFromContract(vault, event.block)
   vault.updatedAt = event.block.timestamp
   vault.save()
   
   // Create snapshot
-  createVaultSnapshot(vault, event.block.timestamp, event.block.number)
+  createVaultSnapshotFromEvent(vault, event)
 }
 
-export function handleStrategyWithdraw(event: StrategyWithdrawEvent): void {
+export function handleStrategyWithdraw(event: ethereum.Event): void {
   const vault = loadOrCreateVault(VAULT_ADDRESS)
+  if (vault.createdAt.equals(BigInt.fromI32(0))) {
+    vault.createdAt = event.block.timestamp
+  }
+  refreshVaultFromContract(vault, event.block)
   vault.updatedAt = event.block.timestamp
   vault.save()
   
   // Create snapshot
-  createVaultSnapshot(vault, event.block.timestamp, event.block.number)
+  createVaultSnapshotFromEvent(vault, event)
 }
 
-export function handleStrategyRebalanced(event: StrategyRebalancedEvent): void {
+export function handleStrategyRebalanced(event: ethereum.Event): void {
   const vault = loadOrCreateVault(VAULT_ADDRESS)
+  if (vault.createdAt.equals(BigInt.fromI32(0))) {
+    vault.createdAt = event.block.timestamp
+  }
+  refreshVaultFromContract(vault, event.block)
   vault.updatedAt = event.block.timestamp
   vault.save()
   
@@ -315,13 +369,17 @@ export function handleStrategyRebalanced(event: StrategyRebalancedEvent): void {
   rebalance.save()
   
   // Create snapshot
-  createVaultSnapshot(vault, event.block.timestamp, event.block.number)
+  createVaultSnapshotFromEvent(vault, event)
 }
 
 // Event Handlers for Charm Vaults
 
-export function handleCharmDeposit(event: CharmDepositEvent): void {
+export function handleCharmDeposit(event: ethereum.Event): void {
   const vault = loadOrCreateVault(VAULT_ADDRESS)
+  if (vault.createdAt.equals(BigInt.fromI32(0))) {
+    vault.createdAt = event.block.timestamp
+  }
+  refreshVaultFromContract(vault, event.block)
   vault.updatedAt = event.block.timestamp
   vault.save()
   
@@ -330,8 +388,21 @@ export function handleCharmDeposit(event: CharmDepositEvent): void {
   feeEvent.vault = vault.id
   feeEvent.strategy = event.transaction.from
   feeEvent.charmVault = event.address
-  feeEvent.amount0 = event.params.amount0
-  feeEvent.amount1 = event.params.amount1
+  // Best-effort decode (depends on ABI param names / ordering)
+  let amount0 = BigInt.fromI32(0)
+  let amount1 = BigInt.fromI32(0)
+  for (let i = 0; i < event.parameters.length; i++) {
+    const p = event.parameters[i]
+    if (p.name == "amount0") amount0 = p.value.toBigInt()
+    if (p.name == "amount1") amount1 = p.value.toBigInt()
+  }
+  // Fallback: take the last two parameters if names are missing
+  if (amount0.equals(BigInt.fromI32(0)) && amount1.equals(BigInt.fromI32(0)) && event.parameters.length >= 2) {
+    amount0 = event.parameters[event.parameters.length - 2].value.toBigInt()
+    amount1 = event.parameters[event.parameters.length - 1].value.toBigInt()
+  }
+  feeEvent.amount0 = amount0
+  feeEvent.amount1 = amount1
   feeEvent.timestamp = event.block.timestamp
   feeEvent.blockNumber = event.block.number
   feeEvent.transactionHash = event.transaction.hash
@@ -339,20 +410,24 @@ export function handleCharmDeposit(event: CharmDepositEvent): void {
   
   // Update global stats
   const stats = loadOrCreateGlobalStats()
-  stats.totalFeesCaptured = stats.totalFeesCaptured.plus(event.params.amount0).plus(event.params.amount1)
+  stats.totalFeesCaptured = stats.totalFeesCaptured.plus(amount0).plus(amount1)
   stats.save()
   
   // Create snapshot
-  createVaultSnapshot(vault, event.block.timestamp, event.block.number)
+  createVaultSnapshotFromEvent(vault, event)
 }
 
-export function handleCharmWithdraw(event: CharmWithdrawEvent): void {
+export function handleCharmWithdraw(event: ethereum.Event): void {
   const vault = loadOrCreateVault(VAULT_ADDRESS)
+  if (vault.createdAt.equals(BigInt.fromI32(0))) {
+    vault.createdAt = event.block.timestamp
+  }
+  refreshVaultFromContract(vault, event.block)
   vault.updatedAt = event.block.timestamp
   vault.save()
   
   // Create snapshot
-  createVaultSnapshot(vault, event.block.timestamp, event.block.number)
+  createVaultSnapshotFromEvent(vault, event)
 }
 
 

@@ -11,7 +11,8 @@ dataSources:
     source:
       address: "0x47b3ef629D9cB8DFcF8A6c61058338f4e99d7953"
       abi: EagleOVault
-      startBlock: 21300000  # Conservative start block - refine after checking Etherscan
+      # Contract creation block (auto-detected via eth_getCode binary search)
+      startBlock: 23697538
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -48,9 +49,11 @@ dataSources:
     name: USD1Strategy
     network: mainnet
     source:
-      address: "0x47B2659747d6A7E00c8251c3C3f7e92625a8cf6f"
+      # V3 strategy (current production)
+      address: "0x6c638f745B7adC2873a52De0D732163b32144f0b"
       abi: CharmStrategy
-      startBlock: 21300000  # Conservative start block - refine after checking Etherscan
+      # Contract creation block (auto-detected via eth_getCode binary search)
+      startBlock: 24067676
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -77,9 +80,11 @@ dataSources:
     name: WETHStrategy
     network: mainnet
     source:
-      address: "0x5c525Af4153B1c43f9C06c31D32a84637c617FfE"
+      # WETH strategy (current production)
+      address: "0x55E78798A926Bac07b4D90f7b1bEc769b72E76A6"
       abi: CharmStrategy
-      startBlock: 21300000  # Conservative start block - refine after checking Etherscan
+      # Contract creation block (auto-detected via eth_getCode binary search)
+      startBlock: 24087850
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7

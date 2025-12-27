@@ -5,7 +5,8 @@
   "scripts": {
     "codegen": "graph codegen",
     "build": "graph build",
-    "deploy": "graph deploy --node https://api.studio.thegraph.com/deploy/ 47-eagle",
+    "auth:studio": "npx graph auth --studio https://api.studio.thegraph.com/deploy/",
+    "deploy": "npx graph deploy --studio --node https://api.studio.thegraph.com/deploy/ 47-eagle",
     "create-local": "graph create --node http://localhost:8020/ eagle-ovault",
     "remove-local": "graph remove --node http://localhost:8020/ eagle-ovault",
     "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 eagle-ovault",

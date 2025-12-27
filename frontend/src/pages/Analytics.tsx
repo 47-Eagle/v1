@@ -278,9 +278,10 @@ export default function Analytics({ provider, account, onNavigateUp }: Props) {
             <div className="bg-white/30 dark:bg-gray-800/30 border border-gray-300 dark:border-gray-700 rounded-xl p-6 h-80 relative">
               {historicalData.length > 0 ? (
                 <div className="h-full flex flex-col relative">
+                  <div className="flex-1 min-h-0">
                   <svg 
                     ref={chartRef}
-                    className="w-full flex-1 cursor-crosshair" 
+                    className="w-full h-full cursor-crosshair" 
                     viewBox="0 0 100 30" 
                     preserveAspectRatio="none"
                     onMouseMove={(e) => {
@@ -319,6 +320,11 @@ export default function Analytics({ provider, account, onNavigateUp }: Props) {
                       const timestamps = historicalData.map(s => s.timestamp);
                       const minTime = Math.min(...timestamps);
                       const maxTime = Math.max(...timestamps);
+                      // Keep the line away from the exact bottom/top edge so it never looks "missing"
+                      // when the series is flat or nearly flat.
+                      const paddingTop = 2;
+                      const paddingBottom = 2;
+                      const chartHeight = 30 - paddingTop - paddingBottom; // viewBox height is 30
                       
                       return (
                         <>
@@ -326,7 +332,7 @@ export default function Analytics({ provider, account, onNavigateUp }: Props) {
                           <polygon
                             points={`0,30 ${historicalData.map((snap, i) => {
                               const x = (i / Math.max(historicalData.length - 1, 1)) * 100;
-                              const y = 30 - ((snap.tvlUsd - minTvl) / range) * 25;
+                              const y = (30 - paddingBottom) - ((snap.tvlUsd - minTvl) / range) * chartHeight;
                               return `${x},${y}`;
                             }).join(' ')} 100,30`}
                             fill="url(#area-gradient)"
@@ -336,7 +342,7 @@ export default function Analytics({ provider, account, onNavigateUp }: Props) {
                           <polyline
                             points={historicalData.map((snap, i) => {
                               const x = (i / Math.max(historicalData.length - 1, 1)) * 100;
-                              const y = 30 - ((snap.tvlUsd - minTvl) / range) * 25;
+                              const y = (30 - paddingBottom) - ((snap.tvlUsd - minTvl) / range) * chartHeight;
                               return `${x},${y}`;
                             }).join(' ')}
                             fill="none"
@@ -349,14 +355,14 @@ export default function Analytics({ provider, account, onNavigateUp }: Props) {
                           {/* Event markers for capital injections */}
                           {detectedEvents.map((event, idx) => {
                             const eventIndex = historicalData.findIndex(s => 
-                              Math.abs(s.timestamp - event.timestamp / 1000) < 86400 // Within 1 day
+                              Math.abs(s.timestamp - event.timestamp) < 86400 // Within 1 day
                             );
                             
                             if (eventIndex === -1) return null;
                             
                             const snap = historicalData[eventIndex];
                             const x = (eventIndex / Math.max(historicalData.length - 1, 1)) * 100;
-                            const y = 30 - ((snap.tvlUsd - minTvl) / range) * 25;
+                            const y = (30 - paddingBottom) - ((snap.tvlUsd - minTvl) / range) * chartHeight;
                             
                             return (
                               <g key={idx}>
@@ -412,7 +418,7 @@ export default function Analytics({ provider, account, onNavigateUp }: Props) {
                             if (index === -1) return null;
                             
                             const x = (index / Math.max(historicalData.length - 1, 1)) * 100;
-                            const y = 30 - ((snapData.tvlUsd - minTvl) / range) * 25;
+                            const y = (30 - paddingBottom) - ((snapData.tvlUsd - minTvl) / range) * chartHeight;
                             
                             return (
                               <>
@@ -474,7 +480,7 @@ export default function Analytics({ provider, account, onNavigateUp }: Props) {
                       {/* Check if this is near a capital injection event */}
                       {(() => {
                         const nearbyEvent = detectedEvents.find(e => 
-                          Math.abs(tooltip.data.timestamp - e.timestamp / 1000) < 86400
+                          Math.abs(tooltip.data.timestamp - e.timestamp) < 86400
                         );
                         if (nearbyEvent) {
                           return (
@@ -501,6 +507,7 @@ export default function Analytics({ provider, account, onNavigateUp }: Props) {
                     </span>
                     <span>{historicalData[historicalData.length - 1]?.date}</span>
                   </div>
+                </div>
                 </div>
               ) : (
                 <div className="flex items-center justify-center h-full">

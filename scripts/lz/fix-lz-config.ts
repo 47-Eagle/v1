@@ -87,11 +87,13 @@ const CHAINS: Record<
     name: 'Monad',
     eid: 30390,
     rpc: process.env.MONAD_RPC_URL || 'https://rpc-mainnet.monadinfra.com',
-    endpoint: '0x1a44076050125825900e736c501f859c50fE728c',
-    sendUln302: '0xbB2Ea70C9E858123480642Cf96acbcCE1372dCe1',
-    receiveUln302: '0xc02Ab410f0734EFa3F14628780e6e695156024C2',
-    executor: '0x173272739Bd7Aa6e4e214714048a9fE699453059',
-    dvn: '0x589dEDbD617e0CBcB916A9223F4d1300c294236b', // LayerZero Labs DVN
+    // From LayerZero V2 docs (Monad Mainnet):
+    // https://docs.layerzero.network/v2/deployments/chains/monad
+    endpoint: '0x6F475642a6e85809B1c36Fa62763669b1b48DD5B',
+    sendUln302: '0xC39161c743D0307EB9BCc9FEF03eeb9Dc4802de7',
+    receiveUln302: '0xe1844c5D63a9543023008D332Bd3d2e6f1FE1043',
+    executor: '0x4208D6E27538189bB48E603D6123A94b8Abe0A0b',
+    dvn: '0x282b3386571f7f794450d5789911a9804fa346b4', // LayerZero Labs DVN
   },
 };
 
@@ -117,6 +119,7 @@ const ENDPOINT_ABI = [
   'function setSendLibrary(address _oapp, uint32 _eid, address _newLib) external',
   'function setReceiveLibrary(address _oapp, uint32 _eid, address _lib, uint256 _gracePeriod) external',
   'function setConfig(address _oapp, address _lib, tuple(uint32 eid, uint32 configType, bytes config)[] _params) external',
+  'function getConfig(address _oapp, address _lib, uint32 _eid, uint32 _configType) external view returns (bytes)',
   'function getSendLibrary(address _sender, uint32 _eid) external view returns (address)',
   'function getReceiveLibrary(address _receiver, uint32 _eid) external view returns (address, bool)',
 ];
@@ -124,6 +127,8 @@ const ENDPOINT_ABI = [
 const OFT_ABI = [
   'function setPeer(uint32 _eid, bytes32 _peer) external',
   'function peers(uint32 _eid) external view returns (bytes32)',
+  'function setEnforcedOptions((uint32 eid, uint16 msgType, bytes options)[] _enforcedOptions) external',
+  'function enforcedOptions(uint32 _eid, uint16 _msgType) external view returns (bytes)',
   'function owner() external view returns (address)',
 ];
 
@@ -138,6 +143,10 @@ const OPTIONAL_DVN_THRESHOLD = 0;
 
 // Max message size for executor
 const EXECUTOR_MAX_MESSAGE_SIZE = 50000;
+
+// Enforced options (OAppOptionsType3). We only SET if missing.
+const ENFORCED_OPTIONS_MSG_TYPE_SEND = 1;
+const ENFORCED_OPTIONS_GAS_DEFAULT = 200000;
 
 // -----------------------------------------------------------------------------//
 // Helpers
@@ -163,8 +172,20 @@ function encodeExecutorConfig(maxMessageSize: number, executor: string): string 
   return ethers.utils.defaultAbiCoder.encode(['tuple(uint32,address)'], [[maxMessageSize, executor]]);
 }
 
+function encodeEnforcedOptions(gas: number, value: ethers.BigNumberish = 0): string {
+  // Options type 3 format (matches OptionsBuilder.newOptions().addExecutorLzReceiveOption(gas, value))
+  // - version: uint16 = 3
+  // - optionType: uint8 = 1 (LZ_RECEIVE)
+  // - gas: uint128
+  // - value: uint128
+  return ethers.utils.solidityPack(['uint16', 'uint8', 'uint128', 'uint128'], [3, 1, gas, value]);
+}
+
 async function configureForOApp(oapp: string, wallet: ethers.Wallet, dryRun: boolean) {
   if (!oapp) return;
+
+  // Track per-chain nonces to avoid "nonce too low"/replacement issues across rapid txs.
+  const nextNonceBySourceKey: Record<string, number> = {};
 
   for (const [sourceKey, destKey] of PATHWAYS) {
     const source = CHAINS[sourceKey];
@@ -177,6 +198,20 @@ async function configureForOApp(oapp: string, wallet: ethers.Wallet, dryRun: boo
     const signer = wallet.connect(provider);
     const endpoint = new ethers.Contract(source.endpoint, ENDPOINT_ABI, signer);
     const oft = new ethers.Contract(oapp, OFT_ABI, signer);
+
+    const getNextNonce = async (): Promise<number> => {
+      if (nextNonceBySourceKey[sourceKey] === undefined) {
+        nextNonceBySourceKey[sourceKey] = await provider.getTransactionCount(wallet.address, 'pending');
+      }
+      return nextNonceBySourceKey[sourceKey];
+    };
+
+    const markNonceUsed = (nonce: number) => {
+      // Only advance forward
+      if (nextNonceBySourceKey[sourceKey] === undefined || nextNonceBySourceKey[sourceKey] <= nonce) {
+        nextNonceBySourceKey[sourceKey] = nonce + 1;
+      }
+    };
 
     // Ownership check
     const owner = await oft.owner();
@@ -203,6 +238,37 @@ async function configureForOApp(oapp: string, wallet: ethers.Wallet, dryRun: boo
       }
     } catch (e: any) {
       console.log('  ✗ Peer error:', e.message);
+    }
+
+    // 1b) Enforced options (only set if missing; do NOT overwrite existing)
+    if (process.argv.includes('--setOptions')) {
+      try {
+        const currentOptions: string = await oft.enforcedOptions(dest.eid, ENFORCED_OPTIONS_MSG_TYPE_SEND);
+        const hasOptions = currentOptions && currentOptions !== '0x' && currentOptions.length > 2;
+        if (hasOptions) {
+          console.log('  ✓ Enforced options already set');
+        } else {
+          console.log('  Setting enforced options...');
+          if (!dryRun) {
+            const options = encodeEnforcedOptions(ENFORCED_OPTIONS_GAS_DEFAULT, 0);
+            const enforcedParams = [{ eid: dest.eid, msgType: ENFORCED_OPTIONS_MSG_TYPE_SEND, options }];
+
+            const nonce = await getNextNonce();
+            const gasEstimate = await oft.estimateGas.setEnforcedOptions(enforcedParams);
+            const gasLimit = gasEstimate.mul(12).div(10);
+
+            const tx = await oft.setEnforcedOptions(enforcedParams, { gasLimit, nonce });
+            markNonceUsed(nonce);
+            console.log('    TX', tx.hash);
+            await tx.wait();
+          }
+          console.log('  ✓ Enforced options set');
+        }
+      } catch (e: any) {
+        console.log('  ✗ Enforced options error:', e.message);
+      }
+    } else {
+      console.log('  ⏭ Enforced options skipped (use --setOptions)');
     }
 
     // 2) Send library
@@ -243,36 +309,109 @@ async function configureForOApp(oapp: string, wallet: ethers.Wallet, dryRun: boo
 
     // 4) ULN config (DVN)
     try {
-      const params = [
-        {
-          eid: dest.eid,
-          configType: CONFIG_TYPE_ULN,
-          config: encodeUlnConfig([source.dvn], []),
-        },
-      ];
-      console.log('  Setting ULN config (DVN)...');
-      if (!dryRun) {
-        const tx = await endpoint.setConfig(oapp, source.receiveUln302, params, { gasLimit: 300000 });
-        console.log('    TX', tx.hash);
-        await tx.wait();
+      const desiredConfig = encodeUlnConfig([source.dvn], []);
+      let shouldSet = true;
+
+      try {
+        const currentConfig: string = await endpoint.getConfig(oapp, source.receiveUln302, dest.eid, CONFIG_TYPE_ULN);
+        const hasConfig = currentConfig && currentConfig !== '0x' && currentConfig.length > 2;
+        if (hasConfig) {
+          try {
+            const decoded = ethers.utils.defaultAbiCoder.decode(
+              ['tuple(uint64,uint8,uint8,uint8,address[],address[])'],
+              currentConfig,
+            )[0];
+            const requiredDVNs: string[] = decoded[4] || [];
+            const hasRequiredDvn = requiredDVNs.some((a) => a.toLowerCase() === source.dvn.toLowerCase());
+            if (hasRequiredDvn) {
+              shouldSet = false;
+              console.log('  ✓ ULN config already set');
+            } else {
+              console.log('  ULN config missing required DVN; updating...');
+            }
+          } catch {
+            console.log('  ULN config unreadable; updating...');
+          }
+        } else {
+          console.log('  No ULN config found; setting...');
+        }
+      } catch {
+        console.log('  Could not read ULN config; setting...');
       }
-      console.log('  ✓ ULN config set');
+
+      if (shouldSet) {
+        const params = [
+          {
+            eid: dest.eid,
+            configType: CONFIG_TYPE_ULN,
+            config: desiredConfig,
+          },
+        ];
+        console.log('  Setting ULN config (DVN)...');
+        if (!dryRun) {
+          const nonce = await getNextNonce();
+          const gasEstimate = await endpoint.estimateGas.setConfig(oapp, source.receiveUln302, params);
+          const gasLimit = gasEstimate.mul(12).div(10);
+          const tx = await endpoint.setConfig(oapp, source.receiveUln302, params, { gasLimit, nonce });
+          markNonceUsed(nonce);
+          console.log('    TX', tx.hash);
+          await tx.wait();
+        }
+        console.log('  ✓ ULN config set');
+      }
     } catch (e: any) {
       console.log('  ✗ ULN config error:', e.message);
     }
 
     // 5) Executor config
     try {
+      let shouldSet = true;
+      let maxMessageSizeToUse = EXECUTOR_MAX_MESSAGE_SIZE;
+
+      try {
+        const currentConfig: string = await endpoint.getConfig(oapp, source.sendUln302, dest.eid, CONFIG_TYPE_EXECUTOR);
+        const hasConfig = currentConfig && currentConfig !== '0x' && currentConfig.length > 2;
+        if (hasConfig) {
+          try {
+            const decoded = ethers.utils.defaultAbiCoder.decode(['tuple(uint32,address)'], currentConfig)[0];
+            const currentExecutor: string = decoded[1];
+            const currentMaxSizeNum = ethers.BigNumber.from(decoded[0]).toNumber();
+            if (currentMaxSizeNum > 0) {
+              maxMessageSizeToUse = currentMaxSizeNum;
+            }
+
+            if (currentExecutor.toLowerCase() === source.executor.toLowerCase()) {
+              shouldSet = false;
+              console.log(`  ✓ Executor config already set (maxSize=${maxMessageSizeToUse})`);
+            } else {
+              console.log(`  Executor config executor mismatch (${currentExecutor} → ${source.executor}); updating...`);
+            }
+          } catch {
+            console.log('  Executor config unreadable; updating...');
+          }
+        } else {
+          console.log('  No executor config found; setting...');
+        }
+      } catch {
+        console.log('  Could not read executor config; setting...');
+      }
+
+      if (!shouldSet) continue;
+
       const params = [
         {
           eid: dest.eid,
           configType: CONFIG_TYPE_EXECUTOR,
-          config: encodeExecutorConfig(EXECUTOR_MAX_MESSAGE_SIZE, source.executor),
+          config: encodeExecutorConfig(maxMessageSizeToUse, source.executor),
         },
       ];
       console.log('  Setting executor config...');
       if (!dryRun) {
-        const tx = await endpoint.setConfig(oapp, source.sendUln302, params, { gasLimit: 300000 });
+        const nonce = await getNextNonce();
+        const gasEstimate = await endpoint.estimateGas.setConfig(oapp, source.sendUln302, params);
+        const gasLimit = gasEstimate.mul(12).div(10);
+        const tx = await endpoint.setConfig(oapp, source.sendUln302, params, { gasLimit, nonce });
+        markNonceUsed(nonce);
         console.log('    TX', tx.hash);
         await tx.wait();
       }
@@ -310,4 +449,5 @@ main().catch((err) => {
   console.error(err);
   process.exit(1);
 });
+
 

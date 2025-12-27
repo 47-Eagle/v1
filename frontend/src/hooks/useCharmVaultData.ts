@@ -28,20 +28,12 @@ async function fetchFromGraphQL() {
         baseAmount1
         limitAmount0
         limitAmount1
-        pool {
-          id
-          tick
-          sqrtPrice
-          token0
-          token1
-          token0Symbol
-          token1Symbol
-        }
       }
     }
   `;
 
-  const response = await fetch('https://api.studio.thegraph.com/query/64373/47-eagle/v0.0.2', {
+  // Charm Finance stitching endpoint (separate from our Eagle OVault subgraph)
+  const response = await fetch('https://stitching-v2.herokuapp.com/1', {
     method: 'POST',
     headers: { 
       'Content-Type': 'application/json'
@@ -136,7 +128,7 @@ async function fetchFromGraphQL() {
       baseTickUpper: parseInt(vault.baseUpper),
       limitTickLower: parseInt(vault.limitLower),
       limitTickUpper: parseInt(vault.limitUpper),
-      currentTick: vault.pool?.tick ? parseInt(vault.pool.tick) : 0,
+      currentTick: 0,
       baseWeight: baseCalc,
       limitWeight: limitCalc,
       fullRangeWeight: fullRangePercent,
@@ -203,7 +195,7 @@ async function fetchFromGraphQL() {
     baseTickUpper: parseInt(vault.baseUpper),
     limitTickLower: parseInt(vault.limitLower),
     limitTickUpper: parseInt(vault.limitUpper),
-    currentTick: vault.pool?.tick ? parseInt(vault.pool.tick) : 0,
+    currentTick: 0,
     baseWeight: basePercent,
     limitWeight: limitPercent,
     fullRangeWeight: fullRangePercent,

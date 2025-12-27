@@ -353,17 +353,16 @@ contract CharmStrategyWETH is IStrategy, ReentrancyGuard, Ownable {
         uint256 totalWlfi = WLFI.balanceOf(address(this));
         uint256 totalUsd1 = USD1.balanceOf(address(this));
         
-        // Swap USD1 → WETH (instead of returning it)
-        // This is the key change - vault sends USD1, we convert to WETH for Charm
+        // Return USD1 to vault - this strategy only handles WLFI
         if (totalUsd1 > 0) {
-            USD1.forceApprove(address(UNISWAP_ROUTER), totalUsd1);
-            _swapUsd1ToWeth(totalUsd1); // Event emitted inside
+            USD1.safeTransfer(EAGLE_VAULT, totalUsd1);
+            emit UnusedTokensReturned(totalUsd1, 0);
         }
         
-        // Get WETH balance (now includes any WETH swapped from USD1)
+        // Get existing WETH balance
         uint256 totalWeth = WETH.balanceOf(address(this));
         
-        // Return early if we have nothing
+        // Return early if we have no WLFI
         if (totalWlfi == 0 && totalWeth == 0) return 0;
         
         // Get Charm's current ratio
@@ -373,15 +372,7 @@ contract CharmStrategyWETH is IStrategy, ReentrancyGuard, Ownable {
         uint256 finalWlfi;
         
         if (charmWeth > 0 && charmWlfi > 0) {
-            // Case 1: We have WETH but no WLFI - swap half WETH to WLFI
-            if (totalWlfi == 0 && totalWeth > 0) {
-                uint256 wethToSwap = totalWeth / 2;
-                uint256 wlfiFromSwap = _swapWethToWlfi(wethToSwap);
-                totalWlfi = wlfiFromSwap;
-                totalWeth = WETH.balanceOf(address(this));
-            }
-            
-            // Case 2: We have WLFI - calculate proportional WETH needed
+            // Calculate how much WETH we need for our WLFI
             uint256 wethNeeded = (totalWlfi * charmWeth) / charmWlfi;
             
             if (totalWeth >= wethNeeded) {
@@ -424,19 +415,45 @@ contract CharmStrategyWETH is IStrategy, ReentrancyGuard, Ownable {
             finalWlfi = totalWlfi;
         }
         
-        // Single deposit (no batching)
-        // NOTE: Charm vault reverts if both desired amounts are zero.
-        if (finalWeth == 0 && finalWlfi == 0) return 0;
-
+        // BATCH DEPOSIT: Split into smaller deposits to avoid Charm liquidity issues
+        // Max 50 WLFI per batch to prevent "cross" errors at tick boundaries
+        uint256 maxBatchSize = 50e18; // 50 WLFI (reduced from 300)
         uint256 amount0Used;
         uint256 amount1Used;
-        (shares, amount0Used, amount1Used) = charmVault.deposit(
-            finalWeth,
-            finalWlfi,
-            0,
-            0,
-            address(this)
-        );
+        
+        if (finalWlfi <= maxBatchSize) {
+            // Small enough, single deposit
+            (shares, amount0Used, amount1Used) = charmVault.deposit(
+                finalWeth,
+                finalWlfi,
+                0,
+                0,
+                address(this)
+            );
+        } else {
+            // Split into multiple batches
+            uint256 batchCount = (finalWlfi + maxBatchSize - 1) / maxBatchSize; // Round up
+            uint256 wlfiPerBatch = finalWlfi / batchCount;
+            uint256 wethPerBatch = finalWeth / batchCount;
+            
+            for (uint256 i = 0; i < batchCount; i++) {
+                // Last batch gets remainder
+                uint256 batchWlfi = (i == batchCount - 1) ? WLFI.balanceOf(address(this)) : wlfiPerBatch;
+                uint256 batchWeth = (i == batchCount - 1) ? WETH.balanceOf(address(this)) : wethPerBatch;
+                
+                (uint256 batchShares, uint256 used0, uint256 used1) = charmVault.deposit(
+                    batchWeth,
+                    batchWlfi,
+                    0,
+                    0,
+                    address(this)
+                );
+                
+                shares += batchShares;
+                amount0Used += used0;
+                amount1Used += used1;
+            }
+        }
         
         // Return any unused tokens to vault
         {
@@ -851,7 +868,6 @@ contract CharmStrategyWETH is IStrategy, ReentrancyGuard, Ownable {
      * @notice Get total amounts managed by strategy (proportional to our shares)
      * @dev Returns (WLFI, USD1) to match IStrategy interface
      *      Converts WETH to USD1 equivalent using approximate price
-     *      Uses try/catch to handle stale oracle in Charm vault
      */
     function getTotalAmounts() public view returns (uint256 wlfiAmount, uint256 usd1Amount) {
         if (!active || address(charmVault) == address(0)) {
@@ -863,34 +879,17 @@ contract CharmStrategyWETH is IStrategy, ReentrancyGuard, Ownable {
             return (0, 0);
         }
         
+        (uint256 totalWeth, uint256 totalWlfi) = charmVault.getTotalAmounts();
         uint256 totalShares = charmVault.totalSupply();
-        if (totalShares == 0) return (0, 0);
         
-        // Try to get Charm vault totals - may revert with StalePrice if oracle is stale
-        uint256 totalWeth;
-        uint256 totalWlfi;
-        try charmVault.getTotalAmounts() returns (uint256 _totalWeth, uint256 _totalWlfi) {
-            totalWeth = _totalWeth;
-            totalWlfi = _totalWlfi;
-        } catch {
-            // Charm oracle is stale - fall back to direct token balance queries
-            // This is less accurate but allows the vault to function
-            totalWeth = IERC20(WETH).balanceOf(address(charmVault));
-            totalWlfi = IERC20(WLFI).balanceOf(address(charmVault));
-        }
+        if (totalShares == 0) return (0, 0);
         
         // Calculate our proportional share
         wlfiAmount = (totalWlfi * ourShares) / totalShares;
         uint256 wethAmount = (totalWeth * ourShares) / totalShares;
         
         // Convert WETH to USD1 equivalent using Chainlink oracles if available
-        // Wrap in try/catch to handle stale oracle prices gracefully
-        try this._getUsd1Equivalent(wethAmount) returns (uint256 usd1Equiv) {
-            usd1Amount = usd1Equiv;
-        } catch {
-            // If oracles are stale, use a rough estimate (1 WETH ≈ 3000 USD1)
-            usd1Amount = wethAmount * 3000;
-        }
+        usd1Amount = _getUsd1Equivalent(wethAmount);
     }
     
     /**

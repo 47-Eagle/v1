@@ -113,19 +113,20 @@ function AppContent() {
 
   return (
     <motion.div 
-      className="h-screen flex flex-col transition-colors duration-300 bg-[#0a0a0a]" // Match LandingPage bg
+      className="h-screen flex flex-col min-h-0 overflow-x-hidden transition-colors duration-300 bg-[#0a0a0a]" // Match LandingPage bg
+      style={{ height: '100dvh' }}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.5, ease: "easeInOut" }}
     >
       {/* Fixed Header */}
-      <div className="relative z-20 flex-shrink-0">
+      <div className="relative z-20 flex-shrink-0 pt-safe">
         <ModernHeader />
       </div>
 
       {/* Main Content - 3-Floor Navigation */}
-      <div className="relative z-10 flex-1 overflow-hidden">
+      <div className="relative z-10 flex-1 min-h-0 overflow-hidden">
         <EagleEcosystemWithRoutes 
           provider={provider}
           account={account}
@@ -135,7 +136,7 @@ function AppContent() {
 
       {/* Fixed Footer - Ultra Compact on Mobile */}
       <footer className="relative z-20 flex-shrink-0 border-t border-gray-300/30 dark:border-gray-700/30 bg-neo-bg-light/80 dark:bg-neo-bg-dark/80 backdrop-blur-sm transition-colors duration-300">
-        <div className="container mx-auto px-3 sm:px-6 py-1.5 sm:py-4">
+        <div className="container mx-auto px-3 sm:px-6 py-1.5 sm:py-4 pb-safe">
           <div className="flex flex-row justify-between items-center gap-2 sm:gap-3 text-center">
             <div className="flex items-center gap-1.5 sm:gap-3">
               <img 
@@ -179,7 +180,7 @@ function AppContent() {
       </footer>
 
       {/* Toast Notifications */}
-      <div className="fixed bottom-16 sm:bottom-24 right-3 sm:right-6 z-50 space-y-2 sm:space-y-3 max-w-[calc(100vw-1.5rem)] sm:max-w-md">
+      <div className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] sm:bottom-[calc(6rem+env(safe-area-inset-bottom))] right-3 sm:right-6 z-50 space-y-2 sm:space-y-3 max-w-[calc(100vw-1.5rem)] sm:max-w-md">
         <AnimatePresence>
           {toasts.map(toast => (
             <motion.div

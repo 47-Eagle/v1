@@ -47,9 +47,11 @@ export default function EagleEcosystemWithRoutes({ provider, account, onToast }:
 
   // Floor offsets for animation (y-axis vertical positioning)
   const floorOffsets: Record<Floor, { y: number; x: number }> = {
-    'lp': { y: 0, x: 0 },           // Top floor - EAGLE/ETH LP at 0vh
-    'bridge': { y: 100, x: 0 },     // Cross-Chain Bridge at 100vh
-    'vault': { y: 200, x: 0 },      // Main vault interface at 200vh (default)
+    // NOTE: The animated container is 300% tall. translateY(%) is relative to the
+    // element’s own height, so shifting by one "floor" requires 33.333..%.
+    'lp': { y: 0, x: 0 },
+    'bridge': { y: 33.333333, x: 0 },
+    'vault': { y: 66.666666, x: 0 },
   };
 
   const navigateToFloor = (floor: Floor) => {
@@ -122,7 +124,8 @@ export default function EagleEcosystemWithRoutes({ provider, account, onToast }:
 
   return (
     <motion.div 
-      className="h-full overflow-hidden relative bg-white dark:bg-[#0a0a0a]"
+      className="h-full min-h-0 w-full overflow-hidden relative bg-white dark:bg-[#0a0a0a]"
+      style={{ overscrollBehavior: 'contain' }}
       initial={{ scale: 1.05 }}
       animate={{ scale: 1 }}
       transition={{ duration: 0.8, ease: "easeOut" }}
@@ -136,15 +139,15 @@ export default function EagleEcosystemWithRoutes({ provider, account, onToast }:
       />
 
       {/* Base layer - persistent background */}
-      <div className="absolute inset-0 bg-white dark:bg-[#0a0a0a]" style={{ height: '350vh' }} />
+      <div className="fixed inset-0 bg-white dark:bg-[#0a0a0a] pointer-events-none" style={{ height: '100vh' }} />
       
       {/* Cross-fade backgrounds for each floor - creates seamless transitions */}
       {Object.keys(floorColors).map((floor) => (
         <motion.div
           key={`bg-${floor}`}
-          className="absolute inset-0"
-          style={{ 
-            height: '350vh',
+          className="fixed inset-0 pointer-events-none"
+            style={{ 
+            height: '100vh',
             background: `linear-gradient(to bottom, ${floorColors[floor as Floor].top}, ${floorColors[floor as Floor].middle}, ${floorColors[floor as Floor].bottom})`,
             willChange: 'opacity'
           }}
@@ -160,9 +163,9 @@ export default function EagleEcosystemWithRoutes({ provider, account, onToast }:
       
       {/* Radial overlay layers for depth - one per floor */}
       <motion.div 
-        className="absolute inset-0"
+        className="fixed inset-0 pointer-events-none"
         style={{ 
-          height: '350vh',
+          height: '100vh',
           willChange: 'opacity, background'
         }}
         animate={{
@@ -187,7 +190,7 @@ export default function EagleEcosystemWithRoutes({ provider, account, onToast }:
       <motion.div 
         className="absolute inset-0"
         style={{ 
-          height: '350vh',
+          height: '100vh',
           background: isDarkMode ? 
             'radial-gradient(ellipse 80% 60% at center, transparent 30%, rgba(0, 0, 0, 0.4) 100%)' :
             'radial-gradient(ellipse 80% 60% at center, transparent 60%, rgba(0, 0, 0, 0.03) 100%)',
@@ -204,9 +207,9 @@ export default function EagleEcosystemWithRoutes({ provider, account, onToast }:
       
       {/* Transition smoothing overlay */}
       <motion.div 
-        className="absolute inset-0"
+        className="fixed inset-0 pointer-events-none"
         style={{ 
-          height: '350vh',
+          height: '100vh',
           willChange: 'opacity'
         }}
         initial={{ opacity: 0 }}
@@ -226,16 +229,16 @@ export default function EagleEcosystemWithRoutes({ provider, account, onToast }:
       <motion.div
         className="absolute w-full"
         style={{ 
-          height: '350vh', 
-          width: '100vw'
+          height: '300%',
+          width: '100%',
         }}
         initial={{ 
-          y: `${-currentOffset.y}vh`,
-          x: `${-currentOffset.x}vw`,
+          y: `${-currentOffset.y}%`,
+          x: `${-currentOffset.x}%`,
         }}
         animate={{ 
-          y: `${-currentOffset.y}vh`,
-          x: `${-currentOffset.x}vw`,
+          y: `${-currentOffset.y}%`,
+          x: `${-currentOffset.x}%`,
         }}
         transition={{ 
           type: "spring",
@@ -246,7 +249,11 @@ export default function EagleEcosystemWithRoutes({ provider, account, onToast }:
         }}
       >
         {/* Top Floor - EAGLE/ETH LP */}
-        <div className="h-screen overflow-hidden relative" id="lp-floor" style={{ position: 'absolute', top: 0, left: 0, width: '100vw' }}>
+        <div
+          className="overflow-hidden relative"
+          id="lp-floor"
+          style={{ position: 'absolute', top: '0%', left: 0, width: '100%', height: '33.333333%' }}
+        >
           {/* Animated gradient orbs */}
           <motion.div 
             className="absolute inset-0 overflow-hidden pointer-events-none"
@@ -286,8 +293,8 @@ export default function EagleEcosystemWithRoutes({ provider, account, onToast }:
               opacity: isTransitioning && currentFloor !== 'lp' ? 0.4 : 1,
             }}
             transition={{ duration: 1.5, ease: [0.19, 1.0, 0.22, 1.0] }}
-            className="h-full overflow-y-auto overflow-x-hidden relative z-10"
-            style={{ willChange: 'opacity' }}
+            className="h-full min-h-0 overflow-y-auto overflow-x-hidden relative z-10 pb-10"
+            style={{ willChange: 'opacity', scrollbarGutter: 'stable', overscrollBehavior: 'contain' }}
           >
             <EagleLPContent 
               onNavigateDown={() => navigateToFloor('bridge')}
@@ -299,13 +306,14 @@ export default function EagleEcosystemWithRoutes({ provider, account, onToast }:
 
         {/* Cross-Chain Hub - Center Floor */}
         <motion.div 
-          className="h-screen overflow-hidden relative" 
+          className="overflow-hidden relative" 
           id="bridge-floor" 
           style={{ 
             position: 'absolute', 
-            top: '100vh',
+            top: '33.333333%',
             left: 0, 
-            width: '100vw',
+            width: '100%',
+            height: '33.333333%',
             zIndex: currentFloor === 'bridge' ? 15 : 5
           }}
           initial={{ opacity: 0 }}
@@ -359,8 +367,8 @@ export default function EagleEcosystemWithRoutes({ provider, account, onToast }:
               opacity: isTransitioning && currentFloor !== 'bridge' ? 0.4 : 1,
             }}
             transition={{ duration: 1.5, ease: [0.19, 1.0, 0.22, 1.0] }}
-            className="h-full overflow-y-auto overflow-x-hidden scroll-smooth relative z-10 pb-20"
-            style={{ scrollbarGutter: 'stable', willChange: 'opacity' }}
+            className="h-full min-h-0 overflow-y-auto overflow-x-hidden scroll-smooth relative z-10 pb-16 sm:pb-14"
+            style={{ scrollbarGutter: 'stable', willChange: 'opacity', overscrollBehavior: 'contain' }}
           >
             <EagleBridge 
               provider={provider}
@@ -372,13 +380,14 @@ export default function EagleEcosystemWithRoutes({ provider, account, onToast }:
 
         {/* Basement - Vault */}
         <motion.div 
-          className="h-screen overflow-hidden relative" 
+          className="overflow-hidden relative" 
           id="vault-floor" 
           style={{ 
             position: 'absolute', 
-            top: '200vh', 
+            top: '66.666666%', 
             left: 0, 
-            width: '100vw',
+            width: '100%',
+            height: '33.333333%',
             zIndex: currentFloor === 'vault' ? 15 : 5
           }}
           animate={{
@@ -430,8 +439,8 @@ export default function EagleEcosystemWithRoutes({ provider, account, onToast }:
               opacity: isTransitioning && currentFloor !== 'vault' ? 0.4 : 1,
             }}
             transition={{ duration: 1.5, ease: [0.19, 1.0, 0.22, 1.0] }}
-            className="h-full overflow-y-auto overflow-x-hidden scroll-smooth relative z-10 pb-20"
-            style={{ scrollbarGutter: 'stable', willChange: 'opacity' }}
+            className="h-full min-h-0 overflow-y-auto overflow-x-hidden scroll-smooth relative z-10 pb-16 sm:pb-14"
+            style={{ scrollbarGutter: 'stable', willChange: 'opacity', overscrollBehavior: 'contain' }}
           >
             <VaultView 
               provider={provider}

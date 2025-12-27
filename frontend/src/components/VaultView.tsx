@@ -71,7 +71,7 @@ async function fetchCharmVaultData(vaultAddress: string) {
   `;
 
   try {
-    const response = await fetch('https://api.studio.thegraph.com/query/64373/47-eagle/v0.0.2', {
+    const response = await fetch('https://api.studio.thegraph.com/query/64373/47-eagle/v0.0.4', {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json'
@@ -1838,7 +1838,7 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
       console.log('[fetchCharmStats] Querying Eagle Ovault subgraph...');
       
       // Use our own Eagle OVault subgraph on The Graph Studio
-      const response = await fetch('https://api.studio.thegraph.com/query/64373/47-eagle/v0.0.2', {
+      const response = await fetch('https://api.studio.thegraph.com/query/64373/47-eagle/v0.0.4', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json'
@@ -2773,11 +2773,11 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
             
             strategyUSD1InPool = Number(formatEther(strategyUsd1Amount)).toFixed(2);
             strategyWLFIinUSD1Pool = Number(formatEther(strategyWlfiAmount)).toFixed(2);
-            
+        
             console.log('[VaultView] USD1 Strategy - USD1:', strategyUSD1InPool, 'WLFI:', strategyWLFIinUSD1Pool);
             
             // Calculate total USD value
-            const wlfiPriceUsd = Number(formatEther(wlfiPrice));
+        const wlfiPriceUsd = Number(formatEther(wlfiPrice));
             const wlfiValueUsd = Number(formatEther(strategyWlfiAmount)) * wlfiPriceUsd;
             const usd1ValueUsd = Number(formatEther(strategyUsd1Amount)); // USD1 ~= $1.00
             strategyUSD1 = (wlfiValueUsd + usd1ValueUsd).toFixed(2);
@@ -3985,9 +3985,9 @@ export default function VaultView({ provider, account, onToast, onNavigateUp, on
                 {infoTab === 'strategies' && (
                   <StrategiesTab 
                     vaultData={data}
-                    revertData={revertData}
-                    onToast={onToast}
-                  />
+                        revertData={revertData}
+                        onToast={onToast}
+                      />
                 )}
 
                 {infoTab === 'analytics' && (

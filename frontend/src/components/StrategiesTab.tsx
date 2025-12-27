@@ -9,6 +9,7 @@ interface StrategiesTabProps {
 
 export function StrategiesTab({ vaultData, revertData, onToast }: StrategiesTabProps) {
   const [selectedStrategy, setSelectedStrategy] = useState<1 | 2>(1);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   
   // Extract real data
   const wlfiPrice = Number(vaultData.wlfiPrice) || 0.0001;
@@ -101,14 +102,14 @@ export function StrategiesTab({ vaultData, revertData, onToast }: StrategiesTabP
   ];
 
   return (
-    <div className="p-4 sm:p-6">
+    <div className="p-3 sm:p-6 max-w-full">
       {/* Neumorphic Container */}
       <div className="rounded-2xl overflow-hidden
         bg-gradient-to-br from-gray-900 via-gray-850 to-gray-900
         shadow-[8px_8px_16px_rgba(0,0,0,0.4),-4px_-4px_12px_rgba(255,255,255,0.05)]
-        border border-gray-700/30">
+        border border-gray-700/30 min-w-0">
       {/* Strategy Selector Tabs */}
-      <div className="flex gap-[2px] bg-[#2a2a30]">
+      <div className="sticky top-0 z-20 flex gap-[2px] bg-[#2a2a30]">
         <button
           onClick={() => setSelectedStrategy(1)}
           className={`flex-1 py-3 px-4 text-left transition-all duration-300 ${
@@ -184,13 +185,13 @@ export function StrategiesTab({ vaultData, revertData, onToast }: StrategiesTabP
           <div className="absolute top-1/2 left-1/2 w-2 h-[1px] bg-[#222] -translate-x-1/2 -translate-y-1/2 rotate-45" />
         </div>
 
-        <div className="p-6 sm:p-8 relative z-10">
+        <div className="p-4 sm:p-8 relative z-10 min-w-0">
           {/* Header */}
           <header className="border-b-2 border-black pb-5 mb-6 relative">
             <div className="absolute bottom-[-3px] left-0 w-full h-[1px] bg-white/10" />
             <div className="flex flex-col sm:flex-row justify-between sm:items-end gap-4">
               <div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <span className="text-[10px] tracking-[0.4em] text-[#F2D57C] font-black uppercase">
                     Strategic Liquidity Vault
                   </span>
@@ -204,23 +205,23 @@ export function StrategiesTab({ vaultData, revertData, onToast }: StrategiesTabP
                 <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight mt-1">
                   {currentStrategy.name}
                 </h1>
-              </div>
-              <div className="text-left sm:text-right font-mono">
-                <div className="inline-flex items-center gap-2 bg-black px-3 py-1.5 border border-white/10"
-                  style={{ boxShadow: 'inset 2px 2px 5px rgba(0,0,0,0.8), inset -1px -1px 2px rgba(255,255,255,0.05)' }}
-                >
-                  <div className="w-1.5 h-1.5 bg-[#00ff66] rounded-full animate-pulse" style={{ boxShadow: '0 0 8px #00ff66' }} />
-                  <span className="text-[11px] text-[#00ff66] uppercase tracking-wider">Active Protocol</span>
+                <div className="mt-1 text-[11px] text-[#71717a] font-mono break-all">
+                  <a
+                    href={`https://etherscan.io/address/${currentStrategy.contract}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-white/90 underline decoration-white/15 hover:decoration-white/40"
+                  >
+                    {currentStrategy.contract}
+                  </a>
                 </div>
-                <div className="text-[11px] text-[#71717a] mt-2">
-                  ADDR: <span className="text-white">{truncateAddress(currentStrategy.contract)}</span>
-                </div>
               </div>
+              <div className="text-left sm:text-right font-mono min-w-0" />
             </div>
           </header>
 
           {/* Main Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
             {/* Left Column - Main Stats */}
             <div className="lg:col-span-2 space-y-6">
               {/* Liquidity Distribution Panel */}
@@ -230,7 +231,7 @@ export function StrategiesTab({ vaultData, revertData, onToast }: StrategiesTabP
                 <span className="absolute -top-2.5 left-5 bg-[#1a1b1e] px-2 text-[9px] font-bold text-[#71717a] uppercase tracking-wider">
                   Liquidity Distribution
                 </span>
-                <div className="grid grid-cols-2 gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                   <div>
                     <span className="font-mono text-2xl text-white">{formatNumber(currentStrategy.token0Amount, 4)}</span>
                     <span className="block text-[11px] text-[#71717a] uppercase mt-1">{currentStrategy.token0} Balance</span>
@@ -253,15 +254,15 @@ export function StrategiesTab({ vaultData, revertData, onToast }: StrategiesTabP
                 <span className="absolute -top-2.5 left-5 bg-[#1a1b1e] px-2 text-[9px] font-bold text-[#71717a] uppercase tracking-wider">
                   Concentrated Range Monitor
                 </span>
-                <div className="flex justify-between font-mono text-[10px] mb-2">
-                  <span>TICK_LOWER: {currentStrategy.tickLower}</span>
-                  <span className="text-[#00ff66]">IN_RANGE</span>
-                  <span>TICK_UPPER: {currentStrategy.tickUpper}</span>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-2 font-mono text-[10px] mb-2 text-[#aaa]">
+                  <span className="break-all">TICK_LOWER: {currentStrategy.tickLower}</span>
+                  <span className="text-[#00ff66] sm:text-center">IN_RANGE</span>
+                  <span className="break-all sm:text-right">TICK_UPPER: {currentStrategy.tickUpper}</span>
                 </div>
                 {/* Range Visualizer */}
                 <div className="h-14 bg-black border border-[#222] relative overflow-hidden">
                   <div 
-                    className="absolute h-full flex items-center justify-center font-mono text-[9px] text-[#00ff66]"
+                    className="absolute h-full flex items-center justify-center font-mono text-[8px] sm:text-[9px] text-[#00ff66] text-center px-2"
                     style={{ 
                       left: '20%', 
                       right: '25%', 
@@ -281,7 +282,7 @@ export function StrategiesTab({ vaultData, revertData, onToast }: StrategiesTabP
                     </span>
                   </div>
                 </div>
-                <div className="mt-4 grid grid-cols-2 gap-4">
+                <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <span className="font-mono text-base text-white">{currentStrategy.poolPrice}</span>
                     <span className="block text-[11px] text-[#71717a] uppercase mt-1">
@@ -317,6 +318,19 @@ export function StrategiesTab({ vaultData, revertData, onToast }: StrategiesTabP
 
             {/* Right Column - Controls */}
             <div className="space-y-6">
+              {/* Mobile: collapse advanced panels to reduce vertical bloat */}
+              <div className="lg:hidden">
+                <button
+                  onClick={() => setShowAdvanced(v => !v)}
+                  className="w-full py-3 px-4 text-[12px] font-bold uppercase tracking-wider transition-all duration-150
+                    bg-[#141517] border border-black text-white hover:brightness-110"
+                  style={{ boxShadow: '0 4px 0 #000' }}
+                >
+                  {showAdvanced ? 'Hide Advanced' : 'Show Advanced'}
+                </button>
+              </div>
+
+              <div className={`${showAdvanced ? '' : 'hidden lg:block'} space-y-6`}>
               {/* Safety Configuration */}
               <div className="bg-[#141517] border border-black p-5 relative"
                 style={{ boxShadow: 'inset 2px 2px 5px rgba(0,0,0,0.8), inset -1px -1px 2px rgba(255,255,255,0.05)' }}
@@ -415,7 +429,16 @@ export function StrategiesTab({ vaultData, revertData, onToast }: StrategiesTabP
                 REENTRANCY_GUARD: ARMED<br />
                 ZROUTER: <span className="text-[#00ff66]">ENABLED</span><br />
                 AUTO_FEE_TIER: <span className="text-[#00ff66]">ACTIVE</span><br />
-                CHARM_VAULT: {truncateAddress(currentStrategy.charmVault)}
+                CHARM_VAULT:{' '}
+                <a
+                  href={`https://etherscan.io/address/${currentStrategy.charmVault}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#aaa] underline decoration-white/10 hover:decoration-white/40 break-all"
+                >
+                  {currentStrategy.charmVault}
+                </a>
+              </div>
               </div>
             </div>
           </div>
@@ -440,5 +463,6 @@ export function StrategiesTab({ vaultData, revertData, onToast }: StrategiesTabP
     </div>
   );
 }
+
 
 
