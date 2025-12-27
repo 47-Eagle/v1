@@ -25,18 +25,25 @@ const CHAINS = [
 type ChainKey = (typeof CHAINS)[number]['key'];
 
 async function rpcCall(rpc: string, method: string, params: any[]) {
-  const r = await fetch(rpc, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
-  });
-  const json = await r.json().catch(() => null);
-  if (!r.ok) {
-    throw new Error(`RPC HTTP ${r.status}`);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 5000);
+  try {
+    const r = await fetch(rpc, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
+      signal: controller.signal,
+    });
+    const json = await r.json().catch(() => null);
+    if (!r.ok) {
+      throw new Error(`RPC HTTP ${r.status}`);
+    }
+    if (!json) throw new Error('Invalid RPC response');
+    if (json.error) throw new Error(json.error.message || 'RPC error');
+    return json.result as string;
+  } finally {
+    clearTimeout(timeout);
   }
-  if (!json) throw new Error('Invalid RPC response');
-  if (json.error) throw new Error(json.error.message || 'RPC error');
-  return json.result as string;
 }
 
 function hexToBigInt(hex: string): bigint {

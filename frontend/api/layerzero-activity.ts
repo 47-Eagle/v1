@@ -25,6 +25,21 @@ function normalizeMessage(m: any) {
   };
 }
 
+async function fetchWithTimeout(url: string, headers: Record<string, string>, timeoutMs = 6000) {
+  const controller = new AbortController();
+  const t = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, { headers, signal: controller.signal });
+    const text = await res.text();
+    if (!res.ok) throw new Error(`LayerZeroScan HTTP ${res.status}: ${text.slice(0, 180)}`);
+    const json = JSON.parse(text);
+    const data = (json?.data || json?.messages || json?.items || []) as any[];
+    return data;
+  } finally {
+    clearTimeout(t);
+  }
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -52,23 +67,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       'x-api-key': apiKey,
     };
 
-    const lists = await Promise.all(
-      APP_ADDRESSES.map(async (addr) => {
-        // The Scan API is authenticated; endpoint shape may vary between versions.
-        // We try the documented `/messages` endpoint with application filter.
+    const listsSettled = await Promise.allSettled(
+      APP_ADDRESSES.map((addr) => {
         const url = `${LZ_SCAN_BASE}/messages?applicationAddress=${addr.toLowerCase()}&limit=${limit}`;
-        const r = await fetch(url, { headers });
-        const text = await r.text();
-        if (!r.ok) {
-          throw new Error(`LayerZeroScan HTTP ${r.status}: ${text.slice(0, 180)}`);
-        }
-        const json = JSON.parse(text);
-        const data = (json?.data || json?.messages || json?.items || []) as any[];
-        return data;
+        return fetchWithTimeout(url, headers, 6000);
       })
     );
 
-    const merged = ([] as any[]).concat(...lists);
+    const merged = ([] as any[]).concat(
+      ...listsSettled
+        .filter((r): r is PromiseFulfilledResult<any[]> => r.status === 'fulfilled')
+        .map((r) => r.value)
+    );
+
+    if (merged.length === 0 && listsSettled.every((r) => r.status === 'rejected')) {
+      const firstErr = (listsSettled[0] as PromiseRejectedResult)?.reason?.message || 'LayerZeroScan unavailable';
+      return res.status(200).json({
+        success: true,
+        enabled: true,
+        items: [],
+        warning: firstErr,
+      });
+    }
+
     const items = merged
       .map(normalizeMessage)
       .filter((x) => x.id && (x.srcEid || x.dstEid || x.srcTxHash))
