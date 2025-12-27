@@ -29,6 +29,26 @@ interface BridgeTransaction {
   status: 'pending' | 'inflight' | 'delivered' | 'failed';
 }
 
+type ChainSupply = {
+  chain: SupportedChain;
+  supply: number; // human units
+  percent: number;
+  ok?: boolean;
+  error?: string;
+  userBalance?: number; // human units (optional, when wallet connected)
+};
+
+type LayerZeroActivityItem = {
+  id: string;
+  srcEid?: number;
+  dstEid?: number;
+  status?: string;
+  created?: string;
+  updated?: string;
+  srcTxHash?: string;
+  dstTxHash?: string;
+};
+
 // All supported bridge chains
 const BRIDGE_CHAINS = Object.keys(CHAIN_CONFIG) as SupportedChain[];
 
@@ -399,6 +419,7 @@ const ChainSelector = ({
 // Main Bridge Component
 export default function EagleBridge({ provider, account, onToast }: Props) {
   // State
+  const [activeTab, setActiveTab] = useState<'bridge' | 'supply'>('bridge');
   const [sourceChain, setSourceChain] = useState<SupportedChain>('ethereum');
   const [destChain, setDestChain] = useState<SupportedChain>('monad');
   const [amount, setAmount] = useState('');
@@ -412,10 +433,263 @@ export default function EagleBridge({ provider, account, onToast }: Props) {
   const [destOpen, setDestOpen] = useState(false);
   const [currentTx, setCurrentTx] = useState<BridgeTransaction | null>(null);
   const [recentTxs, setRecentTxs] = useState<BridgeTransaction[]>([]);
+  const [supplyLoading, setSupplyLoading] = useState(false);
+  const [supplyError, setSupplyError] = useState<string | null>(null);
+  const [chainSupplies, setChainSupplies] = useState<ChainSupply[]>([]);
+  const [activityLoading, setActivityLoading] = useState(false);
+  const [activityError, setActivityError] = useState<string | null>(null);
+  const [activityItems, setActivityItems] = useState<LayerZeroActivityItem[]>([]);
+  // null = endpoint not available (local vite dev), false = key not configured, true = enabled
+  const [activityEnabled, setActivityEnabled] = useState<boolean | null>(null);
 
   // Get RPC provider for specific chain (read-only)
   const getChainProvider = useCallback((chain: SupportedChain): JsonRpcProvider => {
     return new JsonRpcProvider(CHAIN_CONFIG[chain].rpc);
+  }, []);
+
+  const formatCompact = (n: number, digits: number = 2) => {
+    if (!Number.isFinite(n)) return '0';
+    const abs = Math.abs(n);
+    if (abs >= 1e9) return `${(n / 1e9).toFixed(digits)}B`;
+    if (abs >= 1e6) return `${(n / 1e6).toFixed(digits)}M`;
+    if (abs >= 1e3) return `${(n / 1e3).toFixed(digits)}K`;
+    return n.toFixed(digits);
+  };
+
+  const formatWithCommas = (n: number, digits: number = 6) => {
+    if (!Number.isFinite(n)) return '0';
+    return n.toLocaleString(undefined, { minimumFractionDigits: digits, maximumFractionDigits: digits });
+  };
+
+  const ERC20_DECIMALS_SIG = '0x313ce567';
+  const ERC20_TOTAL_SUPPLY_SIG = '0x18160ddd';
+  const ERC20_BALANCE_OF_SIG = '0x70a08231'; // balanceOf(address)
+
+  const rpcCall = async (rpcUrl: string, method: string, params: any[], timeoutMs: number = 8_000) => {
+    const controller = new AbortController();
+    const id = window.setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const res = await fetch(rpcUrl, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
+        signal: controller.signal,
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!json) throw new Error('Invalid RPC response');
+      if (json.error) throw new Error(json.error.message || 'RPC error');
+      return json.result as string;
+    } finally {
+      window.clearTimeout(id);
+    }
+  };
+
+  const hexToBigIntSafe = (hex: string) => {
+    if (!hex || typeof hex !== 'string') return 0n;
+    if (hex === '0x') return 0n;
+    try {
+      return BigInt(hex);
+    } catch {
+      return 0n;
+    }
+  };
+
+  const toUnitsNumber = (value: bigint, decimals: number) => {
+    // Supplies are ~50M, safe to represent as number for UI.
+    const base = 10n ** BigInt(decimals);
+    const whole = value / base;
+    const frac = value % base;
+    const fracStr = frac.toString().padStart(decimals, '0').slice(0, 6);
+    const num = Number(`${whole.toString()}.${fracStr}`);
+    return Number.isFinite(num) ? num : Number(whole);
+  };
+
+  const encodeBalanceOfData = (addr: string) => {
+    // calldata = selector + 32-byte padded address
+    // zeroPadValue returns 0x-prefixed 32-byte hex
+    const padded = zeroPadValue(addr, 32).slice(2);
+    return `${ERC20_BALANCE_OF_SIG}${padded}`;
+  };
+
+  const eidToChain = (eid?: number): SupportedChain | null => {
+    if (!eid) return null;
+    const found = (Object.keys(CHAIN_CONFIG) as SupportedChain[]).find((c) => CHAIN_CONFIG[c].eid === eid);
+    return found || null;
+  };
+
+  // Fetch supply distribution across supported networks (OFT totalSupply per chain)
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchSupply = async () => {
+      try {
+        setSupplyLoading(true);
+        setSupplyError(null);
+
+        // Prefer server-side aggregation when available (Vercel functions) so we avoid
+        // browser RPC/CORS flakiness. Fallback to direct RPC calls when /api isn't present (local dev).
+        try {
+          const r = await fetch(account ? `/api/supply-by-network?account=${account}` : '/api/supply-by-network');
+          if (r.ok) {
+            const json = await r.json();
+            const items: any[] = json?.items || [];
+            let rows: ChainSupply[] = items
+              .map((it) => ({
+                chain: it.chain as SupportedChain,
+                supply: Number(it.supply) || 0,
+                percent: Number(it.percent) || 0,
+                ok: it.ok ?? true,
+                error: it.error,
+                userBalance: typeof it.userBalance === 'number' ? it.userBalance : undefined,
+              }))
+              .filter((x) => x.chain && Number.isFinite(x.supply));
+
+            // userBalance comes from the server endpoint when account is provided.
+
+            rows = rows.sort((a, b) => (b.supply || 0) - (a.supply || 0));
+            if (!cancelled) setChainSupplies(rows);
+            return;
+          }
+        } catch {
+          // ignore and fallback to direct RPC below
+        }
+
+        // Direct JSON-RPC fallback (more predictable than ethers' provider in browsers).
+        // Fetch Ethereum + Monad first (largest supplies, easiest to sanity-check).
+        const orderedChains: SupportedChain[] = [
+          'ethereum',
+          'monad',
+          ...BRIDGE_CHAINS.filter((c) => c !== 'ethereum' && c !== 'monad'),
+        ];
+
+        const results: Array<{ chain: SupportedChain; supply: number; ok: boolean; error?: string; userBalance?: number }> = [];
+
+        for (const chain of orderedChains) {
+          const cfg = CHAIN_CONFIG[chain];
+          const tokenAddress = cfg.contracts?.EAGLE;
+          const rpcUrl = cfg.rpc;
+
+          if (!tokenAddress || !rpcUrl) {
+            results.push({ chain, supply: 0, ok: false, error: 'missing rpc/address' });
+            continue;
+          }
+
+          try {
+            const calls: Promise<string>[] = [
+              rpcCall(rpcUrl, 'eth_call', [{ to: tokenAddress, data: ERC20_DECIMALS_SIG }, 'latest'], 8_000),
+              rpcCall(rpcUrl, 'eth_call', [{ to: tokenAddress, data: ERC20_TOTAL_SUPPLY_SIG }, 'latest'], 8_000),
+            ];
+            if (account) {
+              calls.push(rpcCall(rpcUrl, 'eth_call', [{ to: tokenAddress, data: encodeBalanceOfData(account) }, 'latest'], 8_000));
+            }
+            const [decimalsHex, supplyHex, balanceHex] = await Promise.all(calls);
+
+            const decimals = Number(hexToBigIntSafe(decimalsHex)) || 18;
+            const supply = toUnitsNumber(hexToBigIntSafe(supplyHex), decimals);
+            const userBalance = account && balanceHex ? toUnitsNumber(hexToBigIntSafe(balanceHex), decimals) : undefined;
+            results.push({
+              chain,
+              supply: Number.isFinite(supply) ? supply : 0,
+              ok: true,
+              userBalance: userBalance !== undefined && Number.isFinite(userBalance) ? userBalance : undefined,
+            });
+          } catch (e: any) {
+            results.push({
+              chain,
+              supply: 0,
+              ok: false,
+              error: e?.name === 'AbortError' ? 'timeout' : (e?.message || 'failed'),
+            });
+          }
+        }
+
+        const totalKnown = results.filter((r) => r.ok).reduce((sum, r) => sum + (r.supply || 0), 0);
+        const rows: ChainSupply[] = results
+          .map((r) => ({
+            chain: r.chain,
+            supply: r.supply,
+            percent: totalKnown > 0 ? (r.supply / totalKnown) * 100 : 0,
+            ok: r.ok,
+            error: r.error,
+            userBalance: r.userBalance,
+          }))
+          .sort((a, b) => b.supply - a.supply);
+
+        if (!cancelled) setChainSupplies(rows);
+      } catch (e: any) {
+        if (!cancelled) {
+          setChainSupplies([]);
+          setSupplyError(e?.message || 'Failed to load supply distribution');
+        }
+      } finally {
+        if (!cancelled) setSupplyLoading(false);
+      }
+    };
+
+    fetchSupply();
+    const id = window.setInterval(fetchSupply, 60_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(id);
+    };
+  }, [getChainProvider, account]);
+
+  // Fetch recent LayerZero activity (requires LayerZero Scan API key)
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchActivity = async () => {
+      try {
+        setActivityLoading(true);
+        setActivityError(null);
+
+        const res = await fetch('/api/layerzero-activity?limit=10');
+        // In local dev (vite) this endpoint doesn't exist; we silently fallback to link-only.
+        if (!res.ok) {
+          if (!cancelled) {
+            setActivityItems([]);
+            setActivityError(null);
+            setActivityEnabled(null);
+          }
+          return;
+        }
+
+        const json = await res.json();
+        if (json?.enabled === false) {
+          if (!cancelled) {
+            setActivityItems([]);
+            setActivityError(null);
+            setActivityEnabled(false);
+          }
+          return;
+        }
+        if (json?.success === false) {
+          throw new Error(json?.error || 'LayerZero activity unavailable');
+        }
+
+        const items: LayerZeroActivityItem[] = (json?.items || []).slice(0, 20);
+        if (!cancelled) {
+          setActivityItems(items);
+          setActivityEnabled(true);
+        }
+      } catch (e: any) {
+        if (!cancelled) {
+          setActivityItems([]);
+          setActivityError(e?.message || 'Failed to load LayerZero activity');
+          setActivityEnabled(true);
+        }
+      } finally {
+        if (!cancelled) setActivityLoading(false);
+      }
+    };
+
+    fetchActivity();
+    const id = window.setInterval(fetchActivity, 30_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(id);
+    };
   }, []);
 
   // Check current network
@@ -780,205 +1054,297 @@ export default function EagleBridge({ provider, account, onToast }: Props) {
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-[480px] relative z-10"
+        className="w-full max-w-[520px] relative z-10"
       >
-        {/* Main Card */}
-        <motion.div 
-          className="relative rounded-3xl bg-gradient-to-b from-white/[0.08] to-white/[0.02] 
-            border border-white/10 backdrop-blur-xl overflow-hidden"
-          style={{ boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}
-        >
-          {/* Top Bar: Logo + OFT Address */}
-          <div className="px-6 pt-6 flex flex-col items-start gap-3">
-            <div className="flex items-center gap-3">
-              <TokenIcon symbol="EAGLE" className="w-10 h-10 rounded-full" />
-              <div className="flex flex-col">
-                <span className="text-base font-bold text-white">EagleShareOFT</span>
-                <a 
-                  href={`${CHAIN_CONFIG[sourceChain].explorer}/address/${CHAIN_CONFIG[sourceChain].contracts?.EAGLE}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs font-mono text-white/40 hover:text-[#F2D57C] transition-colors flex items-center gap-1"
-                >
-                  {CHAIN_CONFIG[sourceChain].contracts?.EAGLE}
-                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
-                </a>
-              </div>
-            </div>
-          </div>
-
-          {/* From Section */}
-          <div className="px-6 pt-4 pb-4">
-            <div className="rounded-2xl bg-white/[0.03] border border-white/5 p-4">
-              <div className="flex justify-between items-center mb-3">
-                <span className="text-xs font-medium text-white/40 uppercase tracking-wider">From</span>
-                <ChainSelector
-                  value={sourceChain}
-                  onChange={handleSourceChange}
-                  excludeChain={destChain}
-                  label="Select source network"
-                  isOpen={sourceOpen}
-                  onToggle={() => setSourceOpen(!sourceOpen)}
-                  disabled={isProcessing}
-                />
-              </div>
-              
-              <div className="flex items-center gap-4">
-                <input
-                  type="number"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  placeholder="0.00"
-                  disabled={isProcessing}
-                  className="flex-1 bg-transparent text-4xl font-bold text-white placeholder-white/10 
-                    focus:outline-none disabled:opacity-50 w-full py-2"
-                />
-              </div>
-              
-              <div className="flex justify-between items-center mt-3">
-                <span className="text-xs text-white/30 font-medium">
-                  ≈ ${(parseFloat(amount || '0') * 1.0).toFixed(2)}
-                </span>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-white/30">
-                    Available: {parseFloat(balance).toFixed(4)}
-                  </span>
-                  <button
-                    onClick={() => setAmount(balance)}
-                    disabled={isProcessing}
-                    className="text-[10px] font-bold text-violet-400 hover:text-violet-300 
-                      px-2 py-1 rounded-lg bg-violet-500/10 hover:bg-violet-500/20 disabled:opacity-50 transition-colors uppercase tracking-wider"
-                  >
-                    Max
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Swap Button */}
-          <div className="relative h-0 flex justify-center">
-            <motion.button
-              onClick={handleSwap}
-              disabled={isProcessing}
-              whileHover={{ scale: 1.1, rotate: 180 }}
-              whileTap={{ scale: 0.95 }}
-              className="absolute -translate-y-1/2 z-10 w-10 h-10 rounded-xl 
-                bg-[#0a0a0a] border border-white/10 flex items-center justify-center
-                hover:border-white/30 transition-colors disabled:opacity-50"
+        {/* Tabs */}
+        <div className="mb-4 flex items-center gap-2">
+          {[
+            { key: 'bridge', label: 'Bridge' },
+            { key: 'supply', label: 'Supply' },
+          ].map((t) => (
+            <button
+              key={t.key}
+              onClick={() => setActiveTab(t.key as 'bridge' | 'supply')}
+              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+                activeTab === t.key
+                  ? 'bg-white/15 text-white shadow-lg'
+                  : 'bg-white/5 text-white/60 hover:bg-white/10'
+              }`}
             >
-              <svg className="w-4 h-4 text-white/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4" />
-              </svg>
-            </motion.button>
-          </div>
+              {t.label}
+            </button>
+          ))}
+        </div>
 
-          {/* To Section */}
-          <div className="px-6 pt-4 pb-4">
-            <div className="rounded-2xl bg-white/[0.03] border border-white/5 p-4">
-              <div className="flex justify-between items-center mb-3">
-                <span className="text-xs font-medium text-white/40 uppercase tracking-wider">To</span>
-                <ChainSelector
-                  value={destChain}
-                  onChange={handleDestChange}
-                  excludeChain={sourceChain}
-                  label="Select destination network"
-                  isOpen={destOpen}
-                  onToggle={() => setDestOpen(!destOpen)}
-                  disabled={isProcessing}
-                />
-              </div>
-              
-              <div className="flex items-center gap-4">
-                <div className="flex-1 text-4xl font-bold text-white/50 py-2">
-                  {amount && parseFloat(amount) > 0 ? parseFloat(parseFloat(amount).toFixed(6)).toString() : '0'}
-                </div>
-              </div>
-              
-              <div className="flex justify-between items-center mt-3">
-                <span className="text-xs text-white/30 font-medium uppercase tracking-wider">
-                  You Receive
-                </span>
-                {(quote || isQuoting) && (
-                  <span className="text-xs text-violet-400 flex items-center gap-1">
-                    {isQuoting ? (
-                      <>
-                        <motion.div
-                          animate={{ rotate: 360 }}
-                          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                          className="w-3 h-3 border border-violet-400 border-t-transparent rounded-full"
-                        />
-                        Fetching Quote...
-                      </>
-                    ) : quote ? (
-                      <>Network Fee: {formatFee(quote.nativeFee)}</>
-                    ) : null}
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Transaction Info */}
+        {activeTab === 'bridge' && (
           <motion.div 
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            className="px-6 pb-2"
+            className="relative rounded-3xl bg-gradient-to-b from-white/[0.08] to-white/[0.02] 
+              border border-white/10 backdrop-blur-xl overflow-hidden"
+            style={{ boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}
           >
-          </motion.div>
-
-          {/* Network Warning */}
-          {account && !isOnCorrectNetwork && (
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="mx-6 mb-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20"
-            >
-              <div className="flex items-center gap-2 text-amber-400 text-sm">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-                Switch to {CHAIN_CONFIG[sourceChain].name} to bridge
+            {/* Top Bar: Logo + OFT Address */}
+            <div className="px-6 pt-6 flex flex-col items-start gap-3">
+              <div className="flex items-center gap-3">
+                <TokenIcon symbol="EAGLE" className="w-10 h-10 rounded-full" />
+                <div className="flex flex-col">
+                  <span className="text-base font-bold text-white">EagleShareOFT</span>
+                  <a 
+                    href={`${CHAIN_CONFIG[sourceChain].explorer}/address/${CHAIN_CONFIG[sourceChain].contracts?.EAGLE}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs font-mono text-white/40 hover:text-[#F2D57C] transition-colors flex items-center gap-1"
+                  >
+                    {CHAIN_CONFIG[sourceChain].contracts?.EAGLE}
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
+                </div>
               </div>
-            </motion.div>
-          )}
+            </div>
 
-          {/* Bridge Button */}
-          <div className="p-6 pt-2">
-            <motion.button
-              onClick={handleBridge}
-              disabled={!canBridge}
-              whileHover={{ scale: canBridge ? 1.02 : 1 }}
-              whileTap={{ scale: canBridge ? 0.98 : 1 }}
-              className={`w-full py-4 rounded-2xl font-semibold text-lg transition-all relative overflow-hidden
-                ${canBridge 
-                  ? 'bg-gradient-to-r from-[#F2D57C] to-[#E2B745] text-black shadow-lg shadow-[#F2D57C]/25' 
-                  : 'bg-white/5 text-white/40 cursor-not-allowed'
-                }`}
+            {/* From Section */}
+            <div className="px-6 pt-4 pb-4">
+              <div className="rounded-2xl bg-white/[0.03] border border-white/5 p-4">
+                <div className="flex justify-between items-center mb-3">
+                  <span className="text-xs font-medium text-white/40 uppercase tracking-wider">From</span>
+                  <ChainSelector
+                    value={sourceChain}
+                    onChange={handleSourceChange}
+                    excludeChain={destChain}
+                    label="Select source network"
+                    isOpen={sourceOpen}
+                    onToggle={() => setSourceOpen(!sourceOpen)}
+                    disabled={isProcessing}
+                  />
+                </div>
+                
+                <div className="flex items-center gap-4">
+                  <input
+                    type="number"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    placeholder="0.00"
+                    disabled={isProcessing}
+                    className="flex-1 bg-transparent text-4xl font-bold text-white placeholder-white/10 
+                      focus:outline-none disabled:opacity-50 w-full py-2"
+                  />
+                </div>
+                
+                <div className="flex justify-between items-center mt-3">
+                  <span className="text-xs text-white/30 font-medium">
+                    ≈ ${(parseFloat(amount || '0') * 1.0).toFixed(2)}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-white/30">
+                      Available: {parseFloat(balance).toFixed(4)}
+                    </span>
+                    <button
+                      onClick={() => setAmount(balance)}
+                      disabled={isProcessing}
+                      className="text-[10px] font-bold text-violet-400 hover:text-violet-300 
+                        px-2 py-1 rounded-lg bg-violet-500/10 hover:bg-violet-500/20 disabled:opacity-50 transition-colors uppercase tracking-wider"
+                    >
+                      Max
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Swap Button */}
+            <div className="relative h-0 flex justify-center">
+              <motion.button
+                onClick={handleSwap}
+                disabled={isProcessing}
+                whileHover={{ scale: 1.1, rotate: 180 }}
+                whileTap={{ scale: 0.95 }}
+                className="absolute -translate-y-1/2 z-10 w-10 h-10 rounded-xl 
+                  bg-[#0a0a0a] border border-white/10 flex items-center justify-center
+                  hover:border-white/30 transition-colors disabled:opacity-50"
+              >
+                <svg className="w-4 h-4 text-white/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4" />
+                </svg>
+              </motion.button>
+            </div>
+
+            {/* To Section */}
+            <div className="px-6 pt-4 pb-4">
+              <div className="rounded-2xl bg-white/[0.03] border border-white/5 p-4">
+                <div className="flex justify-between items-center mb-3">
+                  <span className="text-xs font-medium text-white/40 uppercase tracking-wider">To</span>
+                  <ChainSelector
+                    value={destChain}
+                    onChange={handleDestChange}
+                    excludeChain={sourceChain}
+                    label="Select destination network"
+                    isOpen={destOpen}
+                    onToggle={() => setDestOpen(!destOpen)}
+                    disabled={isProcessing}
+                  />
+                </div>
+                
+                <div className="flex items-center gap-4">
+                  <div className="flex-1 text-4xl font-bold text-white/50 py-2">
+                    {amount && parseFloat(amount) > 0 ? parseFloat(parseFloat(amount).toFixed(6)).toString() : '0'}
+                  </div>
+                </div>
+                
+                <div className="flex justify-between items-center mt-3">
+                  <span className="text-xs text-white/30 font-medium uppercase tracking-wider">
+                    You Receive
+                  </span>
+                  {(quote || isQuoting) && (
+                    <span className="text-xs text-violet-400 flex items-center gap-1">
+                      {isQuoting ? (
+                        <>
+                          <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                            className="w-3 h-3 border border-violet-400 border-t-transparent rounded-full"
+                          />
+                          Fetching Quote...
+                        </>
+                      ) : quote ? (
+                        <>Network Fee: {formatFee(quote.nativeFee)}</>
+                      ) : null}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Transaction Info */}
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              className="px-6 pb-2"
             >
-              {isProcessing && (
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-                  animate={{ x: ['-100%', '100%'] }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
-                />
-              )}
-              <span className="relative flex items-center justify-center gap-2">
+            </motion.div>
+
+            {/* Network Warning */}
+            {account && !isOnCorrectNetwork && (
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="mx-6 mb-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20"
+              >
+                <div className="flex items-center gap-2 text-amber-400 text-sm">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  Switch to {CHAIN_CONFIG[sourceChain].name} to bridge
+                </div>
+              </motion.div>
+            )}
+
+            {/* Bridge Button */}
+            <div className="p-6 pt-2">
+              <motion.button
+                onClick={handleBridge}
+                disabled={!canBridge}
+                whileHover={{ scale: canBridge ? 1.02 : 1 }}
+                whileTap={{ scale: canBridge ? 0.98 : 1 }}
+                className={`w-full py-4 rounded-2xl font-semibold text-lg transition-all relative overflow-hidden
+                  ${canBridge 
+                    ? 'bg-gradient-to-r from-[#F2D57C] to-[#E2B745] text-black shadow-lg shadow-[#F2D57C]/25' 
+                    : 'bg-white/5 text-white/40 cursor-not-allowed'
+                  }`}
+              >
                 {isProcessing && (
                   <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                    className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full"
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                    animate={{ x: ['-100%', '100%'] }}
+                    transition={{ duration: 1.5, repeat: Infinity }}
                   />
                 )}
-                {getButtonText()}
-              </span>
-            </motion.button>
-          </div>
-        </motion.div>
+                <span className="relative flex items-center justify-center gap-2">
+                  {isProcessing && (
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                      className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full"
+                    />
+                  )}
+                  {getButtonText()}
+                </span>
+              </motion.button>
+            </div>
+          </motion.div>
+        )}
+
+        {activeTab === 'supply' && (
+          <motion.div
+            className="rounded-3xl bg-gradient-to-b from-white/[0.08] to-white/[0.02] border border-white/10 backdrop-blur-xl overflow-hidden p-5"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-xs text-white/40 uppercase tracking-wider">Supply by Network</div>
+                <div className="text-[10px] text-white/30">
+                  {supplyLoading ? 'Updating…' : supplyError ? 'Unavailable' : 'Live'}
+                </div>
+              </div>
+              <div className="text-[11px] text-white/30">
+                Wallet connected: {account ? `${account.slice(0, 6)}…${account.slice(-4)}` : 'No'}
+              </div>
+            </div>
+
+            {supplyError ? (
+              <div className="mt-3 text-xs text-red-300">{supplyError}</div>
+            ) : (
+              <div className="mt-4 space-y-2">
+                {chainSupplies.length === 0 && supplyLoading ? (
+                  <div className="text-xs text-white/30">Loading supply…</div>
+                ) : (
+                  chainSupplies.slice(0, 12).map((row) => (
+                    <div key={row.chain} className="flex items-center gap-3">
+                      <ChainIcon chain={row.chain} className="w-5 h-5" />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="text-sm text-white/80 truncate">{CHAIN_CONFIG[row.chain].name}</div>
+                          <div className="text-sm text-white tabular-nums">
+                            <span title={formatWithCommas(row.supply, 6)}>
+                              {row.ok === false ? '—' : formatCompact(row.supply, 2)}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="mt-1 h-1 bg-white/5 rounded-full overflow-hidden">
+                          <div
+                            className="h-full rounded-full"
+                            style={{
+                              width: `${Math.min(100, Math.max(0, row.percent))}%`,
+                              background: `linear-gradient(90deg, ${CHAIN_CONFIG[row.chain].color}, #F2D57C)`,
+                              boxShadow: '0 0 12px rgba(242, 213, 124, 0.22)',
+                            }}
+                          />
+                        </div>
+                        {account && row.ok !== false && typeof row.userBalance === 'number' ? (
+                          <div className="mt-1 flex items-center justify-between text-[10px]">
+                            <span className="text-white/25">You</span>
+                            <span className="text-white/45 font-mono tabular-nums">
+                              {formatCompact(row.userBalance, 4)}
+                            </span>
+                          </div>
+                        ) : null}
+                      </div>
+                      <div className="text-[10px] font-mono text-white/35 w-14 text-right">
+                        {row.ok === false ? 'ERR' : `${row.percent.toFixed(1)}%`}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+
+            <div className="mt-3 text-[10px] text-white/25">
+              `totalSupply()` per chain (OFT), refreshed every 60s. If connected, shows your `balanceOf()` per chain too.
+            </div>
+          </motion.div>
+        )}
 
         {/* Transaction Tracker */}
         <AnimatePresence>
@@ -1045,6 +1411,152 @@ export default function EagleBridge({ provider, account, onToast }: Props) {
             </div>
           </motion.div>
         )}
+
+        {/* Network Supply + Global Activity */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.25 }}
+          className="mt-6 grid grid-cols-1 gap-3"
+        >
+          {/* Supply by Network */}
+          <div className="rounded-2xl bg-white/[0.03] border border-white/5 p-4">
+            <div className="flex items-center justify-between">
+              <div className="text-xs text-white/40 uppercase tracking-wider">Supply by Network</div>
+              <div className="text-[10px] text-white/30">
+                {supplyLoading ? 'Updating…' : supplyError ? 'Unavailable' : 'Live'}
+              </div>
+            </div>
+
+            {supplyError ? (
+              <div className="mt-3 text-xs text-red-300">{supplyError}</div>
+            ) : (
+              <div className="mt-3 space-y-2">
+                {chainSupplies.length === 0 && supplyLoading ? (
+                  <div className="text-xs text-white/30">Loading supply…</div>
+                ) : (
+                  chainSupplies.slice(0, 8).map((row) => (
+                    <div key={row.chain} className="flex items-center gap-3">
+                      <ChainIcon chain={row.chain} className="w-5 h-5" />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="text-sm text-white/80 truncate">{CHAIN_CONFIG[row.chain].name}</div>
+                          <div className="text-sm text-white tabular-nums">
+                            <span title={formatWithCommas(row.supply, 6)}>
+                              {row.ok === false ? '—' : formatCompact(row.supply, 2)}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="mt-1 h-1 bg-white/5 rounded-full overflow-hidden">
+                          <div
+                            className="h-full rounded-full"
+                            style={{
+                              width: `${Math.min(100, Math.max(0, row.percent))}%`,
+                              background: `linear-gradient(90deg, ${CHAIN_CONFIG[row.chain].color}, #F2D57C)`,
+                              boxShadow: '0 0 12px rgba(242, 213, 124, 0.22)',
+                            }}
+                          />
+                        </div>
+                        {account && row.ok !== false && typeof row.userBalance === 'number' ? (
+                          <div className="mt-1 flex items-center justify-between text-[10px]">
+                            <span className="text-white/25">You</span>
+                            <span className="text-white/45 font-mono tabular-nums">
+                              {formatCompact(row.userBalance, 4)}
+                            </span>
+                          </div>
+                        ) : null}
+                      </div>
+                      <div className="text-[10px] font-mono text-white/35 w-14 text-right">
+                        {row.ok === false ? 'ERR' : `${row.percent.toFixed(1)}%`}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+
+            <div className="mt-3 text-[10px] text-white/25">
+              `totalSupply()` per chain (OFT), refreshed every 60s. If connected, shows your `balanceOf()` per chain too.
+            </div>
+          </div>
+
+          {/* LayerZero Activity */}
+          <div className="rounded-2xl bg-white/[0.03] border border-white/5 p-4">
+            <div className="flex items-center justify-between">
+              <div className="text-xs text-white/40 uppercase tracking-wider">Recent LayerZero Activity</div>
+              <a
+                href="https://layerzeroscan.com/application/47eagle"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[10px] text-white/30 hover:text-[#F2D57C] transition-colors"
+              >
+                View on LayerZeroScan →
+              </a>
+            </div>
+
+            {activityEnabled === false ? (
+              <div className="mt-3 text-xs text-white/30">
+                This feed is served by a server-side proxy so your API key stays private.
+                Configure <span className="font-mono text-white/50">LAYERZERO_SCAN_API_KEY</span> in Vercel env vars to enable it.
+              </div>
+            ) : activityEnabled === null ? (
+              <div className="mt-3 text-xs text-white/30">
+                The in-app feed runs via Vercel functions (not available under `vite dev`).
+                Deploy to Vercel or run `vercel dev` to see it locally.
+              </div>
+            ) : activityError ? (
+              <div className="mt-3 text-xs text-red-300">{activityError}</div>
+            ) : (
+              <div className="mt-3 space-y-2">
+                {activityLoading && activityItems.length === 0 ? (
+                  <div className="text-xs text-white/30">Loading activity…</div>
+                ) : activityItems.length === 0 ? (
+                  <div className="text-xs text-white/30">No recent messages found.</div>
+                ) : (
+                  activityItems.slice(0, 8).map((m) => {
+                    const srcChain = eidToChain(m.srcEid);
+                    const dstChain = eidToChain(m.dstEid);
+                    const status = (m.status || '').toUpperCase();
+                    const color =
+                      status.includes('DELIVER') ? 'text-green-400' :
+                      status.includes('FAIL') ? 'text-red-400' :
+                      status.includes('INFLIGHT') || status.includes('CONFIRM') ? 'text-purple-400' :
+                      'text-white/40';
+                    const labelSrc = srcChain ? CHAIN_CONFIG[srcChain].name : (m.srcEid ? `EID ${m.srcEid}` : '—');
+                    const labelDst = dstChain ? CHAIN_CONFIG[dstChain].name : (m.dstEid ? `EID ${m.dstEid}` : '—');
+                    const ts = m.created ? new Date(m.created).getTime() : null;
+                    const time = ts ? new Date(ts).toLocaleString() : '';
+                    const linkHash = m.srcTxHash || m.dstTxHash;
+
+                    return (
+                      <a
+                        key={m.id}
+                        href={linkHash ? `https://layerzeroscan.com/tx/${linkHash}` : 'https://layerzeroscan.com/application/47eagle'}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-between gap-3 p-2 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] hover:border-white/10 transition-all"
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          {srcChain ? <ChainIcon chain={srcChain} className="w-4 h-4" /> : <div className="w-4 h-4 rounded bg-white/10" />}
+                          <span className="text-xs text-white/70 truncate">{labelSrc}</span>
+                          <span className="text-xs text-white/20">→</span>
+                          {dstChain ? <ChainIcon chain={dstChain} className="w-4 h-4" /> : <div className="w-4 h-4 rounded bg-white/10" />}
+                          <span className="text-xs text-white/70 truncate">{labelDst}</span>
+                        </div>
+                        <div className="flex flex-col items-end">
+                          <span className={`text-[10px] uppercase tracking-wider ${color}`}>
+                            {status || 'UNKNOWN'}
+                          </span>
+                          <span className="text-[10px] text-white/25">{time}</span>
+                        </div>
+                      </a>
+                    );
+                  })
+                )}
+              </div>
+            )}
+          </div>
+        </motion.div>
 
         {/* Supported Networks */}
         <motion.div 
