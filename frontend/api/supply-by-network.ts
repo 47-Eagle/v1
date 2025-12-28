@@ -5,18 +5,19 @@ declare const process: { env: Record<string, string | undefined> };
 // Server-side supply aggregation (avoids browser RPC/CORS flakiness).
 // Uses JSON-RPC eth_call to fetch `decimals()` + `totalSupply()` for the OFT address on each chain.
 
-const ERC20_DECIMALS_SIG = '0x313ce567'; // decimals()
 const ERC20_TOTAL_SUPPLY_SIG = '0x18160ddd'; // totalSupply()
 const ERC20_BALANCE_OF_SIG = '0x70a08231'; // balanceOf(address)
 
 const EAGLE_OFT = '0x474eD38C256A7FA0f3B8c48496CE1102ab0eA91E';
+const EAGLE_DECIMALS = 18;
 
 const CHAINS = [
   { key: 'ethereum', name: 'Ethereum', rpc: 'https://eth.llamarpc.com' },
   { key: 'base', name: 'Base', rpc: 'https://mainnet.base.org' },
   { key: 'sonic', name: 'Sonic', rpc: 'https://rpc.soniclabs.com' },
   { key: 'hyperevm', name: 'HyperEVM', rpc: 'https://rpc.hyperliquid.xyz/evm' },
-  { key: 'monad', name: 'Monad', rpc: 'https://rpc-mainnet.monadinfra.com' },
+  // Monad public RPCs can be rate-limited; try multiple fallbacks.
+  { key: 'monad', name: 'Monad', rpc: 'https://monad-mainnet.drpc.org,https://monad-mainnet.api.onfinality.io/public,https://rpc-mainnet.monadinfra.com' },
   { key: 'bsc', name: 'BNB Chain', rpc: 'https://bsc-dataseed.binance.org' },
   { key: 'avalanche', name: 'Avalanche', rpc: 'https://api.avax.network/ext/bc/C/rpc' },
   { key: 'arbitrum', name: 'Arbitrum', rpc: 'https://arb1.arbitrum.io/rpc' },
@@ -26,7 +27,7 @@ type ChainKey = (typeof CHAINS)[number]['key'];
 
 async function rpcCall(rpc: string, method: string, params: any[]) {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 5000);
+  const timeout = setTimeout(() => controller.abort(), 6500);
   try {
     const r = await fetch(rpc, {
       method: 'POST',
@@ -46,9 +47,30 @@ async function rpcCall(rpc: string, method: string, params: any[]) {
   }
 }
 
-function hexToBigInt(hex: string): bigint {
+async function rpcCallWithFallback(rpcs: string[], method: string, params: any[]) {
+  let lastErr: any = null;
+  for (const rpc of rpcs) {
+    try {
+      return await rpcCall(rpc, method, params);
+    } catch (e: any) {
+      lastErr = e;
+      // If we're rate-limited, try the next RPC quickly.
+      const msg = String(e?.message || '');
+      if (msg.includes('429')) continue;
+      continue;
+    }
+  }
+  throw lastErr || new Error('RPC failed');
+}
+
+function hexToBigIntSafe(hex: string): bigint {
   if (!hex || typeof hex !== 'string') return 0n;
-  return BigInt(hex);
+  if (hex === '0x') return 0n;
+  try {
+    return BigInt(hex);
+  } catch {
+    return 0n;
+  }
 }
 
 function isAddress(addr: string): boolean {
@@ -73,6 +95,12 @@ function formatUnits(value: bigint, decimals: number): number {
   return Number.isFinite(asNum) ? asNum : Number(whole);
 }
 
+type CachedSupply = { ts: number; supply: number };
+const SUPPLY_CACHE_TTL_MS = 2 * 60 * 1000;
+const SUPPLY_CACHE: Record<string, CachedSupply> =
+  // @ts-expect-error - allow global cache on the serverless runtime
+  (globalThis.__EAGLE_SUPPLY_CACHE ??= {});
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -85,7 +113,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const account = typeof req.query.account === 'string' && isAddress(req.query.account) ? req.query.account : null;
 
-    const getRpc = (chainKey: ChainKey, fallback: string) => {
+    const getRpcList = (chainKey: ChainKey, fallback: string) => {
       const upper = chainKey.toUpperCase();
       const envKey = `${upper}_RPC_URL`;
       const candidates = [
@@ -96,27 +124,45 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         process.env[`${upper}_RPC_ENDPOINT`],
         process.env[`VITE_${upper}_RPC_ENDPOINT`],
       ].filter((v): v is string => typeof v === 'string' && v.trim().length > 0);
-      return candidates[0] || fallback;
+      const raw = (candidates[0] || fallback).trim();
+      return raw
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
     };
 
     const rows = await Promise.all(
       CHAINS.map(async (c) => {
-        try {
-          const rpc = getRpc(c.key as ChainKey, c.rpc);
-          const decimalsHex = await rpcCall(rpc, 'eth_call', [{ to: EAGLE_OFT, data: ERC20_DECIMALS_SIG }, 'latest']);
-          const supplyHex = await rpcCall(rpc, 'eth_call', [{ to: EAGLE_OFT, data: ERC20_TOTAL_SUPPLY_SIG }, 'latest']);
+        const chain = c.key as ChainKey;
+        const cacheKey = `supply:${chain}`;
+        const cached = SUPPLY_CACHE[cacheKey];
+        const now = Date.now();
 
-          const decimals = Number(hexToBigInt(decimalsHex));
-          const supply = formatUnits(hexToBigInt(supplyHex), Number.isFinite(decimals) ? decimals : 18);
+        const rpcs = getRpcList(chain, c.rpc);
+
+        try {
+          // Keep RPC usage minimal: EAGLE is 18 decimals, so we only need totalSupply().
+          const supplyHex = await rpcCallWithFallback(rpcs, 'eth_call', [{ to: EAGLE_OFT, data: ERC20_TOTAL_SUPPLY_SIG }, 'latest']);
+          const supply = formatUnits(hexToBigIntSafe(supplyHex), EAGLE_DECIMALS);
+          SUPPLY_CACHE[cacheKey] = { ts: now, supply };
+
           let userBalance: number | null = null;
           if (account) {
-            const balHex = await rpcCall(rpc, 'eth_call', [{ to: EAGLE_OFT, data: encodeBalanceOfData(account) }, 'latest']);
-            userBalance = formatUnits(hexToBigInt(balHex), Number.isFinite(decimals) ? decimals : 18);
+            try {
+              const balHex = await rpcCallWithFallback(rpcs, 'eth_call', [{ to: EAGLE_OFT, data: encodeBalanceOfData(account) }, 'latest']);
+              userBalance = formatUnits(hexToBigIntSafe(balHex), EAGLE_DECIMALS);
+            } catch {
+              // Balance is optional; don't fail the whole chain if it errors.
+              userBalance = null;
+            }
           }
 
-          return { chain: c.key as ChainKey, name: c.name, supply, userBalance, ok: true as const };
+          return { chain, name: c.name, supply, userBalance, ok: true as const };
         } catch (e: any) {
-          return { chain: c.key as ChainKey, name: c.name, supply: 0, userBalance: null, ok: false as const, error: e?.message || 'failed' };
+          if (cached && now - cached.ts <= SUPPLY_CACHE_TTL_MS) {
+            return { chain, name: c.name, supply: cached.supply, userBalance: null, ok: true as const };
+          }
+          return { chain, name: c.name, supply: 0, userBalance: null, ok: false as const, error: e?.message || 'failed' };
         }
       })
     );
@@ -134,7 +180,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }))
       .sort((a, b) => b.supply - a.supply);
 
-    res.setHeader('Cache-Control', 'public, s-maxage=30, stale-while-revalidate=120');
+    res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
     return res.status(200).json({ success: true, token: EAGLE_OFT, total, items });
   } catch (e: any) {
     return res.status(500).json({ success: false, error: e?.message || 'Failed to compute supply' });

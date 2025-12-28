@@ -5,16 +5,34 @@ declare const process: { env: Record<string, string | undefined> };
 const LZ_SCAN_BASE = 'https://api-mainnet.layerzero-scan.com';
 
 // These two “Omnichain Application” addresses are shown on LayerZeroScan for `47eagle`.
+// We query across all supported EIDs using the Scan API `messages/oapp/{eid}/{address}` endpoint.
 const APP_ADDRESSES = [
   '0x474eD38C256A7FA0f3B8c48496CE1102ab0eA91E',
   '0x2437f6555350c131647daa0c655c4b49a7af3621',
 ];
 
+// LayerZero V2 Endpoint IDs (EIDs) for the networks surfaced in the Bridge UI.
+// Keep in sync with `frontend/src/config/contracts.ts` (CHAIN_CONFIG.*.eid).
+const EIDS = [
+  30101, // Ethereum
+  30184, // Base
+  30390, // Monad
+  30110, // Arbitrum
+  30102, // BNB Chain
+  30106, // Avalanche
+  30367, // HyperEVM
+  30332, // Sonic
+] as const;
+
 function normalizeMessage(m: any) {
   const pathway = m?.pathway || {};
   const status = m?.status?.name || m?.status || m?.statusName;
   return {
-    id: String(m?.id || `${m?.srcTxHash || m?.srcTx?.hash || ''}-${m?.dstTxHash || m?.dstTx?.hash || ''}-${m?.nonce || ''}`),
+    id: String(
+      m?.id ||
+        m?.guid ||
+        `${m?.srcTxHash || m?.srcTx?.hash || ''}-${m?.dstTxHash || m?.dstTx?.hash || ''}-${m?.nonce || ''}`
+    ),
     srcEid: Number(pathway?.srcEid || m?.srcEid || m?.srcChainId || 0) || undefined,
     dstEid: Number(pathway?.dstEid || m?.dstEid || m?.dstChainId || 0) || undefined,
     status: typeof status === 'string' ? status : undefined,
@@ -70,9 +88,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       'x-api-key': apiKey,
     };
 
+    const queries = EIDS.flatMap((eid) => APP_ADDRESSES.map((addr) => ({ eid, addr })));
+
     const listsSettled = await Promise.allSettled(
-      APP_ADDRESSES.map((addr) => {
-        const url = `${LZ_SCAN_BASE}/messages?applicationAddress=${addr.toLowerCase()}&limit=${limit}`;
+      queries.map(({ eid, addr }) => {
+        const url = `${LZ_SCAN_BASE}/messages/oapp/${eid}/${addr.toLowerCase()}?limit=${limit}`;
         return fetchWithTimeout(url, headers, 6000);
       })
     );
@@ -93,9 +113,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    const items = merged
+    const normalized = merged
       .map(normalizeMessage)
-      .filter((x) => x.id && (x.srcEid || x.dstEid || x.srcTxHash))
+      .filter((x) => x.id);
+
+    // De-dupe and sort newest-first
+    const byId = new Map<string, ReturnType<typeof normalizeMessage>>();
+    for (const it of normalized) byId.set(it.id, it);
+    const items = Array.from(byId.values())
+      .sort((a, b) => {
+        const ta = a.updated ? Date.parse(a.updated) : a.created ? Date.parse(a.created) : 0;
+        const tb = b.updated ? Date.parse(b.updated) : b.created ? Date.parse(b.created) : 0;
+        return (Number.isFinite(tb) ? tb : 0) - (Number.isFinite(ta) ? ta : 0);
+      })
       .slice(0, limit);
 
     // Cache briefly
