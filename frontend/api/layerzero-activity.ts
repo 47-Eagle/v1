@@ -2,27 +2,28 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 declare const process: { env: Record<string, string | undefined> };
 
+// NOTE:
+// The LayerZeroScan "public app" UI shows recent messages for an application, but the
+// Scan API message-list endpoints are not reliably accessible without an API key.
+//
+// To avoid API keys entirely (and keep the in-app feed always-on), we:
+// 1) Pull recent tx hashes by scanning recent logs from the OFT contract on-chain.
+// 2) Resolve those tx hashes via LayerZeroScan's public `/tx/{hash}` endpoint.
+//
+// This yields accurate message status + dst tx hash when available.
 const LZ_SCAN_BASE = 'https://api-mainnet.layerzero-scan.com';
+const LZ_TX_LOOKUP = (txHash: string) => `${LZ_SCAN_BASE}/tx/${txHash}`;
 
-// These two “Omnichain Application” addresses are shown on LayerZeroScan for `47eagle`.
-// We query across all supported EIDs using the Scan API `messages/oapp/{eid}/{address}` endpoint.
-const APP_ADDRESSES = [
-  '0x474eD38C256A7FA0f3B8c48496CE1102ab0eA91E',
-  '0x2437f6555350c131647daa0c655c4b49a7af3621',
-];
+const EAGLE_OFT = '0x474eD38C256A7FA0f3B8c48496CE1102ab0eA91E';
 
-// LayerZero V2 Endpoint IDs (EIDs) for the networks surfaced in the Bridge UI.
-// Keep in sync with `frontend/src/config/contracts.ts` (CHAIN_CONFIG.*.eid).
-const EIDS = [
-  30101, // Ethereum
-  30184, // Base
-  30390, // Monad
-  30110, // Arbitrum
-  30102, // BNB Chain
-  30106, // Avalanche
-  30367, // HyperEVM
-  30332, // Sonic
+// Keep this small to avoid heavy RPC usage on every page view.
+const CHAINS_TO_SCAN = [
+  { key: 'ethereum', rpc: 'https://eth.llamarpc.com', lookbackBlocks: 5_000 },
+  { key: 'base', rpc: 'https://mainnet.base.org', lookbackBlocks: 20_000 },
+  { key: 'monad', rpc: 'https://monad-mainnet.drpc.org,https://monad-mainnet.api.onfinality.io/public,https://rpc-mainnet.monadinfra.com', lookbackBlocks: 30_000 },
 ] as const;
+
+type ChainKey = (typeof CHAINS_TO_SCAN)[number]['key'];
 
 function normalizeMessage(m: any) {
   const pathway = m?.pathway || {};
@@ -58,6 +59,66 @@ async function fetchWithTimeout(url: string, headers: Record<string, string>, ti
   }
 }
 
+async function rpcCallWithTimeout(rpc: string, method: string, params: any[], timeoutMs = 6000) {
+  const controller = new AbortController();
+  const t = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(rpc, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
+      signal: controller.signal,
+    });
+    const json = await res.json().catch(() => null);
+    if (!res.ok) throw new Error(`RPC HTTP ${res.status}`);
+    if (!json) throw new Error('Invalid RPC response');
+    if (json.error) throw new Error(json.error.message || 'RPC error');
+    return json.result as any;
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+async function rpcCallWithFallback(rpcs: string[], method: string, params: any[], timeoutMs = 6000) {
+  let lastErr: any = null;
+  for (const rpc of rpcs) {
+    try {
+      return await rpcCallWithTimeout(rpc, method, params, timeoutMs);
+    } catch (e: any) {
+      lastErr = e;
+      continue;
+    }
+  }
+  throw lastErr || new Error('RPC failed');
+}
+
+function getRpcList(chainKey: ChainKey, fallback: string) {
+  const upper = chainKey.toUpperCase();
+  const envKey = `${upper}_RPC_URL`;
+  const candidates = [
+    process.env[envKey],
+    process.env[`VITE_${envKey}`],
+    process.env[`${upper}_RPC`],
+    process.env[`VITE_${upper}_RPC`],
+    process.env[`${upper}_RPC_ENDPOINT`],
+    process.env[`VITE_${upper}_RPC_ENDPOINT`],
+  ].filter((v): v is string => typeof v === 'string' && v.trim().length > 0);
+  const raw = (candidates[0] || fallback).trim();
+  return raw
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+function hexToNumberSafe(hex: string): number {
+  if (!hex || typeof hex !== 'string') return 0;
+  try {
+    return Number(BigInt(hex));
+  } catch {
+    return 0;
+  }
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -67,57 +128,79 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'GET') return res.status(405).json({ success: false, error: 'Method not allowed' });
 
-  const apiKey =
-    process.env.LAYERZERO_SCAN_API_KEY ||
-    // Back-compat: some setups stored this as OFT_API_KEY
-    process.env.OFT_API_KEY;
-  if (!apiKey) {
-    return res.status(200).json({
-      success: true,
-      enabled: false,
-      reason: 'LAYERZERO_SCAN_API_KEY (or OFT_API_KEY) not set',
-      items: [],
-    });
-  }
-
   const limit = Math.min(50, Math.max(1, Number(req.query.limit || 10)));
 
   try {
-    const headers: Record<string, string> = {
-      Accept: 'application/json',
-      'x-api-key': apiKey,
-    };
+    const headers: Record<string, string> = { Accept: 'application/json' };
 
-    const queries = EIDS.flatMap((eid) => APP_ADDRESSES.map((addr) => ({ eid, addr })));
+    // 1) Collect recent tx hashes from recent OFT logs on each chain.
+    const txCandidates: Array<{ txHash: string; chain: ChainKey; blockNumber: number }> = [];
+    const logsSettled = await Promise.allSettled(
+      CHAINS_TO_SCAN.map(async (c) => {
+        const rpcs = getRpcList(c.key, c.rpc);
+        const latestHex = await rpcCallWithFallback(rpcs, 'eth_blockNumber', [], 4000);
+        const latest = hexToNumberSafe(latestHex);
+        const from = Math.max(0, latest - c.lookbackBlocks);
+        const logs = await rpcCallWithFallback(
+          rpcs,
+          'eth_getLogs',
+          [
+            {
+              address: EAGLE_OFT,
+              fromBlock: `0x${from.toString(16)}`,
+              toBlock: 'latest',
+            },
+          ],
+          6000
+        );
 
-    const listsSettled = await Promise.allSettled(
-      queries.map(({ eid, addr }) => {
-        const url = `${LZ_SCAN_BASE}/messages/oapp/${eid}/${addr.toLowerCase()}?limit=${limit}`;
-        return fetchWithTimeout(url, headers, 6000);
+        if (Array.isArray(logs)) {
+          for (const l of logs) {
+            const txHash = String(l?.transactionHash || '');
+            const bn = hexToNumberSafe(String(l?.blockNumber || '0x0'));
+            if (/^0x[a-fA-F0-9]{64}$/.test(txHash)) {
+              txCandidates.push({ txHash, chain: c.key, blockNumber: bn });
+            }
+          }
+        }
+      })
+    );
+
+    // If RPCs are totally down, surface a helpful warning.
+    if (txCandidates.length === 0 && logsSettled.every((r) => r.status === 'rejected')) {
+      const firstErr = (logsSettled[0] as PromiseRejectedResult)?.reason?.message || 'RPC unavailable';
+      return res.status(200).json({ success: true, enabled: true, items: [], warning: firstErr });
+    }
+
+    // 2) Resolve unique tx hashes via LayerZeroScan's public /tx endpoint.
+    const uniqTx = Array.from(
+      new Map(
+        txCandidates
+          .sort((a, b) => (b.blockNumber || 0) - (a.blockNumber || 0))
+          .map((x) => [x.txHash, x])
+      ).values()
+    )
+      .slice(0, Math.min(40, limit * 6))
+      .map((x) => x.txHash);
+
+    const txLookupsSettled = await Promise.allSettled(
+      uniqTx.map(async (txHash) => {
+        const url = LZ_TX_LOOKUP(txHash);
+        const json = await fetchWithTimeout(url, headers, 6000);
+        // /tx returns { messages: [...] }
+        const messages = (json?.messages || json?.data || []) as any[];
+        return Array.isArray(messages) ? messages : [];
       })
     );
 
     const merged = ([] as any[]).concat(
-      ...listsSettled
+      ...txLookupsSettled
         .filter((r): r is PromiseFulfilledResult<any[]> => r.status === 'fulfilled')
         .map((r) => r.value)
     );
 
-    if (merged.length === 0 && listsSettled.every((r) => r.status === 'rejected')) {
-      const firstErr = (listsSettled[0] as PromiseRejectedResult)?.reason?.message || 'LayerZeroScan unavailable';
-      return res.status(200).json({
-        success: true,
-        enabled: true,
-        items: [],
-        warning: firstErr,
-      });
-    }
+    const normalized = merged.map(normalizeMessage).filter((x) => x.id);
 
-    const normalized = merged
-      .map(normalizeMessage)
-      .filter((x) => x.id);
-
-    // De-dupe and sort newest-first
     const byId = new Map<string, ReturnType<typeof normalizeMessage>>();
     for (const it of normalized) byId.set(it.id, it);
     const items = Array.from(byId.values())
