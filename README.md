@@ -26,6 +26,7 @@
 - [Contributing](#contributing)
 - [Security](#security)
 - [License](#license)
+- [Support](#support)
 
 ## Overview
 
@@ -38,7 +39,7 @@ Eagle OVault is a production-ready, dual-token yield aggregator that accepts WLF
 - **📈 Automated Yield**: Integration with Charm Finance's alpha vault strategies
 - **🔒 Non-Custodial**: Your keys, your tokens - full control maintained
 - **⚡ Gas Optimized**: Efficient smart contracts with comprehensive testing
-- **🛡️ Battle-Tested**: Full security audit coverage and formal verification
+- **🛡️ Security-focused**: Built to be auditable; arrange an independent review before production use
 
 ## Multi-Chain Support
 
@@ -51,9 +52,9 @@ Eagle OVault is deployed across **8+ blockchains** with full LayerZero V2 integr
 | **Arbitrum** | 42161 | 30110 | 🟢 Production | [Arbiscan](https://arbiscan.io) |
 | **BSC** | 56 | 30102 | 🔄 Configured | [BscScan](https://bscscan.com) |
 | **Avalanche** | 43114 | 30106 | 🔄 Configured | [SnowTrace](https://snowtrace.io) |
-| **Monad** | 10143 | 30390 | 🔄 Configured | [MonadExplorer](https://monadexplorer.com) |
+| **Monad** | 143 | 30390 | 🔄 Configured | [Monad Blockscout](https://monad.blockscout.com) |
 | **Sonic** | 146 | 30332 | 🔄 Configured | [SonicScan](https://sonicscan.org) |
-| **HyperEVM** | 999 | 30275 | 🔄 Configured | [Hyperliquid](https://hyperliquid.xyz) |
+| **HyperEVM** | 999 | 30367 | 🔄 Configured | [Purrsec](https://purrsec.com/hyperliquid) |
 
 ## Architecture
 
@@ -157,7 +158,7 @@ cat deployments/README.md
 ## Project Structure
 
 ```
-eagle-ovault/
+v1/
 ├── contracts/              # Solidity smart contracts
 │   ├── EagleOVault.sol     # Main vault contract
 │   ├── strategies/         # Yield strategies (Charm Finance integration)
@@ -168,6 +169,8 @@ eagle-ovault/
 │   ├── base/              # Base network contracts
 │   ├── arbitrum/          # Arbitrum contracts
 │   └── README.md          # Deployment documentation
+├── docs/
+│   └── notes/              # Historical fix notes / internal checklists
 ├── solana/                 # Solana programs & LayerZero integration
 │   ├── programs/          # Smart contracts (OFT, Registry)
 │   └── layerzero/         # Integration tools & examples
@@ -252,17 +255,15 @@ pnpm test
 
 ### Security Features
 
-- ✅ **Security Audits**: Multiple independent security reviews completed
-- ✅ **Access Controls**: Multi-signature requirements for admin functions
-- ✅ **Input Validation**: All user inputs validated and sanitized
-- ✅ **OpenZeppelin Standards**: Battle-tested contract patterns
-- ✅ **LayerZero Security**: Cross-chain messaging security verified
+- ✅ **Access Controls**: Multi-signature recommended for admin functions
+- ✅ **OpenZeppelin Standards**: Uses standard, battle-tested primitives where applicable
+- ✅ **Defense-in-depth**: Reentrancy guards, input checks, and conservative external integrations
 
 ### Security Monitoring
 
 - **Dependabot**: Automated dependency updates and security alerts
 - **Manual Reviews**: Regular security assessments
-- **Audit Reports**: Available in deployment documentation
+- **Audit Reports**: If/when published, link them here (recommended before production use)
 
 ## Usage
 
@@ -410,13 +411,11 @@ We welcome contributions! Please follow these steps:
 
 ### Audit Reports
 
-- ✅ **Comprehensive Security Audit** - Completed by leading DeFi security firm
-- ✅ **Formal Verification** - Key contracts mathematically verified
-- ✅ **Bug Bounty Program** - Active program for responsible disclosure
+- If you are deploying this system in production, arrange an independent security review and publish the report(s) here.
 
 ### Best Practices
 
-- **Multi-signature** required for admin functions
+- **Multi-signature** recommended for admin functions
 - **Timelock** on critical parameter changes
 - **Emergency pause** functionality available
 - **Input validation** on all user-facing functions
