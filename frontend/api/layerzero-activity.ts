@@ -49,12 +49,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'GET') return res.status(405).json({ success: false, error: 'Method not allowed' });
 
-  const apiKey = process.env.LAYERZERO_SCAN_API_KEY;
+  const apiKey =
+    process.env.LAYERZERO_SCAN_API_KEY ||
+    // Back-compat: some setups stored this as OFT_API_KEY
+    process.env.OFT_API_KEY;
   if (!apiKey) {
     return res.status(200).json({
       success: true,
       enabled: false,
-      reason: 'LAYERZERO_SCAN_API_KEY not set',
+      reason: 'LAYERZERO_SCAN_API_KEY (or OFT_API_KEY) not set',
       items: [],
     });
   }

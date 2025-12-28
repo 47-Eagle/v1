@@ -86,8 +86,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const account = typeof req.query.account === 'string' && isAddress(req.query.account) ? req.query.account : null;
 
     const getRpc = (chainKey: ChainKey, fallback: string) => {
-      const envKey = `${chainKey.toUpperCase()}_RPC_URL`;
-      return process.env[envKey] || fallback;
+      const upper = chainKey.toUpperCase();
+      const envKey = `${upper}_RPC_URL`;
+      const candidates = [
+        process.env[envKey],
+        process.env[`VITE_${envKey}`],
+        process.env[`${upper}_RPC`],
+        process.env[`VITE_${upper}_RPC`],
+        process.env[`${upper}_RPC_ENDPOINT`],
+        process.env[`VITE_${upper}_RPC_ENDPOINT`],
+      ].filter((v): v is string => typeof v === 'string' && v.trim().length > 0);
+      return candidates[0] || fallback;
     };
 
     const rows = await Promise.all(
