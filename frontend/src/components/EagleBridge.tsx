@@ -1496,6 +1496,74 @@ export default function EagleBridge({ provider, account, onToast }: Props) {
           </div>
         </motion.div>
 
+        {/* Network Supply (compact) */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="mt-6"
+        >
+          <div className="rounded-2xl bg-white/[0.03] border border-white/5 p-4">
+            <div className="flex items-center justify-between">
+              <div className="text-xs text-white/40 uppercase tracking-wider">Supply by Network</div>
+              <div className="text-[10px] text-white/30">
+                {supplyLoading ? 'Updating…' : supplyError ? 'Unavailable' : 'Live'}
+              </div>
+            </div>
+
+            {supplyError ? (
+              <div className="mt-3 text-xs text-red-300">{supplyError}</div>
+            ) : (
+              <div className="mt-3 space-y-2">
+                {chainSupplies.length === 0 && supplyLoading ? (
+                  <div className="text-xs text-white/30">Loading supply…</div>
+                ) : (
+                  chainSupplies.slice(0, 8).map((row) => (
+                    <div key={row.chain} className="flex items-center gap-3">
+                      <ChainIcon chain={row.chain} className="w-5 h-5" />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="text-sm text-white/80 truncate">{CHAIN_CONFIG[row.chain].name}</div>
+                          <div className="text-sm text-white tabular-nums">
+                            <span title={formatWithCommas(row.supply, 6)}>
+                              {row.ok === false ? '—' : formatCompact(row.supply, 2)}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="mt-1 h-1 bg-white/5 rounded-full overflow-hidden">
+                          <div
+                            className="h-full rounded-full"
+                            style={{
+                              width: `${Math.min(100, Math.max(0, row.percent))}%`,
+                              background: `linear-gradient(90deg, ${CHAIN_CONFIG[row.chain].color}, #F2D57C)`,
+                              boxShadow: '0 0 12px rgba(242, 213, 124, 0.22)',
+                            }}
+                          />
+                        </div>
+                        {account && row.ok !== false && typeof row.userBalance === 'number' ? (
+                          <div className="mt-1 flex items-center justify-between text-[10px]">
+                            <span className="text-white/25">You</span>
+                            <span className="text-white/45 font-mono tabular-nums">
+                              {formatCompact(row.userBalance, 4)}
+                            </span>
+                          </div>
+                        ) : null}
+                      </div>
+                      <div className="text-[10px] font-mono text-white/35 w-14 text-right">
+                        {row.ok === false ? 'ERR' : `${row.percent.toFixed(1)}%`}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+
+            <div className="mt-3 text-[10px] text-white/25">
+              `totalSupply()` per chain (OFT), refreshed every 60s. If connected, shows your `balanceOf()` per chain too.
+            </div>
+          </div>
+        </motion.div>
+
         {/* Supported Networks */}
         <motion.div 
           initial={{ opacity: 0 }}
