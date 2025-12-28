@@ -32,6 +32,7 @@ target/deploy/*-keypair.json
 # IDE and editor files
 .vscode/
 .cursor/
+.vercel/
 *.swp
 *.swo
 *~
