@@ -15,6 +15,7 @@
 - [Architecture](#architecture)
 - [Quick Start](#quick-start)
 - [Project Structure](#project-structure)
+- [Project Notes](#project-notes)
 - [Contracts](#contracts)
 - [Solana Integration](#solana-integration)
 - [Testing & Security](#testing--security)
@@ -180,6 +181,10 @@ eagle-ovault/
 ├── README.md             # This documentation
 └── package.json          # Project configuration
 ```
+
+## Project Notes
+
+Historical fix notes, checklists, and internal status docs live under `docs/notes/` to keep the repo root clean.
 
 ## Contracts
 
