@@ -1,1 +1,1 @@
-{"version":"1.0.0","build":"88afb9d","contracts":{"vault":"0x47ff05aaf066f50baefdcfdcadf63d3762eea91e","strategy":"0x47b6419c3abb94cdee7ace5f0bcbbbdd697ea91e"}}
+{"version":"1.0.0","build":"011d599","contracts":{"registry":"0x47c81c9a70CA7518d3b911bC8C8b11000e92F59e","vault":"0x47b3ef629D9cB8DFcF8A6c61058338f4e99d7953","shareOFT":"0x474eD38C256A7FA0f3B8c48496CE1102ab0eA91E","wrapper":"0x47dAc5063c526dBc6f157093DD1D62d9DE8891c5"}}

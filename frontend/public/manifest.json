@@ -1,6 +1,6 @@
 {
   "name": "Eagle Omnichain Vault",
-  "description": "Dual-token yield vault accepting WLFI and USD1 with LayerZero omnichain capabilities. Earn yield through Charm Finance Uniswap V3 LP strategies while maintaining cross-chain liquidity.",
+  "description": "ERC-4626 compliant, WLFI-denominated vault with synchronous deposit/redemption and omnichain share bridging via LayerZero V2.",
   "iconPath": "eagle-logo.svg",
   "providedBy": {
     "name": "Eagle Protocol",
@@ -16,8 +16,7 @@
     "yield",
     "uniswap",
     "charm-finance",
-    "wlfi",
-    "usd1"
+    "wlfi"
   ],
   "chain_ids": [1],
   "social": {
