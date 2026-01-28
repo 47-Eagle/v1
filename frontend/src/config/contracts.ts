@@ -9,10 +9,14 @@ export const CONTRACTS = {
   OFT: '0x474eD38C256A7FA0f3B8c48496CE1102ab0eA91E',         // EagleShareOFT (Premium Vanity) ✨✅
   WRAPPER: '0x47dAc5063c526dBc6f157093DD1D62d9DE8891c5',     // EagleVaultWrapper (Vanity) ✅
   
-  // Strategy Contracts (V3 - Deployed Dec 2024 - with zRouter + Auto Fee Tier)
-  STRATEGY_USD1: import.meta.env.VITE_STRATEGY_USD1_ADDRESS || '0x6c638f745B7adC2873a52De0D732163b32144f0b',  // CharmStrategyUSD1 V3 ✅
-  STRATEGY_WETH: import.meta.env.VITE_STRATEGY_WETH_ADDRESS || '0x55E78798A926Bac07b4D90f7b1bEc769b72E76A6',  // CharmStrategyWETH (single-deposit) ✅
-  STRATEGY: import.meta.env.VITE_STRATEGY_ADDRESS || '0x6c638f745B7adC2873a52De0D732163b32144f0b',    // Legacy - points to USD1 V3 strategy
+  // Strategy Contracts (V4 - Deployed Jan 2026 - Latest production strategies)
+  STRATEGY_USD1: import.meta.env.VITE_STRATEGY_USD1_ADDRESS || '0x3e872d07c5a73e684b13a3b097c3599bf608c6e3',  // CharmStrategyUSD1V2 ✅
+  STRATEGY_WETH: import.meta.env.VITE_STRATEGY_WETH_ADDRESS || '0xbf66f01c18f31a843172a24a4ff8984de691d415',  // CharmStrategyWETHV2 ✅
+  STRATEGY: import.meta.env.VITE_STRATEGY_ADDRESS || '0x3e872d07c5a73e684b13a3b097c3599bf608c6e3',    // Legacy - points to USD1 V2 strategy
+  
+  // Legacy V3 Strategies (Previous version)
+  STRATEGY_USD1_V3: '0x6c638f745B7adC2873a52De0D732163b32144f0b',  // CharmStrategyUSD1 V3 (Previous)
+  STRATEGY_WETH_V3: '0x55E78798A926Bac07b4D90f7b1bEc769b72E76A6',  // CharmStrategyWETH V3 (Previous)
   
   // Legacy V1 Strategies (Deprecated - for reference only)
   STRATEGY_USD1_V1: '0x47B2659747d6A7E00c8251c3C3f7e92625a8cf6f',  // CharmStrategyUSD1 V1 (Deprecated)

@@ -31,24 +31,24 @@ export interface Strategy {
   };
 }
 
-// Active Strategies for Eagle Vault
+// Active Strategies for Eagle Vault (V4 - Jan 2026)
 export const ACTIVE_STRATEGIES: Strategy[] = [
   {
-    id: 'charm-weth-wlfi-v3',
-    name: 'Charm WETH/WLFI V3',
+    id: 'charm-weth-wlfi-v4',
+    name: 'Charm WETH/WLFI V4',
     protocol: 'Charm Finance',
-    description: 'Automated Uniswap V3 liquidity management for WETH/WLFI pair with zRouter gas optimization, auto fee tier discovery, and bidirectional swaps.',
-    contractAddress: '0x55E78798A926Bac07b4D90f7b1bEc769b72E76A6',
+    description: 'Latest Uniswap V3 liquidity management for WETH/WLFI pair with enhanced zRouter gas optimization, auto fee tier discovery, and bidirectional swaps.',
+    contractAddress: '0xbf66f01c18f31a843172a24a4ff8984de691d415',
     charmVaultAddress: '0x3314e248F3F752Cd16939773D83bEb3a362F0AEF',
     type: 'uniswap-v3',
     active: true,
     allocation: 50,
     color: '#3b82f6', // Blue
-    version: 'V3',
+    version: 'V4',
     links: {
       analytics: 'https://alpha.charm.fi/vault/0x3314e248F3F752Cd16939773D83bEb3a362F0AEF',
       docs: 'https://docs.charm.fi/',
-      etherscan: 'https://etherscan.io/address/0x55E78798A926Bac07b4D90f7b1bEc769b72E76A6',
+      etherscan: 'https://etherscan.io/address/0xbf66f01c18f31a843172a24a4ff8984de691d415',
     },
     details: {
       pool: 'WETH/WLFI',
@@ -58,21 +58,21 @@ export const ACTIVE_STRATEGIES: Strategy[] = [
     }
   },
   {
-    id: 'charm-usd1-wlfi-v3',
-    name: 'Charm USD1/WLFI V3',
+    id: 'charm-usd1-wlfi-v4',
+    name: 'Charm USD1/WLFI V4',
     protocol: 'Charm Finance',
-    description: 'Automated Uniswap V3 liquidity management for USD1/WLFI pair with zRouter gas optimization, auto fee tier discovery, and bidirectional swaps.',
-    contractAddress: '0x6c638f745B7adC2873a52De0D732163b32144f0b',
+    description: 'Latest Uniswap V3 liquidity management for USD1/WLFI pair with enhanced zRouter gas optimization, auto fee tier discovery, and bidirectional swaps.',
+    contractAddress: '0x3e872d07c5a73e684b13a3b097c3599bf608c6e3',
     charmVaultAddress: '0x22828Dbf15f5FBa2394Ba7Cf8fA9A96BdB444B71',
     type: 'uniswap-v3',
     active: true,
     allocation: 50,
     color: '#6366f1', // Indigo
-    version: 'V3',
+    version: 'V4',
     links: {
       analytics: 'https://alpha.charm.fi/vault/0x22828Dbf15f5FBa2394Ba7Cf8fA9A96BdB444B71',
       docs: 'https://docs.charm.fi/',
-      etherscan: 'https://etherscan.io/address/0x6c638f745B7adC2873a52De0D732163b32144f0b',
+      etherscan: 'https://etherscan.io/address/0x3e872d07c5a73e684b13a3b097c3599bf608c6e3',
     },
     details: {
       pool: 'USD1/WLFI',
@@ -81,52 +81,36 @@ export const ACTIVE_STRATEGIES: Strategy[] = [
       riskLevel: 'medium',
     }
   },
-  {
-    id: 'aave-usd1-lending',
-    name: 'Aave V3 Lending',
-    protocol: 'Aave V3',
-    description: 'Supply USD1 to Aave money market for stable, low-risk yield on stablecoin positions.',
-    contractAddress: '0x0000000000000000000000000000000000000000', // Not deployed yet
-    type: 'aave',
-    active: false, // Coming soon - change to true to activate
-    allocation: 0,
-    color: '#a855f7', // Purple
-    links: {
-      analytics: 'https://app.aave.com/',
-      docs: 'https://docs.aave.com/',
-    },
-    details: {
-      pool: 'USD1',
-      feeTier: 'Variable',
-      network: 'Ethereum',
-      riskLevel: 'low',
-    }
-  },
-  {
-    id: 'curve-stable-pool',
-    name: 'Curve USD1 Pool',
-    protocol: 'Curve Finance',
-    description: 'Provide liquidity to Curve stable pools for consistent, low-volatility yield.',
-    contractAddress: '0x0000000000000000000000000000000000000000', // Not deployed yet
-    type: 'curve',
-    active: false, // Coming soon
-    allocation: 0,
-    color: '#10b981', // Emerald
-    links: {
-      analytics: 'https://curve.fi/',
-      docs: 'https://docs.curve.fi/',
-    },
-    details: {
-      pool: 'USD1/USDC/USDT',
-      feeTier: '0.04%',
-      network: 'Ethereum',
-      riskLevel: 'low',
-    }
-  }
 ];
 
 // Legacy strategies (deprecated, kept for reference)
 export const LEGACY_STRATEGIES: Strategy[] = [
+  {
+    id: 'charm-usd1-wlfi-v3',
+    name: 'Charm USD1/WLFI V3 (Previous)',
+    protocol: 'Charm Finance',
+    description: 'Previous USD1/WLFI V3 strategy - migrated to V4.',
+    contractAddress: '0x6c638f745B7adC2873a52De0D732163b32144f0b',
+    charmVaultAddress: '0x22828Dbf15f5FBa2394Ba7Cf8fA9A96BdB444B71',
+    type: 'uniswap-v3',
+    active: false,
+    allocation: 0,
+    color: '#94a3b8', // Slate
+    version: 'V3 (Previous)',
+  },
+  {
+    id: 'charm-weth-wlfi-v3',
+    name: 'Charm WETH/WLFI V3 (Previous)',
+    protocol: 'Charm Finance',
+    description: 'Previous WETH/WLFI V3 strategy - migrated to V4.',
+    contractAddress: '0x55E78798A926Bac07b4D90f7b1bEc769b72E76A6',
+    charmVaultAddress: '0x3314e248F3F752Cd16939773D83bEb3a362F0AEF',
+    type: 'uniswap-v3',
+    active: false,
+    allocation: 0,
+    color: '#94a3b8', // Slate
+    version: 'V3 (Previous)',
+  },
   {
     id: 'charm-usd1-wlfi-v2',
     name: 'Charm USD1/WLFI V2 (Deprecated)',

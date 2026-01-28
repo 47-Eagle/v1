@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { CONTRACTS } from '../config/contracts';
+import { useStrategyDeployments, formatStrategyEvent, formatEventTime } from '../hooks/useStrategyDeployments';
+import { getActiveStrategies, getComingSoonStrategies, type Strategy } from '../config/strategies';
 
 interface StrategiesTabProps {
   vaultData: any;
@@ -8,8 +10,14 @@ interface StrategiesTabProps {
 }
 
 export function StrategiesTab({ vaultData, revertData, onToast }: StrategiesTabProps) {
-  const [selectedStrategy, setSelectedStrategy] = useState<1 | 2>(1);
+  const [selectedStrategyIndex, setSelectedStrategyIndex] = useState(0);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  
+  // Get active strategies from config
+  const activeStrategies = useMemo(() => getActiveStrategies(), []);
+  
+  // Fetch real strategy deployment events from subgraph
+  const { events: strategyEvents, loading: eventsLoading, error: eventsError } = useStrategyDeployments(10);
   
   // Extract real data
   const wlfiPrice = Number(vaultData.wlfiPrice) || 0.0001;
@@ -31,7 +39,7 @@ export function StrategiesTab({ vaultData, revertData, onToast }: StrategiesTabP
   const wethAllocation = totalDeployed > 0 ? (wethStrategyValue / totalDeployed) * 100 : 50;
 
   // Get Revert data for current strategy
-  const currentRevertData = selectedStrategy === 1 ? revertData?.strategy1 : revertData?.strategy2;
+  const currentRevertData = selectedStrategyIndex === 0 ? revertData?.strategy1 : revertData?.strategy2;
 
   // Format helpers
   const formatNumber = (n: number, decimals = 2) => {
@@ -49,57 +57,92 @@ export function StrategiesTab({ vaultData, revertData, onToast }: StrategiesTabP
     return addr.slice(0, 6) + '...' + addr.slice(-4);
   };
 
-  // Strategy configs - V3 Strategies with zRouter + Auto Fee Tier
-  const strategies = {
-    1: {
-      name: 'CHARM_V3.USD1_WLFI',
-      fullName: 'Charm USD1/WLFI Alpha Vault V3',
-      version: 'V3',
-      token0: 'USD1',
-      token1: 'WLFI',
-      token0Amount: usd1InPool,
-      token1Amount: wlfiInUSD1Pool,
-      totalValue: usd1StrategyValue,
-      allocation: usd1Allocation,
-      feeTier: 'Auto',
-      contract: CONTRACTS.STRATEGY_USD1, // V3: 0x6c638f745B7adC2873a52De0D732163b32144f0b
-      charmVault: CONTRACTS.CHARM_VAULT_USD1,
-      charmLink: 'https://alpha.charm.fi/ethereum/vault/0x22828Dbf15f5FBa2394Ba7Cf8fA9A96BdB444B71',
-      poolPrice: wlfiPrice > 0 ? (1 / wlfiPrice).toFixed(4) : '0',
-      tickLower: -887200,
-      tickUpper: 887200,
-      features: ['zRouter', 'Auto Fee Tier', 'Bidirectional Swaps'],
-    },
-    2: {
-      name: 'CHARM_V3.WETH_WLFI',
-      fullName: 'Charm WETH/WLFI Alpha Vault V3',
-      version: 'V3',
-      token0: 'WETH',
-      token1: 'WLFI',
-      token0Amount: wethInPool,
-      token1Amount: wlfiInWethPool,
-      totalValue: wethStrategyValue,
-      allocation: wethAllocation,
-      feeTier: 'Auto',
-      contract: CONTRACTS.STRATEGY_WETH, // V3: 0xF71CB8b57667A39Bc1727A9AB8f3aF19d14DBC28
-      charmVault: CONTRACTS.CHARM_VAULT_WETH,
-      charmLink: 'https://alpha.charm.fi/ethereum/vault/0x3314e248F3F752Cd16939773D83bEb3a362F0AEF',
-      poolPrice: (wethPrice / wlfiPrice).toFixed(2),
-      tickLower: -887200,
-      tickUpper: 887200,
-      features: ['zRouter', 'Auto Fee Tier', 'Bidirectional Swaps'],
-    }
-  };
+  // Build strategy display data dynamically from config
+  const strategiesDisplay = useMemo(() => {
+    return activeStrategies.map((strategy, index) => {
+      // Map config data to display format
+      const isUsd1Strategy = strategy.id.includes('usd1');
+      const isWethStrategy = strategy.id.includes('weth');
+      
+      // Determine token pair from pool details
+      const pool = strategy.details?.pool || '';
+      const [token0, token1] = pool.includes('/') ? pool.split('/') : ['TOKEN', 'WLFI'];
+      
+      // Get appropriate values based on strategy type
+      let token0Amount = 0;
+      let token1Amount = 0;
+      let totalValue = 0;
+      let allocation = strategy.allocation || 0;
+      let poolPrice = '0';
+      
+      if (isUsd1Strategy) {
+        token0Amount = usd1InPool;
+        token1Amount = wlfiInUSD1Pool;
+        totalValue = usd1StrategyValue;
+        allocation = usd1Allocation;
+        poolPrice = wlfiPrice > 0 ? (1 / wlfiPrice).toFixed(4) : '0';
+      } else if (isWethStrategy) {
+        token0Amount = wethInPool;
+        token1Amount = wlfiInWethPool;
+        totalValue = wethStrategyValue;
+        allocation = wethAllocation;
+        poolPrice = (wethPrice / wlfiPrice).toFixed(2);
+      }
+      
+      return {
+        id: strategy.id,
+        name: `${strategy.protocol.toUpperCase().replace(' ', '_')}_${strategy.version || 'V1'}.${pool.replace('/', '_')}`,
+        fullName: strategy.name,
+        version: strategy.version || 'V1',
+        token0,
+        token1,
+        token0Amount,
+        token1Amount,
+        totalValue,
+        allocation,
+        feeTier: strategy.details?.feeTier || 'Auto',
+        contract: strategy.contractAddress,
+        charmVault: strategy.charmVaultAddress || '',
+        charmLink: strategy.links?.analytics || '',
+        poolPrice,
+        tickLower: -887200,
+        tickUpper: 887200,
+        features: ['zRouter', 'Auto Fee Tier', 'Bidirectional Swaps'],
+        protocol: strategy.protocol,
+        description: strategy.description,
+        color: strategy.color,
+        riskLevel: strategy.details?.riskLevel || 'medium',
+      };
+    });
+  }, [activeStrategies, usd1InPool, wlfiInUSD1Pool, usd1StrategyValue, usd1Allocation, wlfiPrice, wethInPool, wlfiInWethPool, wethStrategyValue, wethAllocation, wethPrice]);
 
-  const currentStrategy = strategies[selectedStrategy];
+  const currentStrategy = strategiesDisplay[selectedStrategyIndex] || strategiesDisplay[0];
 
-  // Simulated event log (would be real events in production)
-  const eventLog = [
-    { time: new Date().toLocaleTimeString('en-US', { hour12: false }), msg: 'Heartbeat: CharmVault in range.', type: 'info' },
-    { time: '14:02:11', msg: `StrategyDeposit: ${formatNumber(wlfiInUSD1Pool, 0)} WLFI deposited successfully.`, type: 'success' },
-    { time: '14:02:09', msg: 'TokensSwapped: Optimal ratio achieved (Slippage: 0.04%)', type: 'info' },
-    { time: '13:58:44', msg: 'ParametersUpdated: swapSlippageBps set to 300', type: 'info' },
-  ];
+  // Early return if no strategies configured
+  if (!currentStrategy || strategiesDisplay.length === 0) {
+    return (
+      <div className="p-6 text-center text-[#71717a]">
+        <p>No active strategies configured.</p>
+        <p className="text-sm mt-2">Add strategies to <code>config/strategies.ts</code> to display them here.</p>
+      </div>
+    );
+  }
+
+  // Format real events for display
+  const eventLog = strategyEvents.length > 0 
+    ? strategyEvents.map(event => {
+        const formatted = formatStrategyEvent(event);
+        return {
+          time: formatEventTime(event.timestamp),
+          msg: formatted.message,
+          type: formatted.type,
+          txHash: event.transactionHash,
+        };
+      })
+    : [
+        // Fallback when no events loaded yet
+        { time: new Date().toLocaleTimeString('en-US', { hour12: false }), msg: eventsLoading ? 'Loading events...' : 'No recent events', type: 'info' as const, txHash: '' },
+      ];
 
   return (
     <div className="p-3 sm:p-6 max-w-full">
@@ -108,54 +151,40 @@ export function StrategiesTab({ vaultData, revertData, onToast }: StrategiesTabP
         bg-gradient-to-br from-gray-900 via-gray-850 to-gray-900
         shadow-[8px_8px_16px_rgba(0,0,0,0.4),-4px_-4px_12px_rgba(255,255,255,0.05)]
         border border-gray-700/30 min-w-0">
-      {/* Strategy Selector Tabs */}
-      <div className="sticky top-0 z-20 flex gap-[2px] bg-[#2a2a30]">
-        <button
-          onClick={() => setSelectedStrategy(1)}
-          className={`flex-1 py-3 px-4 text-left transition-all duration-300 ${
-            selectedStrategy === 1 
-              ? 'bg-[#1a1b1e] border-t-2 border-t-[#F2D57C]' 
-              : 'bg-[#0a0a0b] hover:bg-[#141517] border-t-2 border-t-transparent'
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-[9px] text-[#F2D57C] font-bold tracking-[0.2em] uppercase">Strategy #1</div>
-              <div className={`text-sm font-bold ${selectedStrategy === 1 ? 'text-white' : 'text-[#71717a]'}`}>
-                USD1/WLFI
+      {/* Strategy Selector Tabs - Dynamic from config */}
+      <div className="sticky top-0 z-20 flex gap-[2px] bg-[#2a2a30] overflow-x-auto">
+        {strategiesDisplay.map((strategy, index) => (
+          <button
+            key={strategy.id}
+            onClick={() => setSelectedStrategyIndex(index)}
+            className={`flex-1 min-w-[160px] py-3 px-4 text-left transition-all duration-300 ${
+              selectedStrategyIndex === index 
+                ? 'bg-[#1a1b1e] border-t-2 border-t-[#F2D57C]' 
+                : 'bg-[#0a0a0b] hover:bg-[#141517] border-t-2 border-t-transparent'
+            }`}
+          >
+            <div className="flex items-center justify-between gap-2">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[9px] text-[#F2D57C] font-bold tracking-[0.2em] uppercase">Strategy #{index + 1}</span>
+                  <span className="text-[8px] px-1.5 py-0.5 bg-[#00ff66]/20 text-[#00ff66] font-bold rounded border border-[#00ff66]/30">
+                    ACTIVE
+                  </span>
+                </div>
+                <div className={`text-sm font-bold ${selectedStrategyIndex === index ? 'text-white' : 'text-[#71717a]'}`}>
+                  {strategy.token0}/{strategy.token1}
+                </div>
+                <div className="text-[9px] text-[#555] mt-0.5">{strategy.protocol}</div>
+              </div>
+              <div className="text-right">
+                <div className="text-[10px] text-[#71717a] font-mono">{formatNumber(strategy.allocation, 1)}%</div>
+                <div className={`text-sm font-mono ${selectedStrategyIndex === index ? 'text-[#F2D57C]' : 'text-[#71717a]'}`}>
+                  {formatUSD(strategy.totalValue)}
+                </div>
               </div>
             </div>
-            <div className="text-right">
-              <div className="text-[10px] text-[#71717a] font-mono">{formatNumber(usd1Allocation, 1)}%</div>
-              <div className={`text-sm font-mono ${selectedStrategy === 1 ? 'text-[#F2D57C]' : 'text-[#71717a]'}`}>
-                {formatUSD(usd1StrategyValue)}
-              </div>
-            </div>
-          </div>
-        </button>
-        <button
-          onClick={() => setSelectedStrategy(2)}
-          className={`flex-1 py-3 px-4 text-left transition-all duration-300 ${
-            selectedStrategy === 2 
-              ? 'bg-[#1a1b1e] border-t-2 border-t-[#F2D57C]' 
-              : 'bg-[#0a0a0b] hover:bg-[#141517] border-t-2 border-t-transparent'
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-[9px] text-[#F2D57C] font-bold tracking-[0.2em] uppercase">Strategy #2</div>
-              <div className={`text-sm font-bold ${selectedStrategy === 2 ? 'text-white' : 'text-[#71717a]'}`}>
-                WETH/WLFI
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="text-[10px] text-[#71717a] font-mono">{formatNumber(wethAllocation, 1)}%</div>
-              <div className={`text-sm font-mono ${selectedStrategy === 2 ? 'text-[#F2D57C]' : 'text-[#71717a]'}`}>
-                {formatUSD(wethStrategyValue)}
-              </div>
-            </div>
-          </div>
-        </button>
+          </button>
+        ))}
       </div>
 
       {/* Main Monolith Panel */}
@@ -296,22 +325,60 @@ export function StrategiesTab({ vaultData, revertData, onToast }: StrategiesTabP
                 </div>
               </div>
 
-              {/* Event Log Panel */}
+              {/* Event Log Panel - Real Strategy Deployments */}
               <div className="bg-[#141517] border border-black p-5 relative"
                 style={{ boxShadow: 'inset 2px 2px 5px rgba(0,0,0,0.8), inset -1px -1px 2px rgba(255,255,255,0.05)' }}
               >
-                <span className="absolute -top-2.5 left-5 bg-[#1a1b1e] px-2 text-[9px] font-bold text-[#71717a] uppercase tracking-wider">
-                  Real-time Execution Log
-                </span>
-                <div className="h-28 overflow-y-auto font-mono text-[10px] bg-[#080808] border border-black p-2.5">
-                  {eventLog.map((entry, i) => (
-                    <div key={i} className="flex gap-3 mb-1">
-                      <span className="text-[#444]">[{entry.time}]</span>
-                      <span className={entry.type === 'success' ? 'text-[#00ff66]' : 'text-[#aaa]'}>
-                        {entry.msg}
-                      </span>
+                <div className="absolute -top-2.5 left-5 bg-[#1a1b1e] px-2 flex items-center gap-2">
+                  <span className="text-[9px] font-bold text-[#71717a] uppercase tracking-wider">
+                    Recent Strategy Activity
+                  </span>
+                  {eventsLoading && (
+                    <span className="w-1.5 h-1.5 bg-[#F2D57C] rounded-full animate-pulse" />
+                  )}
+                </div>
+                <div className="h-32 overflow-y-auto font-mono text-[10px] bg-[#080808] border border-black p-2.5 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
+                  {eventsError ? (
+                    <div className="text-red-400 text-center py-2">
+                      Failed to load events
                     </div>
-                  ))}
+                  ) : eventLog.length === 0 || (eventLog.length === 1 && eventLog[0].msg === 'No recent events') ? (
+                    <div className="text-[#444] text-center py-2">
+                      No recent strategy activity
+                    </div>
+                  ) : (
+                    eventLog.map((entry, i) => (
+                      <div key={i} className="flex gap-3 mb-1.5 items-start hover:bg-white/5 rounded px-1 -mx-1">
+                        <span className="text-[#444] shrink-0">[{entry.time}]</span>
+                        <span className={
+                          entry.type === 'success' ? 'text-[#00ff66]' : 
+                          entry.type === 'warning' ? 'text-[#F2D57C]' : 
+                          'text-[#aaa]'
+                        }>
+                          {entry.msg}
+                        </span>
+                        {entry.txHash && (
+                          <a
+                            href={`https://etherscan.io/tx/${entry.txHash}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[#3b82f6] hover:text-[#60a5fa] shrink-0 ml-auto"
+                            title="View on Etherscan"
+                          >
+                            ↗
+                          </a>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
+                {/* Live indicator */}
+                <div className="mt-2 flex items-center justify-between text-[9px] text-[#444]">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 bg-[#00ff66] rounded-full animate-pulse" />
+                    <span>LIVE</span>
+                  </div>
+                  <span>Updates every 30s</span>
                 </div>
               </div>
             </div>
@@ -396,30 +463,34 @@ export function StrategiesTab({ vaultData, revertData, onToast }: StrategiesTabP
                   External Links
                 </span>
                 <div className="space-y-2">
-                  <a
-                    href={currentStrategy.charmLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full block text-center py-3 px-4 text-[12px] font-bold uppercase tracking-wider transition-all duration-100 relative
-                      bg-gradient-to-b from-[#2a2c31] to-[#1a1b1e] border border-black text-white
-                      hover:brightness-125"
-                    style={{ boxShadow: '0 4px 0 #000' }}
-                  >
-                    <span className="absolute top-[1px] left-[1px] right-[1px] h-[1px] bg-white/20" />
-                    View on Charm Finance ↗
-                  </a>
-                  <a
-                    href={`https://etherscan.io/address/${currentStrategy.contract}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full block text-center py-3 px-4 text-[12px] font-bold uppercase tracking-wider transition-all duration-100 relative
-                      bg-gradient-to-b from-[#2a2c31] to-[#1a1b1e] border border-black text-white
-                      hover:brightness-125"
-                    style={{ boxShadow: '0 4px 0 #000' }}
-                  >
-                    <span className="absolute top-[1px] left-[1px] right-[1px] h-[1px] bg-white/20" />
-                    View Contract ↗
-                  </a>
+                  {currentStrategy.charmLink && (
+                    <a
+                      href={currentStrategy.charmLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full block text-center py-3 px-4 text-[12px] font-bold uppercase tracking-wider transition-all duration-100 relative
+                        bg-gradient-to-b from-[#2a2c31] to-[#1a1b1e] border border-black text-white
+                        hover:brightness-125"
+                      style={{ boxShadow: '0 4px 0 #000' }}
+                    >
+                      <span className="absolute top-[1px] left-[1px] right-[1px] h-[1px] bg-white/20" />
+                      View on {currentStrategy.protocol} ↗
+                    </a>
+                  )}
+                  {currentStrategy.contract && currentStrategy.contract !== '0x0000000000000000000000000000000000000000' && (
+                    <a
+                      href={`https://etherscan.io/address/${currentStrategy.contract}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full block text-center py-3 px-4 text-[12px] font-bold uppercase tracking-wider transition-all duration-100 relative
+                        bg-gradient-to-b from-[#2a2c31] to-[#1a1b1e] border border-black text-white
+                        hover:brightness-125"
+                      style={{ boxShadow: '0 4px 0 #000' }}
+                    >
+                      <span className="absolute top-[1px] left-[1px] right-[1px] h-[1px] bg-white/20" />
+                      View Contract ↗
+                    </a>
+                  )}
                 </div>
               </div>
 
@@ -427,17 +498,26 @@ export function StrategiesTab({ vaultData, revertData, onToast }: StrategiesTabP
               <div className="font-mono text-[9px] text-[#444] leading-relaxed">
                 SYSTEM_MODE: ATOMIC_SINGLE_ASSET<br />
                 REENTRANCY_GUARD: ARMED<br />
-                ZROUTER: <span className="text-[#00ff66]">ENABLED</span><br />
-                AUTO_FEE_TIER: <span className="text-[#00ff66]">ACTIVE</span><br />
-                CHARM_VAULT:{' '}
-                <a
-                  href={`https://etherscan.io/address/${currentStrategy.charmVault}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[#aaa] underline decoration-white/10 hover:decoration-white/40 break-all"
-                >
-                  {currentStrategy.charmVault}
-                </a>
+                PROTOCOL: <span className="text-[#00ff66]">{currentStrategy.protocol?.toUpperCase()}</span><br />
+                VERSION: <span className="text-[#00ff66]">{currentStrategy.version}</span><br />
+                RISK_LEVEL: <span className={
+                  currentStrategy.riskLevel === 'low' ? 'text-[#00ff66]' :
+                  currentStrategy.riskLevel === 'medium' ? 'text-[#F2D57C]' :
+                  'text-red-400'
+                }>{currentStrategy.riskLevel?.toUpperCase()}</span><br />
+                {currentStrategy.charmVault && (
+                  <>
+                    CHARM_VAULT:{' '}
+                    <a
+                      href={`https://etherscan.io/address/${currentStrategy.charmVault}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#aaa] underline decoration-white/10 hover:decoration-white/40 break-all"
+                    >
+                      {currentStrategy.charmVault}
+                    </a>
+                  </>
+                )}
               </div>
               </div>
             </div>
@@ -446,20 +526,159 @@ export function StrategiesTab({ vaultData, revertData, onToast }: StrategiesTabP
       </div>
       </div>{/* End Neumorphic Container */}
 
-      {/* Coming Soon Strategy */}
-      <div className="mt-4 rounded-xl overflow-hidden
-        bg-gradient-to-br from-gray-900/50 to-gray-800/30
-        shadow-[4px_4px_8px_rgba(0,0,0,0.3),-2px_-2px_6px_rgba(255,255,255,0.03)]
-        border border-gray-700/20 p-4 opacity-50">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="text-[9px] text-[#71717a] font-bold tracking-[0.2em] uppercase">Strategy #3</div>
-            <div className="text-sm font-bold text-[#71717a]">Additional Strategies</div>
-            <div className="text-[10px] text-[#444] mt-1">More yield optimization strategies are in development.</div>
+      {/* Recent Deployments Summary */}
+      {strategyEvents.length > 0 && (
+        <div className="mt-4 rounded-xl overflow-hidden
+          bg-gradient-to-br from-gray-900 via-gray-850 to-gray-900
+          shadow-[4px_4px_8px_rgba(0,0,0,0.3),-2px_-2px_6px_rgba(255,255,255,0.03)]
+          border border-gray-700/20 p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <span className="text-[9px] text-[#F2D57C] font-bold tracking-[0.2em] uppercase">Recent Deployments</span>
+              <span className="text-[9px] px-1.5 py-0.5 bg-[#00ff66]/20 text-[#00ff66] font-mono rounded">
+                {strategyEvents.filter(e => e.type === 'deposit').length} deposits
+              </span>
+            </div>
+            <button 
+              onClick={() => window.open('https://etherscan.io/address/' + CONTRACTS.VAULT + '#events', '_blank')}
+              className="text-[10px] text-[#3b82f6] hover:text-[#60a5fa] font-mono"
+            >
+              View All ↗
+            </button>
           </div>
-          <span className="text-[10px] px-2 py-1 bg-[#1a1b1e] text-[#71717a] font-mono uppercase">Coming Soon</span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+            {strategyEvents.slice(0, 3).map((event, i) => {
+              const formatted = formatStrategyEvent(event);
+              const date = new Date(event.timestamp * 1000);
+              return (
+                <a
+                  key={event.id}
+                  href={`https://etherscan.io/tx/${event.transactionHash}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-[#141517] border border-[#222] rounded-lg p-3 hover:border-[#F2D57C]/30 transition-colors group"
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span className={`text-[10px] font-bold uppercase ${
+                      event.type === 'deposit' ? 'text-[#00ff66]' :
+                      event.type === 'withdrawal' ? 'text-[#F2D57C]' :
+                      event.type === 'rebalance' ? 'text-[#3b82f6]' :
+                      'text-[#a855f7]'
+                    }`}>
+                      {event.type.replace('_', ' ')}
+                    </span>
+                    <span className="text-[9px] text-[#444] group-hover:text-[#666]">↗</span>
+                  </div>
+                  <div className="text-[11px] text-white/80 mb-1 truncate">
+                    {formatted.message}
+                  </div>
+                  <div className="text-[9px] text-[#444] font-mono">
+                    {date.toLocaleDateString()} {date.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' })}
+                  </div>
+                </a>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Coming Soon Strategies - Dynamic from config */}
+      {(() => {
+        const comingSoonStrategies = getComingSoonStrategies();
+        if (comingSoonStrategies.length === 0) return null;
+        
+        return (
+          <div className="mt-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <span className="text-[9px] text-[#F2D57C] font-bold tracking-[0.2em] uppercase">Coming Soon</span>
+              <span className="text-[9px] px-1.5 py-0.5 bg-[#71717a]/20 text-[#71717a] font-mono rounded">
+                {comingSoonStrategies.length} strategies
+              </span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {comingSoonStrategies.map((strategy: Strategy, index: number) => (
+                <div 
+                  key={strategy.id}
+                  className="rounded-xl overflow-hidden
+                    bg-gradient-to-br from-gray-900/50 to-gray-800/30
+                    shadow-[4px_4px_8px_rgba(0,0,0,0.3),-2px_-2px_6px_rgba(255,255,255,0.03)]
+                    border border-gray-700/20 p-4 opacity-70 hover:opacity-90 transition-opacity"
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
+                      <div className="text-[9px] text-[#71717a] font-bold tracking-[0.2em] uppercase">
+                        Strategy #{index + 3}
+                      </div>
+                      <div className="text-sm font-bold text-white/80">{strategy.name}</div>
+                      <div className="text-[10px] text-[#71717a] mt-0.5">{strategy.protocol}</div>
+                    </div>
+                    <div className="flex flex-col items-end gap-1">
+                      <span className="text-[9px] px-2 py-0.5 bg-[#1a1b1e] text-[#71717a] font-mono uppercase rounded">
+                        Coming Soon
+                      </span>
+                      {strategy.details?.riskLevel && (
+                        <span className={`text-[8px] px-1.5 py-0.5 rounded font-mono uppercase ${
+                          strategy.details.riskLevel === 'low' 
+                            ? 'bg-[#00ff66]/10 text-[#00ff66]' 
+                            : strategy.details.riskLevel === 'medium'
+                            ? 'bg-[#F2D57C]/10 text-[#F2D57C]'
+                            : 'bg-red-500/10 text-red-400'
+                        }`}>
+                          {strategy.details.riskLevel} risk
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-[#555] leading-relaxed mb-3">
+                    {strategy.description}
+                  </p>
+                  <div className="flex flex-wrap gap-2 text-[9px]">
+                    {strategy.details?.pool && (
+                      <span className="px-2 py-0.5 bg-[#141517] border border-[#222] rounded text-[#71717a]">
+                        Pool: {strategy.details.pool}
+                      </span>
+                    )}
+                    {strategy.details?.feeTier && (
+                      <span className="px-2 py-0.5 bg-[#141517] border border-[#222] rounded text-[#71717a]">
+                        Fee: {strategy.details.feeTier}
+                      </span>
+                    )}
+                    {strategy.details?.network && (
+                      <span className="px-2 py-0.5 bg-[#141517] border border-[#222] rounded text-[#71717a]">
+                        {strategy.details.network}
+                      </span>
+                    )}
+                  </div>
+                  {strategy.links && (
+                    <div className="mt-3 pt-2 border-t border-[#222] flex gap-3">
+                      {strategy.links.docs && (
+                        <a 
+                          href={strategy.links.docs}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[9px] text-[#3b82f6] hover:text-[#60a5fa]"
+                        >
+                          Docs ↗
+                        </a>
+                      )}
+                      {strategy.links.analytics && (
+                        <a 
+                          href={strategy.links.analytics}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[9px] text-[#3b82f6] hover:text-[#60a5fa]"
+                        >
+                          Analytics ↗
+                        </a>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
