@@ -4,7 +4,7 @@ import { useEthersProvider } from './useEthersProvider';
 import { CONTRACTS } from '../config/contracts';
 
 // Public RPC endpoint for reading data
-const PUBLIC_RPC = import.meta.env.VITE_ETHEREUM_RPC || import.meta.env.VITE_ETHEREUM_RPC_URL || 'https://eth-mainnet.g.alchemy.com/v2/YOUR_KEY';
+const PUBLIC_RPC = import.meta.env.VITE_ETHEREUM_RPC || import.meta.env.VITE_ETHEREUM_RPC_URL || 'https://eth.llamarpc.com';
 
 // Fetch from Charm Finance GraphQL API
 async function fetchFromGraphQL() {

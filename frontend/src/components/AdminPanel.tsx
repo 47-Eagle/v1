@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
-import { BrowserProvider } from 'ethers';
+import { useState, useEffect, useCallback } from 'react';
+import { BrowserProvider, formatEther } from 'ethers';
 import { ethers } from 'ethers';
 import { createPortal } from 'react-dom';
+import { CONTRACTS } from '../config/contracts';
 
 // Authorized admin wallets
 const AUTHORIZED_ADMINS = [
@@ -22,6 +23,8 @@ interface AdminPanelProps {
 export default function AdminPanel({ onClose, provider }: AdminPanelProps) {
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [currentAddress, setCurrentAddress] = useState('');
+  const [idleBalances, setIdleBalances] = useState({ wlfi: '0', usd1: '0' });
+  const [loadingBalances, setLoadingBalances] = useState(false);
 
   // Check if connected wallet is authorized
   useEffect(() => {
@@ -41,13 +44,44 @@ export default function AdminPanel({ onClose, provider }: AdminPanelProps) {
 
     checkAuthorization();
   }, [provider]);
+
+  // Fetch idle balances
+  const fetchIdleBalances = useCallback(async () => {
+    if (!provider) return;
+    setLoadingBalances(true);
+    try {
+      const vault = new ethers.Contract(
+        CONTRACTS.VAULT,
+        ['function getVaultBalances() view returns (uint256 wlfi, uint256 usd1)'],
+        provider
+      );
+      const [wlfi, usd1] = await vault.getVaultBalances();
+      setIdleBalances({
+        wlfi: parseFloat(formatEther(wlfi)).toFixed(2),
+        usd1: parseFloat(formatEther(usd1)).toFixed(2)
+      });
+    } catch (error) {
+      console.error('Error fetching balances:', error);
+    } finally {
+      setLoadingBalances(false);
+    }
+  }, [provider]);
+
+  useEffect(() => {
+    if (isAuthorized) {
+      fetchIdleBalances();
+    }
+  }, [isAuthorized, fetchIdleBalances]);
+
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<string>('');
 
-  const VAULT_ADDRESS = import.meta.env.VITE_VAULT_ADDRESS || '0x32a2544De7a644833fE7659dF95e5bC16E698d99';
-  const STRATEGY_ADDRESS = import.meta.env.VITE_STRATEGY_ADDRESS || '0xd286Fdb2D3De4aBf44649649D79D5965bD266df4';
+  // Use correct contract addresses from config
+  const VAULT_ADDRESS = CONTRACTS.VAULT;
+  const STRATEGY_USD1_ADDRESS = CONTRACTS.STRATEGY_USD1;
+  const STRATEGY_WETH_ADDRESS = CONTRACTS.STRATEGY_WETH;
 
-  const deployToCharm = async () => {
+  const deployToStrategies = async () => {
     if (!provider) return;
     
     setLoading(true);
@@ -61,16 +95,56 @@ export default function AdminPanel({ onClose, provider }: AdminPanelProps) {
         signer
       );
 
+      setResult(`⏳ Deploying ${idleBalances.wlfi} WLFI + ${idleBalances.usd1} USD1 to strategies...`);
+
       const tx = await vault.forceDeployToStrategies({
-        gasLimit: 1000000
+        gasLimit: 1500000
       });
 
-      setResult(`Transaction sent: ${tx.hash}`);
+      setResult(`⏳ Transaction sent: ${tx.hash}\nWaiting for confirmation...`);
       
       await tx.wait();
-      setResult(`✅ Deployed to Charm! TX: ${tx.hash}`);
+      setResult(`✅ Successfully deployed to strategies!\nTX: ${tx.hash}`);
+      
+      // Refresh balances after deployment
+      setTimeout(fetchIdleBalances, 2000);
     } catch (error: any) {
-      setResult(`❌ Error: ${error.message}`);
+      const errorMsg = error.reason || error.message || 'Unknown error';
+      setResult(`❌ Error: ${errorMsg}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const syncBalances = async () => {
+    if (!provider) return;
+    
+    setLoading(true);
+    setResult('');
+    
+    try {
+      const signer = await provider.getSigner();
+      const vault = new ethers.Contract(
+        VAULT_ADDRESS,
+        ['function syncBalances() external'],
+        signer
+      );
+
+      setResult('⏳ Syncing vault balances...');
+
+      const tx = await vault.syncBalances({
+        gasLimit: 200000
+      });
+
+      setResult(`⏳ Transaction sent: ${tx.hash}\nWaiting for confirmation...`);
+      await tx.wait();
+      setResult(`✅ Balances synced!\nTX: ${tx.hash}`);
+      
+      // Refresh balances after sync
+      setTimeout(fetchIdleBalances, 2000);
+    } catch (error: any) {
+      const errorMsg = error.reason || error.message || 'Unknown error';
+      setResult(`❌ Error: ${errorMsg}`);
     } finally {
       setLoading(false);
     }
@@ -91,15 +165,16 @@ export default function AdminPanel({ onClose, provider }: AdminPanelProps) {
       );
 
       const tx = await vault.setDeploymentParams(
-        ethers.parseEther('10'),  // $10 threshold
+        ethers.parseEther('10'),  // 10 WLFI threshold
         300  // 5 minutes
       );
 
-      setResult(`Transaction sent: ${tx.hash}`);
+      setResult(`⏳ Transaction sent: ${tx.hash}\nWaiting for confirmation...`);
       await tx.wait();
-      setResult(`✅ Threshold set to $10! TX: ${tx.hash}`);
+      setResult(`✅ Threshold set to 10 WLFI!\nTX: ${tx.hash}`);
     } catch (error: any) {
-      setResult(`❌ Error: ${error.message}`);
+      const errorMsg = error.reason || error.message || 'Unknown error';
+      setResult(`❌ Error: ${errorMsg}`);
     } finally {
       setLoading(false);
     }
@@ -166,11 +241,45 @@ export default function AdminPanel({ onClose, provider }: AdminPanelProps) {
           <div className="space-y-1 font-mono text-xs">
             <div className="flex justify-between">
               <span className="text-gray-400">Vault:</span>
-              <span className="text-white">{VAULT_ADDRESS.slice(0, 10)}...{VAULT_ADDRESS.slice(-8)}</span>
+              <a href={`https://etherscan.io/address/${VAULT_ADDRESS}`} target="_blank" rel="noopener noreferrer" className="text-white hover:text-[#D4B474] transition-colors">
+                {VAULT_ADDRESS.slice(0, 10)}...{VAULT_ADDRESS.slice(-8)}
+              </a>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-400">Strategy:</span>
-              <span className="text-white">{STRATEGY_ADDRESS.slice(0, 10)}...{STRATEGY_ADDRESS.slice(-8)}</span>
+              <span className="text-gray-400">USD1 Strategy:</span>
+              <a href={`https://etherscan.io/address/${STRATEGY_USD1_ADDRESS}`} target="_blank" rel="noopener noreferrer" className="text-white hover:text-[#D4B474] transition-colors">
+                {STRATEGY_USD1_ADDRESS.slice(0, 10)}...{STRATEGY_USD1_ADDRESS.slice(-8)}
+              </a>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-400">WETH Strategy:</span>
+              <a href={`https://etherscan.io/address/${STRATEGY_WETH_ADDRESS}`} target="_blank" rel="noopener noreferrer" className="text-white hover:text-[#D4B474] transition-colors">
+                {STRATEGY_WETH_ADDRESS.slice(0, 10)}...{STRATEGY_WETH_ADDRESS.slice(-8)}
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {/* Idle Balances */}
+        <div className="mb-6 p-4 bg-gradient-to-r from-blue-900/20 to-purple-900/20 rounded-xl border border-blue-500/20">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">Idle Assets (Ready to Deploy)</p>
+            <button
+              onClick={fetchIdleBalances}
+              disabled={loadingBalances}
+              className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
+            >
+              {loadingBalances ? 'Loading...' : 'Refresh'}
+            </button>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="text-center p-3 bg-black/30 rounded-lg">
+              <p className="text-2xl font-bold text-white">{idleBalances.wlfi}</p>
+              <p className="text-xs text-gray-500">WLFI</p>
+            </div>
+            <div className="text-center p-3 bg-black/30 rounded-lg">
+              <p className="text-2xl font-bold text-white">{idleBalances.usd1}</p>
+              <p className="text-xs text-gray-500">USD1</p>
             </div>
           </div>
         </div>
