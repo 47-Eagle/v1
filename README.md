@@ -1,6 +1,6 @@
 # Eagle OVault
 
-> **Omnichain Yield Aggregator** - Dual-token vault powered by LayerZero V2 and Charm Finance
+> **Omnichain Yield Aggregator** - ERC-4626 compliant vault + LayerZero V2 share bridging
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Solidity](https://img.shields.io/badge/Solidity-0.8.22-363636)](https://docs.soliditylang.org/)
@@ -15,6 +15,7 @@
 - [Architecture](#architecture)
 - [Quick Start](#quick-start)
 - [Project Structure](#project-structure)
+- [Project Notes](#project-notes)
 - [Contracts](#contracts)
 - [Solana Integration](#solana-integration)
 - [Testing & Security](#testing--security)
@@ -25,19 +26,22 @@
 - [Contributing](#contributing)
 - [Security](#security)
 - [License](#license)
+- [Support](#support)
 
 ## Overview
 
-Eagle OVault is a production-ready, dual-token yield aggregator that accepts WLFI + USD1 deposits and earns yield through Charm Finance's concentrated liquidity strategies. Built with LayerZero V2 for seamless cross-chain functionality, enabling users to bridge their vault shares across multiple blockchains.
+Eagle OVault is an **ERC-4626 compliant, WLFI-denominated vault** with **synchronous** deposits and redemptions (`deposit/mint/withdraw/redeem`).
+Internally, the system can hold WLFI and other exposures (e.g. USD1) and accounts for them in **WLFI-equivalent** terms via `totalAssets()`.
+Vault share exposure can be bridged across chains via LayerZero V2.
 
 ### Key Features
 
-- **🔄 Dual-Token Vault**: Accepts WLFI + USD1 for diversified yield generation
+- **🏦 ERC-4626 (synchronous)**: Standard `deposit/mint/withdraw/redeem` interface; user deposits are WLFI (the ERC-4626 `asset()`)
 - **🌐 Omnichain Native**: LayerZero V2 enables cross-chain bridging of vault shares
-- **📈 Automated Yield**: Integration with Charm Finance's alpha vault strategies
+- **📈 Strategy support**: Optional strategy layer can deploy capital into external positions (e.g. Charm / Uniswap V3)
 - **🔒 Non-Custodial**: Your keys, your tokens - full control maintained
 - **⚡ Gas Optimized**: Efficient smart contracts with comprehensive testing
-- **🛡️ Battle-Tested**: Full security audit coverage and formal verification
+- **🛡️ Security-focused**: Built to be auditable; arrange an independent review before production use
 
 ## Multi-Chain Support
 
@@ -50,9 +54,9 @@ Eagle OVault is deployed across **8+ blockchains** with full LayerZero V2 integr
 | **Arbitrum** | 42161 | 30110 | 🟢 Production | [Arbiscan](https://arbiscan.io) |
 | **BSC** | 56 | 30102 | 🔄 Configured | [BscScan](https://bscscan.com) |
 | **Avalanche** | 43114 | 30106 | 🔄 Configured | [SnowTrace](https://snowtrace.io) |
-| **Monad** | 10143 | 30390 | 🔄 Configured | [MonadExplorer](https://monadexplorer.com) |
+| **Monad** | 143 | 30390 | 🔄 Configured | [Monad Blockscout](https://monad.blockscout.com) |
 | **Sonic** | 146 | 30332 | 🔄 Configured | [SonicScan](https://sonicscan.org) |
-| **HyperEVM** | 999 | 30275 | 🔄 Configured | [Hyperliquid](https://hyperliquid.xyz) |
+| **HyperEVM** | 999 | 30367 | 🔄 Configured | [Purrsec](https://purrsec.com/hyperliquid) |
 
 ## Architecture
 
@@ -60,7 +64,7 @@ Eagle OVault is deployed across **8+ blockchains** with full LayerZero V2 integr
 graph TB
     %% User Interface
     subgraph UI_LAYER["👤 USER INTERFACE"]
-        UI["<b>Users</b><br/>Deposit WLFI + USD1"]
+        UI["<b>Users</b><br/>Deposit WLFI (ERC-4626)"]
     end
 
     %% Core Protocol
@@ -68,9 +72,9 @@ graph TB
         EV["<b>EagleOVault</b><br/>Main Vault Contract"]
         ES["<b>EagleShareOFT</b><br/>LayerZero V2 Bridge"]
 
-        subgraph STRATEGIES["📊 YIELD STRATEGIES - 50/50 SPLIT"]
-            S1["<b>WLFI/USD1</b><br/>50% Allocation"]
-            S2["<b>WETH/WLFI</b><br/>50% Allocation"]
+        subgraph STRATEGIES["📊 STRATEGIES (INTERNAL)"]
+            S1["<b>Charm</b><br/>WLFI/USD1 exposure"]
+            S2["<b>Charm</b><br/>WETH/WLFI exposure"]
         end
     end
 
@@ -156,7 +160,7 @@ cat deployments/README.md
 ## Project Structure
 
 ```
-eagle-ovault/
+v1/
 ├── contracts/              # Solidity smart contracts
 │   ├── EagleOVault.sol     # Main vault contract
 │   ├── strategies/         # Yield strategies (Charm Finance integration)
@@ -167,6 +171,8 @@ eagle-ovault/
 │   ├── base/              # Base network contracts
 │   ├── arbitrum/          # Arbitrum contracts
 │   └── README.md          # Deployment documentation
+├── docs/
+│   └── notes/              # Historical fix notes / internal checklists
 ├── solana/                 # Solana programs & LayerZero integration
 │   ├── programs/          # Smart contracts (OFT, Registry)
 │   └── layerzero/         # Integration tools & examples
@@ -181,22 +187,24 @@ eagle-ovault/
 └── package.json          # Project configuration
 ```
 
+## Project Notes
+
+Historical fix notes, checklists, and internal status docs live under `docs/notes/` to keep the repo root clean.
+
 ## Contracts
 
 ### Core Contracts
 
 | Contract | Address | Network | Description |
 |----------|---------|---------|-------------|
-| **EagleOVault** | [`0x47b3ef629D9cB8DFcF8A6c61058338f4e99d7953`](https://etherscan.io/address/0x47b3ef629D9cB8DFcF8A6c61058338f4e99d7953) | Ethereum | Main vault contract accepting WLFI + USD1 |
+| **EagleOVault** | [`0x47b3ef629D9cB8DFcF8A6c61058338f4e99d7953`](https://etherscan.io/address/0x47b3ef629D9cB8DFcF8A6c61058338f4e99d7953) | Ethereum | ERC-4626 vault (WLFI asset; synchronous deposit/redemption) |
 | **EagleShareOFT** | [`0x474eD38C256A7FA0f3B8c48496CE1102ab0eA91E`](https://etherscan.io/address/0x474eD38C256A7FA0f3B8c48496CE1102ab0eA91E) | Ethereum | LayerZero OFT for cross-chain shares |
 | **EagleVaultWrapper** | [`0x47dAc5063c526dBc6f157093DD1D62d9DE8891c5`](https://etherscan.io/address/0x47dAc5063c526dBc6f157093DD1D62d9DE8891c5) | Ethereum | Wrapper for additional functionality |
 
 ### Strategy Contracts
 
-| Strategy | Charm Vault | Weight | Description |
-|----------|-------------|--------|-------------|
-| **WLFI/USD1** | [`0x22828Dbf15f5FBa2394Ba7Cf8fA9A96BdB444B71`](https://alpha.charm.fi/ethereum/vault/0x22828Dbf15f5FBa2394Ba7Cf8fA9A96BdB444B71) | 50% | Primary yield strategy |
-| **WETH/WLFI** | [`0x3314e248F3F752Cd16939773D83bEb3a362F0AEF`](https://alpha.charm.fi/ethereum/vault/0x3314e248F3F752Cd16939773D83bEb3a362F0AEF) | 50% | Secondary yield strategy |
+Strategy contracts live under `contracts/strategies/` and integrate with external venues (e.g. Charm / Uniswap V3).
+Exact strategy wiring is deployment-specific—use `deployments/` and `frontend/src/config/contracts.ts` as the source of truth.
 
 ### Cross-Chain Contracts
 
@@ -247,45 +255,39 @@ pnpm test
 
 ### Security Features
 
-- ✅ **Security Audits**: Multiple independent security reviews completed
-- ✅ **Access Controls**: Multi-signature requirements for admin functions
-- ✅ **Input Validation**: All user inputs validated and sanitized
-- ✅ **OpenZeppelin Standards**: Battle-tested contract patterns
-- ✅ **LayerZero Security**: Cross-chain messaging security verified
+- ✅ **Access Controls**: Multi-signature recommended for admin functions
+- ✅ **OpenZeppelin Standards**: Uses standard, battle-tested primitives where applicable
+- ✅ **Defense-in-depth**: Reentrancy guards, input checks, and conservative external integrations
 
 ### Security Monitoring
 
 - **Dependabot**: Automated dependency updates and security alerts
 - **Manual Reviews**: Regular security assessments
-- **Audit Reports**: Available in deployment documentation
+- **Audit Reports**: If/when published, link them here (recommended before production use)
 
 ## Usage
 
 ### Deposit & Withdraw
 
 ```solidity
-// Deposit WLFI + USD1 tokens
-vault.deposit(wlfiAmount, usd1Amount, minShares, recipient);
+// ERC-4626 deposit (WLFI asset)
+IERC4626 vault = IERC4626(EAGLE_OVAULT);
+IERC20 asset = IERC20(vault.asset());
 
-// Withdraw vault shares
-vault.withdraw(shares, minWlfiAmount, minUsd1Amount, recipient);
+asset.approve(address(vault), assets);
+uint256 shares = vault.deposit(assets, receiver);
+
+// ERC-4626 redeem (synchronous)
+uint256 assetsOut = vault.redeem(shares, receiver, owner);
 ```
 
 ### Cross-Chain Bridging
 
 ```solidity
-// Bridge vault shares across chains via LayerZero
-oft.send(params, amount, refundAddress);
-```
-
-### Strategy Management
-
-```solidity
-// Rebalance between strategies
-vault.rebalance();
-
-// Harvest yields
-strategy.harvest();
+// See `frontend/abis/EagleShareOFT.json` for the exact structs.
+// High-level flow:
+// 1) quoteSend(sendParam, payInLzToken)
+// 2) send(sendParam, fee, refundAddress)
 ```
 
 ## Development
@@ -338,17 +340,14 @@ anchor deploy --provider.cluster devnet
 
 ### Vault Functions
 
-- `deposit(uint256 wlfiAmount, uint256 usd1Amount, uint256 minShares, address recipient)` - Deposit tokens
-- `withdraw(uint256 shares, uint256 minWlfiAmount, uint256 minUsd1Amount, address recipient)` - Withdraw shares
-- `getTotalAssets()` - Get total assets under management
+- `asset()` - ERC-4626 underlying asset (WLFI)
+- `totalAssets()` - Total assets under management (WLFI-denominated)
+- `deposit(uint256 assets, address receiver)` - Deposit WLFI and receive shares
+- `mint(uint256 shares, address receiver)` - Mint shares by depositing the required WLFI
+- `withdraw(uint256 assets, address receiver, address owner)` - Withdraw WLFI by burning shares
+- `redeem(uint256 shares, address receiver, address owner)` - Redeem shares for WLFI
 - `convertToShares(uint256 assets)` - Convert assets to shares
 - `convertToAssets(uint256 shares)` - Convert shares to assets
-
-### Strategy Functions
-
-- `harvest()` - Harvest yields from underlying protocols
-- `rebalance()` - Rebalance position in strategy
-- `totalAssets()` - Get total assets in strategy
 
 ## Configuration
 
@@ -405,13 +404,11 @@ We welcome contributions! Please follow these steps:
 
 ### Audit Reports
 
-- ✅ **Comprehensive Security Audit** - Completed by leading DeFi security firm
-- ✅ **Formal Verification** - Key contracts mathematically verified
-- ✅ **Bug Bounty Program** - Active program for responsible disclosure
+- If you are deploying this system in production, arrange an independent security review and publish the report(s) here.
 
 ### Best Practices
 
-- **Multi-signature** required for admin functions
+- **Multi-signature** recommended for admin functions
 - **Timelock** on critical parameter changes
 - **Emergency pause** functionality available
 - **Input validation** on all user-facing functions
