@@ -83,7 +83,7 @@ export const CHAIN_CONFIG = {
     name: 'Base',
     symbol: 'ETH',
     explorer: 'https://basescan.org',
-    rpc: import.meta.env.VITE_BASE_RPC || 'https://mainnet.base.org',
+    rpc: import.meta.env.VITE_BASE_RPC || 'https://base.llamarpc.com',
     color: '#0052FF',
     contracts: { EAGLE: EAGLE_OFT_ADDRESS, WLFI: BASE_CONTRACTS.WLFI_OFT }
   },
