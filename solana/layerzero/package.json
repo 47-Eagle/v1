@@ -35,6 +35,16 @@
     "@types/node": "^22.10.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.2"
+  },
+  "overrides": {
+    "diff": "^4.0.4",
+    "elliptic": "^6.6.1"
+  },
+  "pnpm": {
+    "overrides": {
+      "diff": "^4.0.4",
+      "elliptic": "^6.6.1"
+    }
   }
 }
 
