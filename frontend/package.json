@@ -40,7 +40,7 @@
     "@types/react-dom": "^18.2.22",
     "@typescript-eslint/eslint-plugin": "^7.2.0",
     "@typescript-eslint/parser": "^7.2.0",
-    "@vercel/node": "^4.0.0",
+    "@vercel/node": "^5.5.30",
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.19",
     "eslint": "^8.57.0",
@@ -52,16 +52,28 @@
     "vite": "^5.2.0"
   },
   "overrides": {
+    "diff": "^4.0.4",
+    "elliptic": "^6.6.1",
     "esbuild": "^0.25.0",
-    "hono": "^4.10.3",
-    "undici": "^5.29.0",
+    "h3": "^1.15.5",
+    "hono": "^4.7.6",
+    "lodash": "^4.17.22",
+    "path-to-regexp": "^6.3.0",
+    "tar": "^7.5.7",
+    "undici": "^7.4.0",
     "valibot": "^1.2.0"
   },
   "pnpm": {
     "overrides": {
+      "diff": "^4.0.4",
+      "elliptic": "^6.6.1",
       "esbuild": "^0.25.0",
-      "hono": "^4.10.3",
-      "undici": "^7.5.0",
+      "h3": "^1.15.5",
+      "hono": "^4.7.6",
+      "lodash": "^4.17.22",
+      "path-to-regexp": "^6.3.0",
+      "tar": "^7.5.7",
+      "undici": "^7.4.0",
       "valibot": "^1.2.0"
     }
   }
