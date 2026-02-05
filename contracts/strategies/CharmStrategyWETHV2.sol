@@ -350,20 +350,31 @@ contract CharmStrategyWETHV2 is IStrategy, ReentrancyGuard, Ownable {
         uint256 finalWeth;
         uint256 finalWlfi;
 
+        // CRITICAL: If we have WLFI but no WETH, swap some WLFI → WETH first
+        if (totalWeth == 0 && totalWlfi > 0 && charmWeth > 0) {
+            // Swap up to maxSwapPercent of WLFI to WETH
+            uint256 wlfiToSwap = (totalWlfi * maxSwapPercent) / 100;
+            if (wlfiToSwap > 0) {
+                uint256 wethReceived = _swapWlfiToWethSafe(wlfiToSwap);
+                totalWeth = wethReceived;
+                totalWlfi = totalWlfi - wlfiToSwap;
+            }
+        }
+
         if (charmWeth > 0 && charmWlfi > 0) {
             // Calculate required WLFI for our WETH
             uint256 wlfiNeeded = (totalWeth * charmWlfi) / charmWeth;
 
-            if (totalWlfi >= wlfiNeeded) {
+            if (totalWeth > 0 && totalWlfi >= wlfiNeeded) {
                 // Have enough WLFI - use all WETH and matching WLFI
                 finalWeth = totalWeth;
                 finalWlfi = wlfiNeeded;
-            } else if (totalWlfi > 0) {
+            } else if (totalWeth > 0 && totalWlfi > 0) {
                 // Have some WLFI but not enough - calculate how much WETH we can use
                 uint256 wethUsable = (totalWlfi * charmWeth) / charmWlfi;
                 
                 // Check if we should swap some WETH → WLFI to use more WETH
-                uint256 excessWeth = totalWeth - wethUsable;
+                uint256 excessWeth = totalWeth > wethUsable ? totalWeth - wethUsable : 0;
                 uint256 maxSwapWeth = (totalWeth * maxSwapPercent) / 100;
                 uint256 wethToSwap = excessWeth > maxSwapWeth ? maxSwapWeth : excessWeth;
                 
@@ -380,7 +391,7 @@ contract CharmStrategyWETHV2 is IStrategy, ReentrancyGuard, Ownable {
                     finalWeth = wethUsable;
                     finalWlfi = totalWlfi;
                 }
-            } else {
+            } else if (totalWeth > 0) {
                 // No WLFI at all - swap some WETH → WLFI
                 uint256 maxSwapWeth = (totalWeth * maxSwapPercent) / 100;
                 if (maxSwapWeth > 0) {
@@ -396,6 +407,10 @@ contract CharmStrategyWETHV2 is IStrategy, ReentrancyGuard, Ownable {
                     finalWeth = 0;
                     finalWlfi = 0;
                 }
+            } else {
+                // Edge case: no WETH after swap attempt, return what we have
+                finalWeth = 0;
+                finalWlfi = 0;
             }
         } else {
             // Charm empty - deposit both as-is
