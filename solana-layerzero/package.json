@@ -18,6 +18,11 @@
     "typescript": "^5.7.2"
   },
   "overrides": {
-    "elliptic": "^6.6.1"
+    "bn.js@4": "4.12.5",
+    "bn.js@5": "5.2.5",
+    "elliptic": "^6.6.1",
+    "stream-json": "^3.6.0",
+    "toml": "^4.3.0",
+    "ws": "8.21.3"
   }
 }
