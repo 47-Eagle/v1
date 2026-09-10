@@ -21,6 +21,7 @@ import {
   createWalletClient,
   defineChain,
   encodeAbiParameters,
+  encodeFunctionData,
   formatEther,
   getAddress,
   http,
@@ -102,13 +103,14 @@ const CHAINS: Record<ChainKey, {
     chain: bsc,
     eid: 30_102,
     rpcEnv: ['BSC_RPC_URL'],
-    defaultRpc: 'https://bsc-rpc.publicnode.com',
+    defaultRpc: 'https://bsc-dataseed.binance.org',
     metadataKey: 'bsc',
   },
   avalanche: {
     chain: avalanche,
     eid: 30_106,
     rpcEnv: ['AVALANCHE_RPC_URL', 'AVAX_RPC_URL'],
+    defaultRpc: 'https://avalanche-c-chain-rpc.publicnode.com',
     metadataKey: 'avalanche',
   },
   arbitrum: {
@@ -216,6 +218,72 @@ function firstRpc(...names: string[]): string {
     if (value) return value
   }
   return ''
+}
+
+const RPC_FALLBACKS: Partial<Record<ChainKey, readonly string[]>> = {
+  avalanche: [
+    'https://avalanche-c-chain-rpc.publicnode.com',
+    'https://api.avax.network/ext/bc/C/rpc',
+  ],
+  bsc: ['https://bsc-dataseed.binance.org', 'https://bsc-dataseed1.bnbchain.org', 'https://binance.llamarpc.com'],
+  sonic: ['https://rpc.soniclabs.com'],
+  hyperliquid: ['https://rpc.hyperliquid.xyz/evm'],
+  monad: ['https://rpc-mainnet.monadinfra.com', 'https://rpc.monad.xyz'],
+  base: ['https://mainnet.base.org', 'https://base-rpc.publicnode.com'],
+}
+
+function isUnreliableRpc(key: ChainKey, rpc: string): boolean {
+  const host = rpc.toLowerCase()
+  // Matrixed BSC proxy returns "Missing or invalid parameters" on eth_call/send.
+  return (key === 'bsc' || key === 'avalanche') && host.includes('matrixed')
+}
+
+async function resolveRpc(key: ChainKey): Promise<string> {
+  const spec = CHAINS[key]
+  const candidates = [
+    ...spec.rpcEnv.map((name) => firstRpc(name)).filter(Boolean),
+    spec.defaultRpc ?? '',
+    ...(RPC_FALLBACKS[key] ?? []),
+  ].filter((rpc, index, all) => (
+    rpc.length > 0 &&
+    all.indexOf(rpc) === index &&
+    !isUnreliableRpc(key, rpc) &&
+    !(key === 'bsc' && rpc.includes('publicnode'))
+  ))
+  for (const rpc of candidates) {
+    try {
+      const client = createPublicClient({
+        chain: spec.chain,
+        transport: http(rpc, { timeout: 15_000 }),
+      })
+      if (await client.getChainId() === spec.chain.id) return rpc
+    } catch {
+      continue
+    }
+  }
+  throw new Error(`missing_rpc:${key}`)
+}
+
+async function feeFields(
+  client: ReturnType<typeof createPublicClient>,
+  chainId: number,
+): Promise<Record<string, bigint>> {
+  const block = await client.getBlock({ blockTag: 'latest' })
+  const base = block.baseFeePerGas ?? 0n
+  const quoted = await client.getGasPrice()
+  // BSC (and any chain with a 0 base fee) wants a legacy gasPrice, not 1559.
+  if (chainId === 56 || base === 0n) {
+    const gasPrice = quoted > 0n ? (quoted * 12n) / 10n : 50_000_000n
+    return { gasPrice }
+  }
+  const tip = chainId === 146 || chainId === 143 ? 1_000_000_000n : 100_000_000n
+  const maxFeePerGas = (base * 12n) / 10n + tip
+  return { maxFeePerGas, maxPriorityFeePerGas: tip }
+}
+
+function errMsg(error: unknown): string {
+  if (error instanceof Error) return error.message.split('\n')[0] ?? error.message
+  return String(error)
 }
 
 function normalizePrivateKey(raw: string): Hex {
@@ -333,8 +401,7 @@ async function readChain(key: ChainKey, expected: UlnConfig): Promise<{
   pathways: Pathway[]
 }> {
   const spec = CHAINS[key]
-  const rpc = firstRpc(...spec.rpcEnv) || spec.defaultRpc || ''
-  if (!rpc) throw new Error(`missing_rpc:${key}`)
+  const rpc = await resolveRpc(key)
   const client = createPublicClient({ chain: spec.chain, transport: http(rpc) })
   if (await client.getChainId() !== spec.chain.id) throw new Error(`${key}_chain_id_mismatch`)
   const endpoint = getAddress(
@@ -450,83 +517,132 @@ async function applyChain(
   snapshot: Awaited<ReturnType<typeof readChain>>,
   expected: UlnConfig,
   account: ReturnType<typeof privateKeyToAccount>,
-): Promise<{ pins: Hex[]; configs: Hex[] }> {
+): Promise<{ pins: Hex[]; configs: Hex[]; errors: string[] }> {
   const client = createPublicClient({ chain: snapshot.chain, transport: http(snapshot.rpc) })
   const wallet = createWalletClient({ account, chain: snapshot.chain, transport: http(snapshot.rpc) })
   const pins: Hex[] = []
   const configs: Hex[] = []
-  const configBytes = encodeUlnConfig(expected)
+  const errors: string[] = []
+  const pinFees = await feeFields(client, snapshot.chain.id)
+  const configFees = await feeFields(client, snapshot.chain.id)
+
+  const send = async (
+    label: string,
+    functionName: 'setSendLibrary' | 'setReceiveLibrary' | 'setConfig',
+    args: readonly unknown[],
+    fees: Record<string, bigint>,
+    bucket: Hex[],
+  ): Promise<boolean> => {
+    const write = async (skipSimulate: boolean): Promise<Hex> => {
+      if (!skipSimulate) {
+        const { request } = await client.simulateContract({
+          address: snapshot.endpoint,
+          abi: ENDPOINT_ABI,
+          functionName,
+          args: args as never,
+          account,
+        })
+        const {
+          gas: _gas,
+          gasPrice: _gasPrice,
+          maxFeePerGas: _maxFeePerGas,
+          maxPriorityFeePerGas: _maxPriorityFeePerGas,
+          ...rest
+        } = request
+        return wallet.writeContract({ ...rest, ...fees })
+      }
+      const data = encodeFunctionData({
+        abi: ENDPOINT_ABI,
+        functionName,
+        args: args as never,
+      })
+        return wallet.sendTransaction({
+        to: snapshot.endpoint,
+        data,
+        account,
+        chain: snapshot.chain,
+        gas: 1_500_000n,
+        ...fees,
+      })
+    }
+    try {
+      const hash = await write(false)
+      const receipt = await client.waitForTransactionReceipt({ hash, confirmations: 1, timeout: 300_000 })
+      if (receipt.status !== 'success') throw new Error(`tx_reverted:${hash}`)
+      bucket.push(hash)
+      process.stdout.write(`${snapshot.key} ${label} ${hash}\n`)
+      return true
+    } catch (error) {
+      const first = errMsg(error)
+      if (/missing or invalid parameters/i.test(first) || /cannot unmarshal/i.test(first)) {
+        try {
+          const hash = await write(true)
+          const receipt = await client.waitForTransactionReceipt({ hash, confirmations: 1, timeout: 180_000 })
+          if (receipt.status !== 'success') throw new Error(`tx_reverted:${hash}`)
+          bucket.push(hash)
+          process.stdout.write(`${snapshot.key} ${label} (no-sim) ${hash}\n`)
+          return true
+        } catch (retryError) {
+          const message = `${snapshot.key} ${label} ${errMsg(retryError)}`
+          errors.push(message)
+          process.stderr.write(`${message}\n`)
+          return false
+        }
+      }
+      const message = `${snapshot.key} ${label} ${first}`
+      errors.push(message)
+      process.stderr.write(`${message}\n`)
+      return false
+    }
+  }
 
   for (const path of snapshot.pathways) {
     if (path.sendLibraryIsDefault) {
-      const { request } = await client.simulateContract({
-        address: snapshot.endpoint,
-        abi: ENDPOINT_ABI,
-        functionName: 'setSendLibrary',
-        args: [EAGLE_OFT, path.remoteEid, path.sendLibrary],
-        account,
-      })
-      const hash = await wallet.writeContract(request)
-      await client.waitForTransactionReceipt({ hash, confirmations: 1, timeout: 180_000 })
-      pins.push(hash)
+      await send(
+        `setSendLibrary eid=${path.remoteEid}`,
+        'setSendLibrary',
+        [EAGLE_OFT, path.remoteEid, path.sendLibrary],
+        pinFees,
+        pins,
+      )
     }
     if (path.receiveLibraryIsDefault) {
-      const { request } = await client.simulateContract({
-        address: snapshot.endpoint,
-        abi: ENDPOINT_ABI,
-        functionName: 'setReceiveLibrary',
-        args: [EAGLE_OFT, path.remoteEid, path.receiveLibrary, 0n],
-        account,
-      })
-      const hash = await wallet.writeContract(request)
-      await client.waitForTransactionReceipt({ hash, confirmations: 1, timeout: 180_000 })
-      pins.push(hash)
+      await send(
+        `setReceiveLibrary eid=${path.remoteEid}`,
+        'setReceiveLibrary',
+        [EAGLE_OFT, path.remoteEid, path.receiveLibrary, 0n],
+        pinFees,
+        pins,
+      )
     }
   }
 
   type ConfigParam = { eid: number; configType: number; config: Hex }
+  const writeParams = async (kind: 'send' | 'receive', lib: Address, params: ConfigParam[]) => {
+    for (const param of params) {
+      const label = `setConfig ${kind} lib=${lib} eid=${param.eid}`
+      await send(label, 'setConfig', [EAGLE_OFT, lib, [param]], configFees, configs)
+    }
+  }
+
+  const configBytes = encodeUlnConfig(expected)
   const sendByLib = new Map<Address, ConfigParam[]>()
   for (const path of snapshot.pathways) {
-    if (path.sendOk) continue
+    if (path.sendOk || !path.sendSupported) continue
     const list = sendByLib.get(path.sendLibrary) ?? []
     list.push({ eid: path.remoteEid, configType: ULN_CONFIG_TYPE, config: configBytes })
     sendByLib.set(path.sendLibrary, list)
   }
   const receiveByLib = new Map<Address, ConfigParam[]>()
   for (const path of snapshot.pathways) {
-    if (path.receiveOk || path.skipReceiveWrite) continue
+    if (path.receiveOk || path.skipReceiveWrite || !path.receiveSupported) continue
     const list = receiveByLib.get(path.receiveLibrary) ?? []
     list.push({ eid: path.remoteEid, configType: ULN_CONFIG_TYPE, config: configBytes })
     receiveByLib.set(path.receiveLibrary, list)
   }
-
-  for (const [lib, params] of sendByLib) {
-    if (params.length === 0) continue
-    const { request } = await client.simulateContract({
-      address: snapshot.endpoint,
-      abi: ENDPOINT_ABI,
-      functionName: 'setConfig',
-      args: [EAGLE_OFT, lib, params],
-      account,
-    })
-    const hash = await wallet.writeContract(request)
-    await client.waitForTransactionReceipt({ hash, confirmations: 1, timeout: 180_000 })
-    configs.push(hash)
-  }
-  for (const [lib, params] of receiveByLib) {
-    if (params.length === 0) continue
-    const { request } = await client.simulateContract({
-      address: snapshot.endpoint,
-      abi: ENDPOINT_ABI,
-      functionName: 'setConfig',
-      args: [EAGLE_OFT, lib, params],
-      account,
-    })
-    const hash = await wallet.writeContract(request)
-    await client.waitForTransactionReceipt({ hash, confirmations: 1, timeout: 180_000 })
-    configs.push(hash)
-  }
-  return { pins, configs }
+  for (const [lib, params] of sendByLib) await writeParams('send', lib, params)
+  for (const [lib, params] of receiveByLib) await writeParams('receive', lib, params)
+  return { pins, configs, errors }
 }
 
 async function main(): Promise<void> {
@@ -591,18 +707,26 @@ async function main(): Promise<void> {
     }
 
     if (!execute) continue
-    if (snapshot.owner !== EAGLE_OWNER) throw new Error(`unexpected_owner:${key}:${snapshot.owner}`)
-    const account = privateKeyToAccount(
-      normalizePrivateKey(env('EAGLE_OFT_PRIVATE_KEY') || env('PRIVATE_KEY')),
-    )
-    if (getAddress(account.address) !== snapshot.owner && getAddress(account.address) !== snapshot.delegate) {
-      throw new Error(`signer_not_owner_or_delegate:${key}:${account.address}`)
+    try {
+      if (snapshot.owner !== EAGLE_OWNER) throw new Error(`unexpected_owner:${key}:${snapshot.owner}`)
+      const account = privateKeyToAccount(
+        normalizePrivateKey(env('EAGLE_OFT_PRIVATE_KEY') || env('PRIVATE_KEY')),
+      )
+      if (getAddress(account.address) !== snapshot.owner && getAddress(account.address) !== snapshot.delegate) {
+        throw new Error(`signer_not_owner_or_delegate:${key}:${account.address}`)
+      }
+      const client = createPublicClient({ chain: snapshot.chain, transport: http(snapshot.rpc) })
+      const bal = await client.getBalance({ address: account.address })
+      process.stdout.write(`${key} rpc=${snapshot.rpc.split('?')[0]} signer balance=${formatEther(bal)}\n`)
+      const hashes = await applyChain(snapshot, expected, account)
+      ;(report.chains as Record<string, unknown>)[`${key}Hashes`] = hashes
+      if (hashes.errors.length > 0) process.exitCode = 1
+    } catch (error) {
+      process.exitCode = 1
+      const message = `${key} ${errMsg(error)}`
+      process.stderr.write(`${message}\n`)
+      ;(report.chains as Record<string, unknown>)[`${key}Error`] = message
     }
-    const client = createPublicClient({ chain: snapshot.chain, transport: http(snapshot.rpc) })
-    const bal = await client.getBalance({ address: account.address })
-    process.stdout.write(`${key} signer balance=${formatEther(bal)}\n`)
-    const hashes = await applyChain(snapshot, expected, account)
-    ;(report.chains as Record<string, unknown>)[`${key}Hashes`] = hashes
   }
 
   process.stdout.write(`${JSON.stringify(report, (_, value) => typeof value === 'bigint' ? value.toString() : value, 2)}\n`)
