@@ -13,7 +13,7 @@
   "dependencies": {
     "@prisma/client": "^7.10.0",
     "@rainbow-me/rainbowkit": "^2.1.0",
-    "@react-oauth/google": "^0.12.1",
+    "@react-oauth/google": "^0.13.5",
     "@react-three/drei": "~9.100.0",
     "@react-three/fiber": "~8.15.0",
     "@safe-global/safe-apps-provider": "^0.18.6",
