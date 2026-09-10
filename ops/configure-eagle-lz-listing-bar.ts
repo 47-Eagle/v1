@@ -353,16 +353,8 @@ function isExact(actual: UlnConfig, expected: UlnConfig): boolean {
     exactAddressList(actual.optionalDvns, expected.optionalDvns)
 }
 
-async function resolveDvns(metadataKey: string): Promise<{ name: string; address: Address }[]> {
-  const url = env('LZ_DVN_METADATA_URL') || DEFAULT_DVN_METADATA_URL
-  const response = await fetch(url, { headers: { accept: 'application/json' }, signal: AbortSignal.timeout(20_000) })
-  if (!response.ok) throw new Error(`dvn_metadata_http_${response.status}`)
-  const body = await response.json() as Record<string, {
-    chainKey?: string
-    dvns?: Record<string, { canonicalName?: string; version?: number; deprecated?: boolean; lzReadCompatible?: boolean }>
-  }>
-  const record = Object.values(body).find((row) => row.chainKey === metadataKey && row.dvns)
-  if (!record?.dvns) throw new Error(`dvn_metadata_missing_chain:${metadataKey}`)
+function resolveDvns(record: LzDeploymentRecord, metadataKey: string): { name: string; address: Address }[] {
+  if (!record.dvns) throw new Error(`dvn_metadata_missing_chain:${metadataKey}`)
   return DVN_NAMES.map((name) => {
     const matches = Object.entries(record.dvns ?? {}).filter(([, meta]) => (
       meta?.canonicalName === name &&
@@ -375,13 +367,61 @@ async function resolveDvns(metadataKey: string): Promise<{ name: string; address
   })
 }
 
+type LzDeploymentRecord = {
+  chainKey?: string
+  dvns?: Record<string, { canonicalName?: string; version?: number; deprecated?: boolean; lzReadCompatible?: boolean }>
+  deployments?: Array<{
+    version?: number
+    sendUln302?: { address?: string }
+    receiveUln302?: { address?: string }
+  }>
+}
+
+type CanonicalUln302 = {
+  sendUln302: Address
+  receiveUln302: Address
+}
+
+let metadataCache: Record<string, LzDeploymentRecord> | undefined
+
+async function loadLzMetadata(): Promise<Record<string, LzDeploymentRecord>> {
+  if (metadataCache) return metadataCache
+  const url = env('LZ_DVN_METADATA_URL') || DEFAULT_DVN_METADATA_URL
+  const response = await fetch(url, { headers: { accept: 'application/json' }, signal: AbortSignal.timeout(20_000) })
+  if (!response.ok) throw new Error(`dvn_metadata_http_${response.status}`)
+  metadataCache = await response.json() as Record<string, LzDeploymentRecord>
+  return metadataCache
+}
+
+function findChainRecord(body: Record<string, LzDeploymentRecord>, metadataKey: string): LzDeploymentRecord {
+  const record = Object.values(body).find((row) => row.chainKey === metadataKey)
+  if (!record) throw new Error(`dvn_metadata_missing_chain:${metadataKey}`)
+  return record
+}
+
+function resolveUln302(record: LzDeploymentRecord, metadataKey: string): CanonicalUln302 {
+  const v2 = (record.deployments ?? []).find((row) => row.version === 2)
+  const send = v2?.sendUln302?.address
+  const receive = v2?.receiveUln302?.address
+  if (!send || !receive) throw new Error(`uln302_metadata_missing:${metadataKey}`)
+  return { sendUln302: getAddress(send), receiveUln302: getAddress(receive) }
+}
+
+function sameAddress(left: Address, right: Address): boolean {
+  return left.toLowerCase() === right.toLowerCase()
+}
+
 type Pathway = {
   remote: ChainKey
   remoteEid: number
   sendLibrary: Address
   receiveLibrary: Address
+  expectedSendLibrary: Address
+  expectedReceiveLibrary: Address
   sendLibraryIsDefault: boolean
   receiveLibraryIsDefault: boolean
+  sendLibraryOk: boolean
+  receiveLibraryOk: boolean
   send: UlnConfig
   receive: UlnConfig
   sendOk: boolean
@@ -391,13 +431,15 @@ type Pathway = {
   receiveSupported: boolean
 }
 
-async function readChain(key: ChainKey, expected: UlnConfig): Promise<{
+async function readChain(key: ChainKey, expected: UlnConfig, libs: CanonicalUln302): Promise<{
   key: ChainKey
   rpc: string
   chain: Chain
   endpoint: Address
   owner: Address
   delegate: Address
+  expectedSendLibrary: Address
+  expectedReceiveLibrary: Address
   pathways: Pathway[]
 }> {
   const spec = CHAINS[key]
@@ -445,25 +487,25 @@ async function readChain(key: ChainKey, expected: UlnConfig): Promise<{
     const [receiveLibrary, receiveLibraryIsDefault] = receiveLibraryResult
     const [send, receive, sendSupported, receiveSupported] = await Promise.all([
       client.readContract({
-        address: sendLibrary,
+        address: libs.sendUln302,
         abi: ULN_ABI,
         functionName: 'getAppUlnConfig',
         args: [EAGLE_OFT, remoteEid],
       }),
       client.readContract({
-        address: receiveLibrary,
+        address: libs.receiveUln302,
         abi: ULN_ABI,
         functionName: 'getAppUlnConfig',
         args: [EAGLE_OFT, remoteEid],
       }),
       client.readContract({
-        address: sendLibrary,
+        address: libs.sendUln302,
         abi: ULN_ABI,
         functionName: 'isSupportedEid',
         args: [remoteEid],
       }),
       client.readContract({
-        address: receiveLibrary,
+        address: libs.receiveUln302,
         abi: ULN_ABI,
         functionName: 'isSupportedEid',
         args: [remoteEid],
@@ -486,13 +528,21 @@ async function readChain(key: ChainKey, expected: UlnConfig): Promise<{
       optionalDvns: receive.optionalDvns.map((a) => getAddress(a)),
     }
     const skipReceiveWrite = skipInflightReceive() && key === 'arbitrum' && INFLIGHT_ARB_RECEIVE_EIDS.has(remoteEid)
+    const liveSend = getAddress(sendLibrary)
+    const liveReceive = getAddress(receiveLibrary)
+    const sendIsDefault = Boolean(sendLibraryIsDefault)
+    const receiveIsDefault = Boolean(receiveLibraryIsDefault)
     pathways.push({
       remote,
       remoteEid,
-      sendLibrary: getAddress(sendLibrary),
-      receiveLibrary: getAddress(receiveLibrary),
-      sendLibraryIsDefault: Boolean(sendLibraryIsDefault),
-      receiveLibraryIsDefault: Boolean(receiveLibraryIsDefault),
+      sendLibrary: liveSend,
+      receiveLibrary: liveReceive,
+      expectedSendLibrary: libs.sendUln302,
+      expectedReceiveLibrary: libs.receiveUln302,
+      sendLibraryIsDefault: sendIsDefault,
+      receiveLibraryIsDefault: receiveIsDefault,
+      sendLibraryOk: !sendIsDefault && sameAddress(liveSend, libs.sendUln302),
+      receiveLibraryOk: !receiveIsDefault && sameAddress(liveReceive, libs.receiveUln302),
       send: sendCfg,
       receive: receiveCfg,
       sendOk: isExact(sendCfg, expected),
@@ -509,6 +559,8 @@ async function readChain(key: ChainKey, expected: UlnConfig): Promise<{
     endpoint: getAddress(endpoint),
     owner: getAddress(owner),
     delegate: getAddress(delegate),
+    expectedSendLibrary: libs.sendUln302,
+    expectedReceiveLibrary: libs.receiveUln302,
     pathways,
   }
 }
@@ -597,20 +649,20 @@ async function applyChain(
   }
 
   for (const path of snapshot.pathways) {
-    if (path.sendLibraryIsDefault) {
+    if (!path.sendLibraryOk) {
       await send(
         `setSendLibrary eid=${path.remoteEid}`,
         'setSendLibrary',
-        [EAGLE_OFT, path.remoteEid, path.sendLibrary],
+        [EAGLE_OFT, path.remoteEid, path.expectedSendLibrary],
         pinFees,
         pins,
       )
     }
-    if (path.receiveLibraryIsDefault) {
+    if (!path.receiveLibraryOk && !path.skipReceiveWrite) {
       await send(
         `setReceiveLibrary eid=${path.remoteEid}`,
         'setReceiveLibrary',
-        [EAGLE_OFT, path.remoteEid, path.receiveLibrary, 0n],
+        [EAGLE_OFT, path.remoteEid, path.expectedReceiveLibrary, 0n],
         pinFees,
         pins,
       )
@@ -629,16 +681,16 @@ async function applyChain(
   const sendByLib = new Map<Address, ConfigParam[]>()
   for (const path of snapshot.pathways) {
     if (path.sendOk || !path.sendSupported) continue
-    const list = sendByLib.get(path.sendLibrary) ?? []
+    const list = sendByLib.get(path.expectedSendLibrary) ?? []
     list.push({ eid: path.remoteEid, configType: ULN_CONFIG_TYPE, config: configBytes })
-    sendByLib.set(path.sendLibrary, list)
+    sendByLib.set(path.expectedSendLibrary, list)
   }
   const receiveByLib = new Map<Address, ConfigParam[]>()
   for (const path of snapshot.pathways) {
     if (path.receiveOk || path.skipReceiveWrite || !path.receiveSupported) continue
-    const list = receiveByLib.get(path.receiveLibrary) ?? []
+    const list = receiveByLib.get(path.expectedReceiveLibrary) ?? []
     list.push({ eid: path.remoteEid, configType: ULN_CONFIG_TYPE, config: configBytes })
-    receiveByLib.set(path.receiveLibrary, list)
+    receiveByLib.set(path.expectedReceiveLibrary, list)
   }
   for (const [lib, params] of sendByLib) await writeParams('send', lib, params)
   for (const [lib, params] of receiveByLib) await writeParams('receive', lib, params)
@@ -665,14 +717,19 @@ async function main(): Promise<void> {
     chains: {} as Record<string, unknown>,
   }
 
+  const metadata = await loadLzMetadata()
   for (const key of keys) {
-    const named = await resolveDvns(CHAINS[key].metadataKey)
+    const record = findChainRecord(metadata, CHAINS[key].metadataKey)
+    const named = resolveDvns(record, CHAINS[key].metadataKey)
+    const libs = resolveUln302(record, CHAINS[key].metadataKey)
     const expected = buildExpected(named)
-    const snapshot = await readChain(key, expected)
+    const snapshot = await readChain(key, expected, libs)
     ;(report.chains as Record<string, unknown>)[key] = {
       endpoint: snapshot.endpoint,
       owner: snapshot.owner,
       delegate: snapshot.delegate,
+      expectedSendLibrary: snapshot.expectedSendLibrary,
+      expectedReceiveLibrary: snapshot.expectedReceiveLibrary,
       expected: {
         ...expected,
         confirmations: expected.confirmations.toString(),
@@ -680,8 +737,14 @@ async function main(): Promise<void> {
       pathways: snapshot.pathways.map((path) => ({
         remote: path.remote,
         remoteEid: path.remoteEid,
+        sendLibrary: path.sendLibrary,
+        receiveLibrary: path.receiveLibrary,
+        expectedSendLibrary: path.expectedSendLibrary,
+        expectedReceiveLibrary: path.expectedReceiveLibrary,
         sendLibraryIsDefault: path.sendLibraryIsDefault,
         receiveLibraryIsDefault: path.receiveLibraryIsDefault,
+        sendLibraryOk: path.sendLibraryOk,
+        receiveLibraryOk: path.receiveLibraryOk,
         sendSupported: path.sendSupported,
         receiveSupported: path.receiveSupported,
         sendOk: path.sendOk,
@@ -712,8 +775,10 @@ async function main(): Promise<void> {
       const account = privateKeyToAccount(
         normalizePrivateKey(env('EAGLE_OFT_PRIVATE_KEY') || env('PRIVATE_KEY')),
       )
-      if (getAddress(account.address) !== snapshot.owner && getAddress(account.address) !== snapshot.delegate) {
-        throw new Error(`signer_not_owner_or_delegate:${key}:${account.address}`)
+      if (getAddress(account.address) !== snapshot.delegate) {
+        throw new Error(
+          `signer_not_delegate:${key}:signer=${account.address}:delegate=${snapshot.delegate}:owner=${snapshot.owner}. Endpoint setSendLibrary/setReceiveLibrary/setConfig are authorized via the registered OApp delegate. Update the OApp delegate before executing.`,
+        )
       }
       const client = createPublicClient({ chain: snapshot.chain, transport: http(snapshot.rpc) })
       const bal = await client.getBalance({ address: account.address })
