@@ -23,7 +23,7 @@
   "author": "EAGLE Team",
   "license": "MIT",
   "dependencies": {
-    "@coral-xyz/anchor": "^0.31.1",
+    "@coral-xyz/anchor": "^0.32.1",
     "@solana/spl-token": "^0.4.9",
     "@solana/web3.js": "^1.95.8",
     "@layerzerolabs/lz-solana-sdk-v2": "^2.0.0",
