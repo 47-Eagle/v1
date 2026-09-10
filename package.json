@@ -16,6 +16,7 @@
     "lz:set:delegate": "npx tsx scripts/deployment/set-layerzero-delegate.ts",
     "lz:set:options": "npx tsx scripts/deployment/set-enforced-options.ts",
     "lz:set:dvn": "npx tsx scripts/deployment/set-dvn-config.ts",
+    "lz:listing-bar": "tsx --env-file=.env ops/configure-eagle-lz-listing-bar.ts",
     "lz:set:executor": "npx tsx scripts/deployment/set-executor-config.ts",
     "lz:verify": "npx tsx scripts/verification/verify-layerzero-config.ts",
     "lz:send:test": "npx tsx scripts/testing/send-eagle-cross-chain.ts",
@@ -75,6 +76,7 @@
     "solidity-coverage": "^0.8.16",
     "ts-node": "^10.9.2",
     "tsx": "^4.20.6",
+    "viem": "^2.45.1",
     "typechain": "^8.3.2",
     "typescript": "^5.0.0"
   },
