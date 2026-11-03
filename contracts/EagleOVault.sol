@@ -7,6 +7,7 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { ERC4626 } from "@openzeppelin/contracts/token/ERC20/extensions/ERC4626.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 import { ISwapRouter } from "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 import { IUniswapV3Pool } from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import { IStrategy } from "./interfaces/IStrategy.sol";
@@ -346,7 +347,7 @@ contract EagleOVault is ERC4626, Ownable, ReentrancyGuard {
             uint256 basePrice = 1e18;
             int256 adjustment = int256(arithmeticMeanTick) * 1e14;
             uint256 rawPrice = uint256(int256(basePrice) + adjustment);
-            return rawPrice > 0 ? (1e18 * 1e18) / rawPrice : 1e18;
+            return rawPrice > 0 ? Math.mulDiv(1e18, 1e18, rawPrice) : 1e18;
         } else {
             return _getSpotPrice();
         }
@@ -355,12 +356,25 @@ contract EagleOVault is ERC4626, Ownable, ReentrancyGuard {
     function _getSpotPrice() internal view returns (uint256 price) {
         (uint160 sqrtPriceX96,,,,,,) = WLFI_USD1_POOL.slot0();
         
-        uint256 numerator = uint256(sqrtPriceX96) * uint256(sqrtPriceX96);
-        uint256 denominator = 1 << 192;
-        uint256 rawPrice = (numerator * 1e18) / denominator;
+        uint256 sqrtPrice = uint256(sqrtPriceX96);
+        
+        // rawPrice = sqrtPrice^2 * 1e18 / 2^192.
+        //
+        // The naive `(sqrtPrice * sqrtPrice) * 1e18` overflows uint256 once
+        // sqrtPrice > ~3.40e29 (tick > ~0), which is exactly what froze the
+        // deployed vault. Square directly only while the product fits, and use
+        // Math.mulDiv for the 512-bit intermediate everywhere else.
+        uint256 rawPrice;
+        if (sqrtPrice <= type(uint128).max) {
+            uint256 ratioX192 = sqrtPrice * sqrtPrice;
+            rawPrice = Math.mulDiv(ratioX192, 1e18, uint256(1) << 192);
+        } else {
+            uint256 ratioX128 = Math.mulDiv(sqrtPrice, sqrtPrice, uint256(1) << 64);
+            rawPrice = Math.mulDiv(ratioX128, 1e18, uint256(1) << 128);
+        }
         
         // Invert if needed (depends on pool token order)
-        price = rawPrice > 0 ? (1e18 * 1e18) / rawPrice : 1e15;
+        price = rawPrice > 0 ? Math.mulDiv(1e18, 1e18, rawPrice) : 1e15;
         
         if (price == 0) price = 1e15;
     }
@@ -374,7 +388,8 @@ contract EagleOVault is ERC4626, Ownable, ReentrancyGuard {
         uint256 usd1PriceUSD = getUSD1Price(); // ~1e18 = $1
         
         // WLFI per USD1 = (USD1 price) / (WLFI price)
-        return (usd1PriceUSD * 1e18) / wlfiPriceUSD;
+        if (wlfiPriceUSD == 0) return 0;
+        return Math.mulDiv(usd1PriceUSD, 1e18, wlfiPriceUSD);
     }
     
     /**
