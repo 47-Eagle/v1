@@ -77,9 +77,7 @@ docs-generated/
 docs-export/
 
 # Development and testing directories (excluded from repo)
-scripts/
 script/
-test/
 telegram-bot/
 relayer/
 monitoring/
@@ -87,6 +85,12 @@ infrastructure/
 devtools/
 tasks/
 security-reports/
+
+# forge-std is a submodule and is tracked separately
+!test/
+
+# Operational scripts are tracked (deploy/verify/burn/holder-analysis).
+# They read PRIVATE_KEY from the environment and must never embed secrets.
 
 # Test documentation and scripts (keep local only)
 ARBITRUM_*.md
